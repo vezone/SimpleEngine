@@ -1,0 +1,65 @@
+
+//
+//             WINDOW
+//
+
+enum nk_panel_flags {
+    NK_WINDOW_BORDER            = NK_FLAG(0),
+    NK_WINDOW_MOVABLE           = NK_FLAG(1),
+    NK_WINDOW_SCALABLE          = NK_FLAG(2),
+    NK_WINDOW_CLOSABLE          = NK_FLAG(3),
+    NK_WINDOW_MINIMIZABLE       = NK_FLAG(4),
+    NK_WINDOW_NO_SCROLLBAR      = NK_FLAG(5),
+    NK_WINDOW_TITLE             = NK_FLAG(6),
+    NK_WINDOW_SCROLL_AUTO_HIDE  = NK_FLAG(7),
+    NK_WINDOW_BACKGROUND        = NK_FLAG(8),
+    NK_WINDOW_SCALE_LEFT        = NK_FLAG(9),
+    NK_WINDOW_NO_INPUT          = NK_FLAG(10)
+};
+
+
+//
+//              MENU
+//
+
+if (nk_begin(ctx, "Main menu window", nk_rect(1, 1, width, 35), NK_WINDOW_BORDER))
+    {
+	nk_menubar_begin(ctx);
+	nk_layout_row_begin(ctx, NK_STATIC, 25, 5);
+	nk_layout_row_push(ctx, 45);
+	if (nk_menu_begin_label(ctx, "MENU", NK_TEXT_LEFT, nk_vec2(120, 200)))
+	{
+	    static size_t prog = 40;
+	    static int slider = 10;
+	    static int check = nk_true;
+	    nk_layout_row_dynamic(ctx, 25, 1);
+	    if (nk_menu_item_label(ctx, "Hide", NK_TEXT_LEFT))
+	    {}
+	    if (nk_menu_item_label(ctx, "About", NK_TEXT_LEFT))
+	    {}
+	    nk_progress(ctx, &prog, 100, NK_MODIFIABLE);
+	    nk_slider_int(ctx, 0, &slider, 16, 1);
+	    nk_checkbox_label(ctx, "check", &check);
+	    nk_menu_end(ctx);
+	}
+	nk_menubar_end(ctx);
+	// End MENU
+    }
+nk_end(ctx);
+
+
+//
+//			LAYOUT
+//
+
+создаем 2 колонны, 30 pixel в высоту,
+ratio - процентное соотношение, в котором делится все пространство
+const float ratio[] = {0.25, 0.75};
+nk_layout_row(ctx, NK_STATIC, 30, 2, ratio);
+
+
+15 в высоту, 2 колонны в строке
+nk_layout_row_begin(ctx, NK_STATIC, 15, 2);
+создаем новую колонну с отступом в 45 пикселей (в ширину)
+nk_layout_row_push(ctx, 45);
+

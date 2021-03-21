@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="utf-8">
+  <title>Simple Engine API</title>
+
+  <style>
+    div
+    {
+	font-size: 16pt;
+    }
+    .api-header
+    {
+	text-align: center;
+	font-size: 20pt;
+    }
+    .sub-header
+    {
+	text-align: center;
+	font-size: 18pt;
+    }
+
+  </style>
+
+ </head>
+
+ <body>
+
+   <header>
+     <a href="../Index.html"> To the start page </a>
+     <div class="api-header"> Simple Engine API </div>
+   </header>
+
+
+   <div class="sub-header"> Utils </div>
+   <div>
+     <a href="#string-id">
+       String
+     </a>
+   </div>
+   <div>
+     <a href="#string-builder-id">
+       StringBuilder
+     </a>
+   </div>
+   <div>
+     <a href="#array-id">
+       Array
+     </a>
+   </div>
+   <div>
+     <a href="#memory-allocator-id">
+       MemoryAllocator
+     </a>
+   </div>
+   <div>
+     <a href="#path-id">
+       Path
+     </a>
+   </div>
+   <div>
+     <a href="#types-id">
+       Types
+     </a>
+   </div>
+
+   <div id="string-id">
+     <p><a name="string-id"></a></p>
+     <div class="sub-header"> String content </div>
+
+     <div>
+       <div>char* istring(const char* src);</div>
+       <div>u32 istring_length(char* str);</div>
+       <div>char* vstring(const char* string);</div>
+       <div>void vstring_set(char* string, char c, u32 length);</div>
+       <div>u32 vstring_length(const char* str);</div>
+       <div>char* vstring_assign(char* str, const char* oth, u32 length);</div>
+       <div>char* vstring_copy(const char* oth, u32 length);</div>
+       <div>char* vstring_concat(char* left, char* right);</div>
+       <div>char* vstring_concat3(char* left, char* middle, char* right);</div>
+       <div>i32 vstring_compare(const char* left, const char* right);</div>
+       <div>char* vstring_to_upper(const char* input);</div>
+       <div>char* vstring_to_lower(const char* input);</div>
+       <div>i32 vstring_index_of(const char* input, char character);</div>
+       <div>i32 vstring_index_of_string(const char* input, const char* string);</div>
+       <div>i32 vstring_last_index_of(const char* input, char character);</div>
+       <div>char* vstring_substring(const char* input, i32 beginIndex);</div>
+       <div>char* vstring_substring_range(const char* input, i32 beginIndex, i32 endIndex);</div>
+       <div>char* vstring_cut(const char* input, u32 begin, u32 end);</div>
+       <div>char** vstring_split(char* input, char separator);</div>
+       <div>char* vstring_join(char** list, char joinCharacter);</div>
+       <div>void vstring_parse_i32(char* input, i32 number);</div>
+       <div>void vstring_parse_i64(char* input, i64 number);</div>
+       <div>void vstring_parse_f64(char* input, f64 number);</div>
+       <div>force_inline char vchar_to_upper(char character);</div>
+       <div>force_inline char vchar_to_lower(char character);</div>
+     </div>
+   </div>
+
+   <div id="#string-builder-id">
+     <p><a name="string-builder-id"></a></p>
+     <div class="sub-header"> String Builder content </div>
+     <div>
+       <div>
+       typedef struct StringBuilder </br>
+       { </br>
+       u32 Count; </br>
+       u32 Capacity; </br>
+       char* Buffer; </br>
+       } StringBuilder;
+       </div>
+
+       <div>void vstring_builder_init(StringBuilder* builder);</div>
+       <div>void vstring_builder_append_character(StringBuilder* builder, char character);</div>
+       <div>void vstring_builder_append_string(StringBuilder* builder, char* string);</div>
+       <div>void vstring_builder_append_format(StringBuilder* builder, const char* format, ...);</div>
+       <div>void vstring_builder_replace(StringBuilder* builder, char old_character, char new_character);</div>
+       <div>void vstring_builder_destroy(StringBuilder* builder);</div>
+       <div>void vstring_builder_test();</div>
+
+     </div>
+   </div>
+
+   <div>
+     <p><a name="array-id"></a></p>
+     <div class="sub-header"> Array content </div>
+     <div>
+       <div>
+       typedef struct BufferHeader </br>
+       { </br>
+       u64 Count; </br>
+       u64 Capacity; </br>
+       u8 Buffer[0]; </br>
+       } BufferHeader;
+       </div>
+       <div>void* array_grow(const void* array, u64 elemSize);</div>
+       <div>#define array_hdr(b)</div>
+       <div>#define array_len(b)</div>
+       <div>#define array_count(b)</div>
+       <div>#define array_cap(b)</div>
+       <div>#define array_is_init(b)</div>
+       <div>#define array_push(b, v)</div>
+       <div>#define array_free(b)</div>
+
+     </div>
+   </div>
+
+ </body>
+</html>
