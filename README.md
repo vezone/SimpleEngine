@@ -4,8 +4,7 @@
 Simple game engine written in C for 2D games creation.
 
 ## **Platforms supported**
-* GNU/Linux
-* Windows
+* GNU/Linux (Engine teste on Manjaro Linux KDE)
 
 ## **Dependencies**
 ### GNU/Linux
@@ -16,16 +15,15 @@ Simple game engine written in C for 2D games creation.
 
 #### GNU/Linux
 * git clone https://github.com/vezone/SimpleEngine
-* cd SimpleEngine/Scripts/Linux
+* cd SimpleEngine/Scripts/Linux/EngineEditor
 * ./generate_project.sh
-* ./build_script_debug.sh
+* ./build_debug.sh
 
 #### Windows (WIP)
 * git clone https://github.com/vezone/SimpleEngine
-* cd SimpleEngine/Scripts/Linux
+* cd SimpleEngine/Scripts/Windows/EngineEditor
 * ./generate_project.bat
-* ./build_script_debug.bat
-
+* ./build_debug.bat
 
 ## **Features**
 
