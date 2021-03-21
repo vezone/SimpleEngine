@@ -1,3 +1,24 @@
+#Bin directories
+bin/
+Dependencies/glad/bin/
+Dependencies/GLFW/bin/
+
+#Makefiles
+Makefile
+Engine/Makefile
+EngineEditor/Makefile
+SandboxApp/Makefile
+Dependencies/glad/Makefile
+Dependencies/GLFW/Makefile
+Dependencies/glad/Makefile
+
+valgrind
+vgcore.*
+
+#Emacs backup files
+*.c#
+*.h#
+
 # Prerequisites
 *.d
 
