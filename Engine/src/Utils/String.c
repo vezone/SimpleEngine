@@ -18,7 +18,7 @@ typedef struct InterningString
 
 static InterningString* g_InterningStrings = NULL;
 
-char*
+const char*
 istring(const char* src)
 {
     vassert(src);

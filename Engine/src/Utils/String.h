@@ -3,7 +3,7 @@
 
 #include "Types.h"
 
-char* istring(const char* src);
+const char* istring(const char* src);
 u32 istring_length(char* str);
 
 char* vstring(const char* string);

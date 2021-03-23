@@ -42,7 +42,7 @@ get_component_data(World* world, void* data, i32 count, ...)
 
     ComponentStorage* storage = &world->Storage;
 
-    va_start(components, number);
+    va_start(components, count);
 
     for (i32 i = 0; i < count; i++)
     {
@@ -84,7 +84,100 @@ get_component_data(World* world, void* data, i32 count, ...)
 
 */
 
-void ecs_init_test()
+void
+world_init_test()
+{
+    World world;
+    world_init(&world);
+
+    Condition(world.Id == 0);
+    Condition(world.LastEntityId == ENTITIES_FIRST_ID);
+    Condition(world.Archetypes == NULL);
+    Condition(world.ArchetypesStorage == NULL);
+    Condition(world.Storage.NameToId == NULL);
+    Condition(world.Storage.IdToName == NULL);
+    Condition(world.Storage.IdToSize == NULL);
+    Condition(world.Storage.Components == NULL);
+    Condition(world.Storage.LastId == COMPONENTS_FIRST_ID);
+}
+
+void
+ecs_register_component_test()
+{
+    World world;
+    world_init(&world);
+    ECS_REGISTER_COMPONENT(&world, A);
+    ECS_REGISTER_COMPONENT(&world, B);
+    ECS_REGISTER_COMPONENT(&world, C);
+    ECS_REGISTER_COMPONENT(&world, D);
+
+    Condition(ECS_IS_TYPE_REGISTERED_AS_COMPONENT(&world, A) == 1);
+    Condition(ECS_IS_TYPE_REGISTERED_AS_COMPONENT(&world, B) == 1);
+    Condition(ECS_IS_TYPE_REGISTERED_AS_COMPONENT(&world, C) == 1);
+    Condition(ECS_IS_TYPE_REGISTERED_AS_COMPONENT(&world, D) == 1);
+}
+
+void
+ecs_get_component_id_by_type_test()
+{
+    World world;
+    world_init(&world);
+    ECS_REGISTER_COMPONENT(&world, A);
+    ECS_REGISTER_COMPONENT(&world, B);
+
+    u32 aId = ECS_GET_COMPONENT_ID_BY_TYPE(&world, A);
+    u32 bId = ECS_GET_COMPONENT_ID_BY_TYPE(&world, B);
+
+    Condition(ECS_GET_COMPONENT_ID_BY_TYPE(&world, A) == COMPONENTS_FIRST_ID);
+    Condition(ECS_GET_COMPONENT_ID_BY_TYPE(&world, B) == (COMPONENTS_FIRST_ID + 1));
+}
+
+void
+ecs_entity_add_component_test()
+{
+    World world;
+    world_init(&world);
+    ECS_REGISTER_COMPONENT(&world, A);
+    ECS_REGISTER_COMPONENT(&world, B);
+
+    u64 playerId;
+    ECS_ENTITY_CREATE(&world, &playerId);
+
+    Condition(playerId == ENTITIES_FIRST_ID);
+    Condition(ECS_IS_ENTITY_REGISTERED(&world, playerId) == 1);
+
+    Condition(ENTITY_HAS_COMPONENT(&world, playerId, A) != 1);
+    Condition(ENTITY_HAS_COMPONENT(&world, playerId, B) != 1);
+
+    ECS_ENTITY_ADD_COMPONENT(&world, playerId, A);
+    Condition(ENTITY_HAS_COMPONENT(&world, playerId, A) == 1);
+    ECS_ENTITY_ADD_COMPONENT(&world, playerId, B);
+    Condition(ENTITY_HAS_COMPONENT(&world, playerId, B) == 1);
+
+
+    i32* components = _ecs_entity_get_components(&world, playerId);
+}
+
+//TODO(bies): need to check archetype creation
+void
+ecs_archetype_check()
+{
+#if 0
+    //TODO(bies): remove this in the future
+    //CHECK
+    i32 isAdded = hmgeti(world->ArchetypesStorage, entityId);
+    GERROR("IS ADDED: %d\n", isAdded);
+    ComponentID* comps = _ecs_entity_get_components(world, entityId);
+    GERROR("Component's: %s\n", comps == NULL?"NULL":"NOT NULL");
+    for (i32 i = 0; i < array_count(comps); i++)
+    {
+	GERROR("Component: %d\n", comps[i]);
+    }
+#endif
+}
+
+void
+ecs_init_test()
 {
     World world;
     world_init(&world);
@@ -100,10 +193,8 @@ void ecs_init_test()
     memcpy(data, &a, sizeof(A));
     memcpy(data + sizeof(A), &b, sizeof(B));
 
-    u32 aId = 0;
-    u32 bId = 0;
-    ECS_GET_COMPONENT_ID_BY_TYPE(&world, A, &aId);
-    ECS_GET_COMPONENT_ID_BY_TYPE(&world, B, &bId);
+    u32 aId = ECS_GET_COMPONENT_ID_BY_TYPE(&world, A);
+    u32 bId = ECS_GET_COMPONENT_ID_BY_TYPE(&world, B);
 
     GWARNING("AId: %d, BId: %d\n", aId, bId);
 
@@ -119,10 +210,25 @@ void ecs_init_test()
     ECS_ENTITY_CREATE(&world, &playerId);
     ECS_ENTITY_ADD_COMPONENT(&world, playerId, A);
 
+    i32* components = _ecs_entity_get_components(&world, playerId);
+    GERROR("component's count: %d\n", array_count(components));
+    for (i32 i = 0; i < array_count(components); i++)
+    {
+	char* name = ECS_GET_COMPONENT_NAME_BY_ID(&world, components[i]);
+	GWARNING("component id: %d, name: %s\n", components[i], name);
+    }
+
     GWARNING("Entity Player Id: %ld\n", playerId);
 }
 
 void ecs_test()
 {
+    TEST(world_init_test());
+    TEST(ecs_register_component_test());
+    TEST(ecs_get_component_id_by_type_test());
+    TEST(ecs_entity_add_component_test());
+
+    TEST(ecs_archetype_check());
+
     TEST(ecs_init_test());
 }

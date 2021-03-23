@@ -132,15 +132,12 @@ void simple_test_on_ui()
     static bool isTestPanelOpen = 1;
     //igShowDemoWindow(&isDemoOpen);
 
-#if 1
-    //if no errors -> ImGuiWindowFlags_None
     char** fileNames = test_get_filenames();
     i32 length = array_len(fileNames);
 
     static char* testText = "No text";
     if (igBegin("Test's", &isTestPanelOpen, ImGuiWindowFlags_None))
     {
-	//toggle buttons here
 	i32 state = 0;
 	igToggleButton("E", ImVec2(25, 25), &state);
 	TestInfo testInfo = test_get_info();
@@ -153,19 +150,16 @@ void simple_test_on_ui()
 		FileInfo* fileInfo = file_get_info(fileNames[i]);
 		if (!fileInfo || !fileInfo->Functions)
 		{
-		    //GERROR("Function is NULL\n");
 		    continue;
 		}
 
 		i32 functionsCount = array_len(fileInfo->Functions);
 		for (i32 r = 0; r < functionsCount; r++)
 		{
-		    //FIXME(bies): shget() table can't get big string for key value
 		    char* functionName = fileInfo->Functions[r];
 		    FunctionResult* functionResult =  file_info_get_function_result(fileInfo, functionName);
 		    if (!functionName || !functionResult)
 		    {
-			//GERROR("Function name or function result equals NULL!\n");
 			continue;
 		    }
 
@@ -197,7 +191,6 @@ void simple_test_on_ui()
 		    igPushStyleColorVec4(ImGuiCol_ButtonActive, ImVec4(redVal, greenVal + 0.2f, blueVal + 0.2f, 1.0f));
 		    if (igButton(functionName, ImVec2(0, 0)))
 		    {
-			//GERROR("Clicked!\n");
 			testText = functionResult->Builder.Buffer;
 		    }
 
@@ -216,7 +209,6 @@ void simple_test_on_ui()
 	igText(testText);
 	igEnd();
     }
-#endif
 }
 
 void simple_test_on_destroy()

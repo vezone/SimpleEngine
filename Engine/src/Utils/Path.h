@@ -36,8 +36,8 @@ enum Path
 #endif
 
 //should we intern all the stuff here?
-char* path_get_filename(const char* path);
-char* path_get_filename_interning(const char* path);
+const char* path_get_filename(const char* path);
+const char* path_get_filename_interning(const char* path);
 
 #ifdef LINUX_PLATFORM
 
@@ -89,13 +89,13 @@ path_get_extension(char* path)
     return extension;
 }
 
-force_inline char*
+force_inline const char*
 path_combine(char* left, char* right)
 {
     char* str = vstring_concat3(left, "/", right);
-    char* istr = istring(str);
+    const char* istr = istring(str);
     memory_free(str);
-    return vstring_concat3(left, "/", right);
+    return istr;
 }
 
 force_inline char*

@@ -5,8 +5,8 @@
 
 typedef struct BufferHeader
 {
-    u64 Count;
-    u64 Capacity;
+    i32 Count;
+    i32 Capacity;
     u8 Buffer[0];
 } BufferHeader;
 
@@ -18,7 +18,7 @@ typedef struct BufferHeader
   #define offset(type, mem) (size_t) &(((type*)0)->mem)
 */
 
-void* array_grow(const void* array, u64 elemSize);
+void* array_grow(const void* array, i32 elemSize);
 
 #define array_hdr(b) ((BufferHeader*) (((u8*)b) - sizeof(BufferHeader)))
 #define array_len(b) ((b != NULL) ? array_hdr(b)->Count : 0)

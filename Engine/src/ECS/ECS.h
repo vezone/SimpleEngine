@@ -18,9 +18,14 @@
 #define COMPONENTS_LAST_ID 255
 #define INTERNAL_FIRST_ID 256
 #define INTERNAL_LAST_ID 511
-#define IS_COMPONENT_ID_VALID(id) (id >= COMPONENTS_FIRST_ID && id <= COMPONENTS_LAST_ID)
+#define IS_COMPONENT_ID_VALID(id) ((id) >= COMPONENTS_FIRST_ID && (id) <= COMPONENTS_LAST_ID)
 #define ENTITIES_FIRST_ID 512
-#define ENTITIES_LAST_ID U64_MAX
+#define ENTITIES_LAST_ID I32_MAX
+#define IS_ENTITY_ID_VALID(id) ((id) >= ENTITIES_FIRST_ID && (id) <= ENTITIES_LAST_ID)
+
+typedef i32 EntityID;
+typedef i32 ComponentID;
+typedef i32 WorldID;
 
 /*
 World
@@ -37,44 +42,72 @@ typedef struct ComponentData
 
 typedef struct ComponentStorageData
 {
-    u32 key;
+    ComponentID key;
     ComponentData value;
 } ComponentStorageData;
 
 typedef struct ComponentStorage
 {
     struct { char* key; u32 value; }* NameToId;
+    struct { ComponentID key; char* value; }* IdToName;
+    struct { ComponentID key; u32 value; }* IdToSize;
+    //TODO(bies): remove this in the future
     ComponentStorageData* Components;
-    u32 LastId;
+    ComponentID LastId;
 } ComponentStorage;
 
 typedef struct Archetype
 {
-    u32* Components;
     void* Data;
+    ComponentID* Components;
+    u32 Size;
+    u32 Capacity;
+    u32 ComponentsSize;
 } Archetype;
+
+typedef struct ArchetypeRecord
+{
+    Archetype* Archetype;
+    u32 Offset;
+} ArchetypeRecord;
+
+typedef struct ArchetypeStorage
+{
+    EntityID key;
+    ArchetypeRecord value;
+} ArchetypeStorage;
 
 typedef struct World
 {
-    u64 Id;
+    WorldID Id;
     //Entity related stuff
-    u64 LastEntityId;
-    Archetype* Archetypes;
+    EntityID LastEntityId;
+    Archetype** Archetypes;
+    ArchetypeStorage* ArchetypesStorage;
     ComponentStorage Storage;
 } World;
 
-u32 _ecs_component_get_id_by_type(World* world, const char* componentName, u32* componentId);
+ComponentID _ecs_get_component_id_by_type(World* world, const char* componentName);
+char* _ecs_get_component_name_by_id(World* world, ComponentID componentId);
+i32 _ecs_get_archetype_index(World* world, ComponentID* componentsId);
+i8 _ecs_is_type_registered_as_component(World* world, const char* componentName);
+i8 _entity_has_component(World* world, EntityID entityId, const char* componentName);
 
 void _ecs_register_component(World* world, const char* componentName, u32 componentSize);
-void _ecs_register_archetype(World* world, u32* componentsId);
-i32 _ecs_get_archetype_index(World* world, u32* componentsId);
+Archetype* _ecs_register_archetype(World* world, ComponentID* componentsId);
 
-u32* _ecs_entity_get_components(World* world, u32 entityId);
+ComponentID* _ecs_entity_get_components(World* world, EntityID entityId);
+void _ecs_entity_add_component(World* world, EntityID entityId, const char* componentName);
+void _ecs_entity_register_archetype(World* world, EntityID entityId, Archetype* archetype);
 
-#define ECS_GET_COMPONENT_ID_BY_TYPE(world, component, componentId) \
-    { \
-	_ecs_component_get_id_by_type((world), #component, componentId); \
-    }
+#define ECS_GET_COMPONENT_ID_BY_TYPE(world, component) _ecs_get_component_id_by_type((world), #component)
+#define ECS_GET_COMPONENT_NAME_BY_ID(world, componentId)  _ecs_get_component_name_by_id((world), componentId);
+
+
+#define ECS_IS_ENTITY_REGISTERED(world, entityId) (IS_ENTITY_ID_VALID(entityId) && entityId <= (world)->LastEntityId)
+#define ENTITY_HAS_COMPONENT(world, entityId, type) (_entity_has_component((world), entityId, #type))
+#define ECS_IS_TYPE_REGISTERED_AS_COMPONENT(world, type)  (shgeti((world)->Storage.NameToId, #type) != -1)
+
 
 #define ECS_REGISTER_COMPONENT(world, component) \
     { \
@@ -91,20 +124,7 @@ u32* _ecs_entity_get_components(World* world, u32 entityId);
 
 #define ECS_ENTITY_ADD_COMPONENT(world, entityId, component) \
     { \
-	 World* worldPtr = (world); \
-	 u32* componentsId = _ecs_entity_get_components(worldPtr, entityId); \
-	 u32 componentId; \
-	 _ecs_component_get_id_by_type(worldPtr, #component, &componentId); \
-	 array_push(componentsId, componentId); \
-	 i32 index = _ecs_get_archetype_index(worldPtr, componentsId); \
-	 if (index != -1) \
-	 {\
-	     Archetype archetype = worldPtr->Archetypes[index]; \
-	 }\
-	 else\
-	 {\
-	     _ecs_register_archetype(worldPtr, componentsId);\
-	 }\
+	 _ecs_entity_add_component((world), entityId, #component); \
     }
 
 void world_init(World* world);

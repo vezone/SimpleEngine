@@ -4,14 +4,14 @@
 #include "MemoryAllocator.h"
 
 void*
-array_grow(const void* array, u64 elemSize)
+array_grow(const void* array, i32 elemSize)
 {
     BufferHeader* newHeader = NULL;
 
     if (array != NULL)
     {
-	u64 newCapacity = 2 * array_cap(array) + 1;
-	u64 newSize = newCapacity * elemSize + sizeof(BufferHeader);
+	u32 newCapacity = 2 * array_cap(array) + 1;
+	u32 newSize = newCapacity * elemSize + sizeof(BufferHeader);
 	BufferHeader* header = array_hdr(array);
 	newHeader = (BufferHeader*) memory_reallocate(header, newSize);
 	newHeader->Capacity = newCapacity;

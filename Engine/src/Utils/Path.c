@@ -26,7 +26,7 @@ path_get_prev_directory(char* currentDirectory)
 	    index--;
 	}
 	char* prevDirectoryPath = vstring_substring_range(currentDirectory, 0, index);
-	char* iprevDirectoryPath = istring(prevDirectoryPath);
+	const char* iprevDirectoryPath = istring(prevDirectoryPath);
 	memory_free(prevDirectoryPath);
 	return iprevDirectoryPath;
     }
@@ -34,7 +34,7 @@ path_get_prev_directory(char* currentDirectory)
     return NULL;
 }
 
-char*
+const char*
 path_get_filename(const char* path)
 {
     i32 index = vstring_last_index_of(path, '/');
@@ -47,12 +47,12 @@ path_get_filename(const char* path)
     return istring(path);
 }
 
-char*
+const char*
 path_get_filename_interning(const char* path)
 {
     i32 index = vstring_last_index_of(path, '/');
     assert(index != -1);
-    char* iPath = istring(path + index + 1);
+    const char* iPath = istring(path + index + 1);
     return iPath;
 }
 
@@ -93,9 +93,8 @@ internal_directory_get(char* directory, u8 elemCode)
     while (n--)
     {
 	char* absolutePath = path_combine(directory, namelist[n]->d_name);
-	char* iAbsolutePath = istring(absolutePath);
+	const char* iAbsolutePath = istring(absolutePath);
 	char* iPath = istring(namelist[n]->d_name);
-	//NOTE(bies): path doesn't work
 	if (path(iAbsolutePath) == elemCode)
 	{
 	    array_push(elements, iPath);
