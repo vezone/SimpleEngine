@@ -10,8 +10,8 @@
 typedef struct ShaderSource
 {
     char* name;
-    char* vertex_shader;
-    char* fragment_shader;
+    const char* vertex_shader;
+    const char* fragment_shader;
 } ShaderSource;
 
 typedef struct UniformTableType

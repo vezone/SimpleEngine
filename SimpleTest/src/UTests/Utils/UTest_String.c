@@ -102,7 +102,7 @@ vstring_split_test()
 static void
 vstring_join_test()
 {
-    char** list = NULL;
+    const char** list = NULL;
     array_push(list, "Hello");
     array_push(list, "it");
     array_push(list, "is");
@@ -118,7 +118,7 @@ istring_test()
 {
     Condition(istring("This is string") == istring("This is string"));
 
-    char* istr = istring("Interning string");
+    const char* istr = istring("Interning string");
     u32 length = istring_length(istr);
     Condition(istring_length(istr) == 16);
     Condition(length);

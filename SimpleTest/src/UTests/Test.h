@@ -17,39 +17,38 @@ typedef struct FunctionResult
 
 typedef struct FileInfo
 {
-    char** Functions;
+    const char** Functions;
     FunctionResult** Results;
 } FileInfo;
 
 typedef struct TestTable
 {
-    char** Filenames;
+    const char** Filenames;
     FileInfo** Infos;
 } TestTable;
 
 FunctionResult* file_info_get_function_result(FileInfo* fileInfo, const char* functionName);
-FileInfo* test_table_get_file_info(TestTable* testTable, char* filename);
+FileInfo* test_table_get_file_info(TestTable* testTable, const char* filename);
 void test_set_function(const char* function);
 void test(i8 testResult, const char* filename, const char* message);
-FileInfo* file_get_info(char* filename);
-char** test_get_filenames();
+FileInfo* file_get_info(const char* filename);
+const char** test_get_filenames();
 
 #define Condition(condition) { i8 temp = (condition); test(temp, __FILE__, #condition); }
-
 
 // USAGE: String_IsEqual(vstring_copy("It's a string"), "It's a string")
 #define String_IsEquals(a, b) { i8 temp = vstring_compare((a), (b)); test(temp, __FILE__, #a" == "#b); }
 #define String_IsNotEquals(a, b) { i8 temp = vstring_compare((a), (b)); test(!temp, __FILE__, #a" != "#b); }
 #define String_Value(str) test((str ? 1 : 0), __FILE__, (str ? str : "NULL"))
-#define String_List_Value(list, joinCharacter) test((array_len(list) ? 1 : 0), __FILE__, (list ? vstring_join(list, joinCharacter) : "EMPTY"))
+#define String_List_Value(list, joinCharacter) test((array_count(list) ? 1 : 0), __FILE__, (list ? vstring_join(list, joinCharacter) : "EMPTY"))
 
 #define Int_Value(val)					\
     {							\
 	char str[50];					\
 	vstring_set(str, '\0', 50);			\
-	vstring_parse_i32(str, val);			\
+	vstring_parse_i32(str, (val));			\
 	char* res = vstring_concat(#val": ", str);	\
-	test((!!val), __FILE__, res);			\
+	test(1, __FILE__, res);				\
     }
 
 #define TEST(function)					\

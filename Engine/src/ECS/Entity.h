@@ -3,10 +3,7 @@
 
 #include <Utils/Types.h>
 
-typedef struct Entity
-{
-    char Name[64];
-    u64 Id;
-} Entity;
+typedef i32 EntityID;
+
 
 #endif

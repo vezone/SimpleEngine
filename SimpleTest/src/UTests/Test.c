@@ -6,7 +6,7 @@
 
 static i8 g_IsInitialized = 0;
 static TestTable g_TestTable;
-static char* g_CurrentFunction;
+const char* g_CurrentFunction;
 static TestInfo g_TestInfo;
 
 void
@@ -36,7 +36,7 @@ file_info_get_function_result(FileInfo* fileInfo, const char* functionName)
 }
 
 void
-file_info_add_function_result(FileInfo* fileInfo, char* functionName, i32 code, const char* message)
+file_info_add_function_result(FileInfo* fileInfo, const char* functionName, i32 code, const char* message)
 {
     FunctionResult* functionResult = file_info_get_function_result(fileInfo, functionName);
     if (functionResult)
@@ -75,7 +75,7 @@ file_info_add_function_result(FileInfo* fileInfo, char* functionName, i32 code, 
 }
 
 FileInfo*
-test_table_get_file_info(TestTable* testTable, char* filename)
+test_table_get_file_info(TestTable* testTable, const char* filename)
 {
     i32 i;
     i32 filesCount = array_len(testTable->Filenames);
@@ -92,7 +92,7 @@ test_table_get_file_info(TestTable* testTable, char* filename)
 }
 
 void
-test_table_add_file_info(TestTable* testTable, char* filename, i8 code, const char* message)
+test_table_add_file_info(TestTable* testTable, const char* filename, i8 code, const char* message)
 {
     FileInfo* fileInfo = test_table_get_file_info(testTable, filename);
     if (fileInfo != NULL)
@@ -122,9 +122,7 @@ test(i8 code, const char* filename, const char* message)
     vassert(filename);
     vassert(message);
 
-    // GWARNING("Result: %d, Filename: %s, Message: %s, FunctionName: %s\n", code, filename, message, g_CurrentFunction);
-
-    char* ifilename = path_get_filename_interning(filename);
+    const char* ifilename = path_get_filename_interning(filename);
     vassert(ifilename);
 
     if (!g_IsInitialized)
@@ -141,7 +139,7 @@ test(i8 code, const char* filename, const char* message)
 }
 
 FileInfo*
-file_get_info(char* filename)
+file_get_info(const char* filename)
 {
     vassert(filename);
 
@@ -149,7 +147,7 @@ file_get_info(char* filename)
     return value;
 }
 
-char**
+const char**
 test_get_filenames()
 {
     return g_TestTable.Filenames;

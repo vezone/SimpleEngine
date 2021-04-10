@@ -36,18 +36,19 @@ enum Path
 #endif
 
 //should we intern all the stuff here?
-const char* path_get_filename(const char* path);
+char* path_get_filename(const char* path);
 const char* path_get_filename_interning(const char* path);
 
 #ifdef LINUX_PLATFORM
 
 char* path_get_current_directory();
-char* path_get_prev_directory(char* currentDirectory);
+char* path_get_prev_directory(const char* currentDirectory);
+const char* path_get_prev_directory_interning(const char* currentDirectory);
 
 static struct passwd* g_UserInfo = NULL;
 
 force_inline u8
-path(char* path)
+path(const char* path)
 {
     struct stat fileInfo;
 
@@ -81,7 +82,7 @@ path_get_home_directory()
 }
 
 force_inline char*
-path_get_extension(char* path)
+path_get_extension(const char* path)
 {
     i32 extensionIndex = vstring_last_index_of(path, '.');
     u32 length = vstring_length(path) - 1;
@@ -89,13 +90,20 @@ path_get_extension(char* path)
     return extension;
 }
 
-force_inline const char*
-path_combine(char* left, char* right)
+force_inline char*
+path_combine(const char* left, const char* right)
 {
     char* str = vstring_concat3(left, "/", right);
-    const char* istr = istring(str);
-    memory_free(str);
-    return istr;
+    return str;
+}
+
+force_inline const char*
+path_combine_interning(const char* left, const char* right)
+{
+    char* path = path_combine(left, right);
+    const char* iPath = istring(path);
+    memory_free(path);
+    return iPath;
 }
 
 force_inline char*
@@ -106,8 +114,8 @@ path_get_absolute(char* path)
     return absolutePath;
 }
 
-char** directory_get_files(char* directory);
-char** directory_get_directories(char* directory);
+const char** directory_get_files(const char* directory);
+const char** directory_get_directories(const char* directory);
 
 #elif WINDOWS_PLATFORM
 #error "Not implimented!"

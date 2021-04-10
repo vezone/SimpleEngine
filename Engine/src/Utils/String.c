@@ -54,7 +54,7 @@ istring(const char* src)
 }
 
 u32
-istring_length(char* str)
+istring_length(const char* str)
 {
     for (i32 i = 0; i < array_len(g_InterningStrings); i++)
     {
@@ -113,7 +113,7 @@ vstring_copy(const char* oth, u32 length)
 }
 
 char*
-vstring_concat(char* left, char* right)
+vstring_concat(const char* left, const char* right)
 {
     u32 leftLength = vstring_length(left);
     u32 rightLength = vstring_length(right);
@@ -128,7 +128,7 @@ vstring_concat(char* left, char* right)
 }
 
 char*
-vstring_concat3(char* left, char* middle, char* right)
+vstring_concat3(const char* left, const char* middle, const char* right)
 {
     u32 leftLength = vstring_length(left);
     u32 middleLength = vstring_length(middle);
@@ -433,15 +433,15 @@ vstring_split(char* input, char splitCharacter)
 }
 
 char*
-vstring_join(char** list, char joinCharacter)
+vstring_join(const char** list, char joinCharacter)
 {
     u32 i;
     u32 length;
     u32 finalLength;
     u32 curLength = 0;
-    char* finalString;
-    char* str;
     u32 strLength;
+    char* finalString;
+    const char* str;
 
     vassert(list);
     length = array_len(list);

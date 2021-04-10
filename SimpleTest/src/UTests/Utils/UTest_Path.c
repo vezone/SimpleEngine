@@ -27,27 +27,25 @@ path_get_extension_test()
 static void
 path_get_prev_directory_test()
 {
-    String_IsEquals(path_get_prev_directory( "/path/to/current/directory"), "/path/to/current");
+    const char* prev = (const char*) path_get_prev_directory( "/path/to/current/directory");
+    String_IsEquals(prev, "/path/to/current");
 
-    char* prev = path_get_prev_directory("/path/to/current/directory");
+    prev = (const char*) path_get_prev_directory("/path/to/current/directory");
     String_Value(prev);
-
-    prev = path_get_prev_directory(prev);
+    prev = (const char*) path_get_prev_directory(prev);
     String_Value(prev);
-
-    prev = path_get_prev_directory(prev);
+    prev = (const char*) path_get_prev_directory(prev);
     String_Value(prev);
-    prev = path_get_prev_directory(prev);
+    prev = (const char*) path_get_prev_directory(prev);
     String_Value(prev);
-
-    prev = path_get_prev_directory(prev);
+    prev = (const char*) path_get_prev_directory(prev);
     Condition(prev == NULL);
 }
 
 static void
 path_combine_test()
 {
-    String_IsEquals(path_combine("path/to", "file"), "path/to/file");
+    String_IsEquals((const char*) path_combine_interning("path/to", "file"), "path/to/file");
 }
 
 static void
@@ -62,37 +60,25 @@ path_absolute_test()
 static void
 directory_get_files_test()
 {
-    char** files;
-
-    //files = directory_get_files(path_get_current_directory());
-    //Condition(array_len(files) > 0);
-    //String_List_Value(files, '\n');
-    //array_free(files);
-
     char* path = ".";
-    files = directory_get_files(path);
+    const char** files = directory_get_files(path);
+
     Condition(array_len(files) > 0);
     String_List_Value(files, '\n');
+
     array_free(files);
 }
 
 static void
 directory_get_directories_test()
 {
-    char** dirs;
-    //dirs = directory_get_directories(path_get_current_directory());
-    //Condition(array_len(dirs) > 0);
-    //String_List_Value(dirs, '\n');
-    //array_free(dirs);
+    const char* path = "/home/bies/Data/programming/C";
+    const char** dirs = directory_get_directories(path);
 
-    // . - current directory .. - prev directory
-    // "./CTPL/"
-    // "../CTPL/"
-    char* path = "/home/bies/Data/programming/C";
-    dirs =  directory_get_directories(path);
     Condition(array_len(dirs) > 0);
     Int_Value(array_len(dirs));
     String_List_Value(dirs, '\n');
+
     array_free(dirs);
 }
 

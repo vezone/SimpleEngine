@@ -4,15 +4,15 @@
 #include "Types.h"
 
 const char* istring(const char* src);
-u32 istring_length(char* str);
+u32 istring_length(const char* str);
 
 char* vstring(const char* string);
 void vstring_set(char* string, char c, u32 length);
 u32 vstring_length(const char* str);
 char* vstring_assign(char* str, const char* oth, u32 length);
 char* vstring_copy(const char* oth, u32 length);
-char* vstring_concat(char* left, char* right);
-char* vstring_concat3(char* left, char* middle, char* right);
+char* vstring_concat(const char* left, const char* right);
+char* vstring_concat3(const char* left, const char* middle, const char* right);
 /*
 compare logic:
 *  0 - means left != rigth
@@ -30,7 +30,7 @@ char* vstring_cut(const char* input, u32 begin, u32 end);
 
 char** vstring_split(char* input, char separator);
 
-char* vstring_join(char** list, char joinCharacter);
+char* vstring_join(const char** list, char joinCharacter);
 
 void vstring_parse_i32(char* input, i32 number);
 void vstring_parse_i64(char* input, i64 number);

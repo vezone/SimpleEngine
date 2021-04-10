@@ -40,22 +40,6 @@ typedef struct ComponentData
     u32 Size;
 } ComponentData;
 
-typedef struct ComponentStorageData
-{
-    ComponentID key;
-    ComponentData value;
-} ComponentStorageData;
-
-typedef struct ComponentStorage
-{
-    struct { char* key; u32 value; }* NameToId;
-    struct { ComponentID key; char* value; }* IdToName;
-    struct { ComponentID key; u32 value; }* IdToSize;
-    //TODO(bies): remove this in the future
-    ComponentStorageData* Components;
-    ComponentID LastId;
-} ComponentStorage;
-
 typedef struct Archetype
 {
     void* Data;
@@ -77,6 +61,14 @@ typedef struct ArchetypeStorage
     ArchetypeRecord value;
 } ArchetypeStorage;
 
+typedef struct ComponentStorage
+{
+    struct { const char* key; u32 value; }* NameToId;
+    struct { ComponentID key; const char* value; }* IdToName;
+    struct { ComponentID key; u32 value; }* IdToSize;
+    ComponentID LastId;
+} ComponentStorage;
+
 typedef struct World
 {
     WorldID Id;
@@ -87,46 +79,55 @@ typedef struct World
     ComponentStorage Storage;
 } World;
 
-ComponentID _ecs_get_component_id_by_type(World* world, const char* componentName);
-char* _ecs_get_component_name_by_id(World* world, ComponentID componentId);
-i32 _ecs_get_archetype_index(World* world, ComponentID* componentsId);
+/*
+  ECS INTERNAL
+*/
+ComponentID _ecs_get_component_id_by_name(World* world, const char* componentName);
+const char* _ecs_get_component_name_by_id(World* world, ComponentID componentId);
+i32 _ecs_is_archetype_registered(World* world, ComponentID* componentsId);
+Archetype* _ecs_get_archetype(World* world, ComponentID* components, u32 size);
 i8 _ecs_is_type_registered_as_component(World* world, const char* componentName);
-i8 _entity_has_component(World* world, EntityID entityId, const char* componentName);
-
 void _ecs_register_component(World* world, const char* componentName, u32 componentSize);
 Archetype* _ecs_register_archetype(World* world, ComponentID* componentsId);
+ArchetypeRecord _ecs_get_archetype_record(World* world, EntityID entityId);
 
-ComponentID* _ecs_entity_get_components(World* world, EntityID entityId);
+/*
+  ENTITY RELATED
+ */
+
+force_inline EntityID
+_ecs_entity_create(World* world)
+{
+    EntityID entityId = world->LastEntityId;
+    ++world->LastEntityId;
+    return entityId;
+}
+
+i8 _ecs_entity_has_component(World* world, EntityID entityId, const char* componentName);
+ComponentID* _ecs_entity_get_components_id(World* world, EntityID entityId);
 void _ecs_entity_add_component(World* world, EntityID entityId, const char* componentName);
+void* _ecs_entity_get_component(World* world, EntityID entityId, const char* componentName);
+void _ecs_entity_set_component(World* world, EntityID entityId, const char* componentName, u32 componentSize, void* value);
 void _ecs_entity_register_archetype(World* world, EntityID entityId, Archetype* archetype);
 
-#define ECS_GET_COMPONENT_ID_BY_TYPE(world, component) _ecs_get_component_id_by_type((world), #component)
+/*
+  ECS PUBLIC API
+*/
+
+World* world_create();
+
+#define ECS_REGISTER_COMPONENT(world, component) _ecs_register_component((world), #component, sizeof(component))
+#define ECS_GET_COMPONENT_ID_BY_TYPE(world, component) _ecs_get_component_id_by_name((world), #component)
 #define ECS_GET_COMPONENT_NAME_BY_ID(world, componentId)  _ecs_get_component_name_by_id((world), componentId);
 
-
-#define ECS_IS_ENTITY_REGISTERED(world, entityId) (IS_ENTITY_ID_VALID(entityId) && entityId <= (world)->LastEntityId)
-#define ENTITY_HAS_COMPONENT(world, entityId, type) (_entity_has_component((world), entityId, #type))
+#define WORLD_HAS_ENTITY(world, entityId) (IS_ENTITY_ID_VALID(entityId) && entityId <= (world)->LastEntityId)
 #define ECS_IS_TYPE_REGISTERED_AS_COMPONENT(world, type)  (shgeti((world)->Storage.NameToId, #type) != -1)
 
 
-#define ECS_REGISTER_COMPONENT(world, component) \
-    { \
-	const char* componentName = #component; \
-	_ecs_register_component((world), componentName, sizeof(component)); \
-    }
-
-#define ECS_ENTITY_CREATE(world, entityIdPtr)	\
-    {						\
-	World* worldPtr = (world);		\
-	*(entityIdPtr) = worldPtr->LastEntityId;\
-	++worldPtr->LastEntityId;		\
-    }
-
-#define ECS_ENTITY_ADD_COMPONENT(world, entityId, component) \
-    { \
-	 _ecs_entity_add_component((world), entityId, #component); \
-    }
-
-void world_init(World* world);
+#define ECS_ENTITY_CREATE(world) _ecs_entity_create((world))
+#define ECS_ENTITY_ADD_COMPONENT(world, entityId, type) _ecs_entity_add_component((world), entityId, #type)
+#define ECS_ENTITY_GET_COMPONENT(world, entityId, type)	(type*)(_ecs_entity_get_component((world), entityId, #type))
+#define ECS_ENTITY_SET_COMPONENT(world, entityId, type, value) _ecs_entity_set_component((world), entityId, #type, sizeof(type), ((void*)&(value)))
+#define ECS_ENTITY_HAS_COMPONENT(world, entityId, type) (_ecs_entity_has_component((world), entityId, #type))
 
 #endif

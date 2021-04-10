@@ -5,8 +5,12 @@
 
 static u64 g_WorldsCount = 0;
 
+/*
+  ECS INTERNAL
+*/
+
 ComponentID
-_ecs_get_component_id_by_type(World* world, const char* componentName)
+_ecs_get_component_id_by_name(World* world, const char* componentName)
 {
     ComponentStorage* storage = &world->Storage;
     i32 isComponentAlreadyRegistered = shgeti(storage->NameToId, componentName);
@@ -19,13 +23,13 @@ _ecs_get_component_id_by_type(World* world, const char* componentName)
     return componentId;
 }
 
-char*
+const char*
 _ecs_get_component_name_by_id(World* world, ComponentID componentId)
 {
     ComponentStorage* storage = &world->Storage;
-    if (hmgeti(storage->IdToName, componentId))
+    if (hmgeti(storage->IdToName, componentId) != -1)
     {
-	char* componentName = hmget(storage->IdToName, componentId);
+	const char* componentName = hmget(storage->IdToName, componentId);
 	return componentName;
     }
 
@@ -33,20 +37,115 @@ _ecs_get_component_name_by_id(World* world, ComponentID componentId)
     return NULL;
 }
 
+Archetype*
+_ecs_get_archetype(World* world, ComponentID* components, u32 size)
+{
+    i32 containsAllComponents;
+    i32 archetypeCount = array_count(world->Archetypes);
+    i32 componentsCount = array_count(components);
+
+    for (i32 a = 0; a < archetypeCount; a++)
+    {
+	containsAllComponents = 1;
+
+	Archetype* archetype = world->Archetypes[a];
+	ComponentID* archetypeComponentsIds = archetype->Components;
+	u32 componentsSize = archetype->ComponentsSize;
+
+	if (componentsSize != size || array_count(archetypeComponentsIds) != componentsCount)
+	{
+	    containsAllComponents = -1;
+	    continue;
+	}
+
+	for (i32 c = 0; c < componentsCount; c++)
+	{
+	    ComponentID archetypeComponentId = archetypeComponentsIds[c];
+	    ComponentID componentId = components[c];
+	    GWARNING("Archetype component: %d, componentId: %d\n", archetypeComponentId, componentId);
+	    if (archetypeComponentId != componentId)
+	    {
+		containsAllComponents = -1;
+		break;
+	    }
+	}
+
+	if (containsAllComponents == 1)
+	{
+	    return world->Archetypes[a];
+	}
+    }
+
+    return NULL;
+}
+
 i8
-_entity_has_component(World* world, EntityID entityId, const char* componentName)
+_ecs_is_type_registered_as_component(World* world, const char* componentName);
+
+void
+_ecs_register_component(World* world, const char* componentName, u32 componentSize)
+{
+    ComponentStorage* storage = &world->Storage;
+
+    i32 isComponentAlreadyRegistered = shgeti(storage->NameToId, componentName);
+    if (isComponentAlreadyRegistered != -1)
+    {
+	GERROR("Trying to add component that already registered! [%d]\n", isComponentAlreadyRegistered);
+	assert(0);
+    }
+
+    ComponentID componentId = storage->LastId;
+    shput(storage->NameToId, componentName, componentId);
+    hmput(storage->IdToName, componentId, componentName);
+    hmput(storage->IdToSize, componentId, componentSize);
+
+    ++storage->LastId;
+}
+
+Archetype*
+_ecs_register_archetype(World* world, ComponentID* componentsId)
+{
+    ComponentStorage* storage = &world->Storage;
+    u32 componentSize = 0;
+    i32 componentsIdCount = array_count(componentsId);
+
+    for (i32 i = 0; i < componentsIdCount; i++)
+    {
+	componentSize += hmget(storage->IdToSize, componentsId[i]);
+    }
+
+    Archetype* archetype = (Archetype*) memory_allocate(sizeof(Archetype));
+    archetype->Data = NULL;
+    archetype->Components = componentsId;
+    archetype->Size = 0;
+    archetype->Capacity = 0;
+    archetype->ComponentsSize = componentSize;
+
+    array_push(world->Archetypes, archetype);
+
+    return archetype;
+}
+
+ArchetypeRecord
+_ecs_get_archetype_record(World* world, EntityID entityId)
+{
+    ArchetypeRecord archetypeRecord = hmget(world->ArchetypesStorage, entityId);
+    vassert(archetypeRecord.Archetype != NULL);
+    return archetypeRecord;
+}
+
+/*
+  ENTITY RELATED
+ */
+i8
+_ecs_entity_has_component(World* world, EntityID entityId, const char* componentName)
 {
     if (world->ArchetypesStorage == NULL || hmgeti(world->ArchetypesStorage, entityId) == -1)
     {
-	return -1;
+	return 0;
     }
 
-    ArchetypeRecord record = hmget(world->ArchetypesStorage, entityId);
-    ComponentID* components = record.Archetype->Components;
-
-    vassert(shgeti(world->Storage.NameToId, componentName) != -1);
-    vassert(components != NULL);
-
+    ComponentID* components = _ecs_entity_get_components_id(world, entityId);
     ComponentID componentId = shget(world->Storage.NameToId, componentName);
 
     i32 i;
@@ -62,33 +161,12 @@ _entity_has_component(World* world, EntityID entityId, const char* componentName
     return 0;
 }
 
-void
-_ecs_register_component(World* world, const char* componentName, u32 componentSize)
-{
-    ComponentStorage* storage = &world->Storage;
-
-    i32 isComponentAlreadyRegistered = shgeti(storage->NameToId, componentName);
-    if (isComponentAlreadyRegistered != -1)
-    {
-	GERROR("Trying to add component that already registered! [%d]\n", isComponentAlreadyRegistered);
-	assert(0);
-    }
-
-    ComponentID componentId = storage->LastId;
-    ComponentData data = (ComponentData) { .Size = componentSize };
-    hmput(storage->Components, componentId, data);
-    shput(storage->NameToId, componentName, componentId);
-    hmput(storage->IdToName, componentId, componentName);
-    hmput(storage->IdToSize, componentId, componentSize);
-
-    ++storage->LastId;
-}
-
 ComponentID*
-_ecs_entity_get_components(World* world, EntityID entityId)
+_ecs_entity_get_components_id(World* world, EntityID entityId)
 {
     ArchetypeStorage* archetypesStorage = world->ArchetypesStorage;
     i32 isArchetypeRecordExist = hmgeti(archetypesStorage, entityId);
+
     if (isArchetypeRecordExist == -1)
     {
 	GWARNING("Trying to get archetype for entity wo components!\n");
@@ -102,16 +180,19 @@ _ecs_entity_get_components(World* world, EntityID entityId)
 void
 _ecs_entity_add_component(World* world, EntityID entityId, const char* componentName)
 {
-    ComponentID* componentsId = _ecs_entity_get_components(world, entityId);
-    ComponentID componentId = _ecs_get_component_id_by_type(world, componentName);
+    ComponentID componentId = _ecs_get_component_id_by_name(world, componentName);
+    ComponentID* componentsId = _ecs_entity_get_components_id(world, entityId);
     array_push(componentsId, componentId);
-    i32 index = _ecs_get_archetype_index(world, componentsId);
-    Archetype* archetype = NULL;
-    if (index != -1)
+
+    u32 componentSize = 0;
+    ComponentStorage* storage = &world->Storage;
+    for (i32 i = 0; i < array_count(componentsId); i++)
     {
-	archetype = world->Archetypes[index];
+	componentSize += hmget(storage->IdToSize, componentsId[i]);
     }
-    else
+
+    Archetype* archetype = _ecs_get_archetype(world, componentsId, componentSize);
+    if (archetype == NULL)
     {
 	archetype = _ecs_register_archetype(world, componentsId);
     }
@@ -119,16 +200,70 @@ _ecs_entity_add_component(World* world, EntityID entityId, const char* component
     _ecs_entity_register_archetype(world, entityId, archetype);
 }
 
+void*
+_ecs_entity_get_component(World* world, EntityID entityId, const char* componentName)
+{
+    vassert(world->ArchetypesStorage != NULL);
+    vassert(hmgeti(world->ArchetypesStorage, entityId) != -1);
+
+    u32 offset = 0;
+    ComponentID componentId = shget(world->Storage.NameToId, componentName);
+    ArchetypeRecord record = hmget(world->ArchetypesStorage, entityId);
+    void* data = (void*) (record.Archetype->Data + record.Offset);
+    ComponentID* components = record.Archetype->Components;
+
+    for (i32 c = 0; c < array_count(components); c++)
+    {
+	if (componentId == components[c])
+	{
+	    return (void*) (data + offset);
+	}
+
+	offset += hmget(world->Storage.IdToSize, components[c]);
+    }
+
+    return (void*) (data + offset);
+}
+
+void
+_ecs_entity_set_component(World* world, EntityID entityId, const char* componentName, u32 componentSize, void* value)
+{
+    ArchetypeRecord record = hmget(world->ArchetypesStorage, entityId);
+    Archetype* archetype = record.Archetype;
+    ComponentStorage* storage = &world->Storage;
+    ComponentID componentId = shget(storage->NameToId, componentName);
+
+    i32 componentOffset = 0;
+    ComponentID* componentsId = archetype->Components;
+    for (i32 i = 0; i < array_count(componentsId); i++)
+    {
+	if (componentId == componentsId[i])
+	{
+	    break;
+	}
+
+	componentOffset += hmget(storage->IdToSize, componentId);
+    }
+
+    if (archetype->Data == NULL)
+    {
+	archetype->Data = memory_allocate(archetype->ComponentsSize);
+    }
+    void* componentDataAddress = archetype->Data + record.Offset + componentOffset;
+
+    memcpy(componentDataAddress, value, componentSize);
+}
+
 void
 _ecs_entity_register_archetype(World* world, EntityID entityId, Archetype* archetype)
 {
     ComponentStorage* storage = &world->Storage;
     ArchetypeStorage* archetypesStorage = world->ArchetypesStorage;
+    ArchetypeRecord prevArchetypeRecord = hmget(archetypesStorage, entityId);
+    Archetype* prevArchetype = prevArchetypeRecord.Archetype;
 
-    if (archetypesStorage != NULL && (hmgeti(archetypesStorage, entityId) != -1))
+    if (archetypesStorage != NULL && (hmgeti(archetypesStorage, entityId) != -1) && prevArchetype->Data != NULL)
     {
-	ArchetypeRecord prevArchetypeRecord = hmget(archetypesStorage, entityId);
-	Archetype* prevArchetype = prevArchetypeRecord.Archetype;
 	if (prevArchetype == archetype)
 	{
 	    GWARNING("Trying register archetype to entity that alread registered!\n");
@@ -164,69 +299,13 @@ _ecs_entity_register_archetype(World* world, EntityID entityId, Archetype* arche
 	archetypeRecord.Archetype = archetype;
 
 	hmput(world->ArchetypesStorage, entityId, archetypeRecord);
-
-	//TODO(bies): remove this in the future
-	//CHECK
-	i32 isAdded = hmgeti(world->ArchetypesStorage, entityId);
-	GERROR("IS ADDED: %d\n", isAdded);
-	ComponentID* comps = _ecs_entity_get_components(world, entityId);
-	GERROR("Component's: %s\n", comps == NULL?"NULL":"NOT NULL");
-	for (i32 i = 0; i < array_count(comps); i++)
-	{
-	    GERROR("Component: %d\n", comps[i]);
-	}
     }
 }
 
-Archetype*
-_ecs_register_archetype(World* world, ComponentID* componentsId)
+World*
+world_create()
 {
-    ComponentStorage* storage = &world->Storage;
-    u32 componentSize = 0;
-    i32 componentsIdCount = array_count(componentsId);
-    for (i32 i = 0; i < componentsIdCount; i++)
-    {
-	componentSize += hmget(storage->IdToSize, componentsId[i]);
-    }
-
-    Archetype* archetype = (Archetype*) memory_allocate(sizeof(Archetype));
-    archetype->Data = NULL;
-    archetype->Components = componentsId;
-    archetype->Size = 0;
-    archetype->Capacity = 0;
-    archetype->ComponentsSize = componentSize;
-
-    array_push(world->Archetypes, archetype);
-
-    return archetype;
-}
-
-i32
-_ecs_get_archetype_index(World* world, ComponentID* componentsId)
-{
-    i32 index = -1;
-
-    for (i32 i = 0; i < array_count(world->Archetypes); i++)
-    {
-	ComponentID* components = world->Archetypes[i]->Components;
-	for (i32 c = 0; c < array_count(components); c++)
-	{
-	    if (components[c] != componentsId[c])
-	    {
-		index = -1;
-		break;
-	    }
-
-	    index = i;
-	}
-    }
-
-    return index;
-}
-
-void
-world_init(World* world)
-{
+    World* world = (World*) memory_allocate(sizeof(World));
     world->Id = g_WorldsCount;
 
     world->LastEntityId = ENTITIES_FIRST_ID;
@@ -237,8 +316,9 @@ world_init(World* world)
     world->Storage.NameToId = NULL;
     world->Storage.IdToName = NULL;
     world->Storage.IdToSize = NULL;
-    world->Storage.Components = NULL;
     world->Storage.LastId = COMPONENTS_FIRST_ID;
 
     g_WorldsCount++;
+
+    return world;
 }

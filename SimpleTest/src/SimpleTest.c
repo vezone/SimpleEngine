@@ -2,7 +2,6 @@
 
 #include "UTests/Test.h"
 #include "UTests/Math/UTest_BaseMath.h"
-#include "UTests/Utils/UTest_MemoryAllocator.h"
 #include "UTests/Utils/UTest_String.h"
 #include "UTests/Utils/UTest_Path.h"
 #include "UTests/Utils/UTest_Array.h"
@@ -19,7 +18,7 @@ void simple_test_on_attach(NativeWindow window)
 {
     g_Window = window;
 
-    memory_allocator_test();
+    //memory_allocator_test();
     string_test();
     base_math_test();
     path_test();
@@ -132,7 +131,7 @@ void simple_test_on_ui()
     static bool isTestPanelOpen = 1;
     //igShowDemoWindow(&isDemoOpen);
 
-    char** fileNames = test_get_filenames();
+    const char** fileNames = test_get_filenames();
     i32 length = array_len(fileNames);
 
     static char* testText = "No text";
@@ -156,7 +155,7 @@ void simple_test_on_ui()
 		i32 functionsCount = array_len(fileInfo->Functions);
 		for (i32 r = 0; r < functionsCount; r++)
 		{
-		    char* functionName = fileInfo->Functions[r];
+		    const char* functionName = fileInfo->Functions[r];
 		    FunctionResult* functionResult =  file_info_get_function_result(fileInfo, functionName);
 		    if (!functionName || !functionResult)
 		    {
