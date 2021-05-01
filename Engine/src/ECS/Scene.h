@@ -6,12 +6,14 @@
 
 typedef struct Scene
 {
-    World World;
+    u32 ID;
+    World* World;
 } Scene;
 
 typedef struct Entity
 {
-    char Name[128];
+    const char* Name;
+    EntityID ID;
 } Entity;
 
 //#define entity_add_component(world, entity, component, value) ecs_set(world, entity, component, value);

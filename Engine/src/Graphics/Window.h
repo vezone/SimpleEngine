@@ -39,6 +39,7 @@ window_terminate()
 force_inline void
 window_set_title(NativeWindow* window, const char* title)
 {
+    window->Title = title;
     glfwSetWindowTitle(window->GlfwWindow, title);
 }
 

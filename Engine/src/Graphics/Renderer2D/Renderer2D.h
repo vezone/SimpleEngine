@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RENDERER2D_H
+#define RENDERER2D_H
 
 #include "cglm/cglm.h"
 #include "Graphics/Buffer.h"
@@ -94,3 +95,5 @@ void renderer_submit_colored_rectanglet(mat4 transform, vec4 color);
 void renderer_submit_atlas(vec3 position, vec2 size, TextureAtlas* atlas, i32 row, i32 col);
 
 void renderer_flush();
+
+#endif

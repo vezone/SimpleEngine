@@ -21,6 +21,7 @@
 
 //ECS
 #include "ECS/ECS.h"
+#include "ECS/Scene.h"
 #include "ECS/Components.h"
 
 //Math
@@ -34,6 +35,7 @@
 #include "Utils/IO.h"
 #include "Utils/MemoryAllocator.h"
 #include "Utils/Path.h"
+#include "Utils/Asset.h"
 
 //Platform
 #include "Platform/Linux/Linux.h"

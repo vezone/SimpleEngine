@@ -6,11 +6,7 @@
 #include "EngineControls/Core.h"
 #include "EngineControls/FileDialog.h"
 
-#if ENGINE_DEBUG
-#define BASE_PATH "EngineEditor/assets"
-#else
-#define BASE_PATH "assets"
-#endif
+#define APP_NAME "Engine Editor"
 
 static NativeWindow g_Window;
 char WindowTitle[32];
@@ -20,9 +16,9 @@ Shader batchedTextureShader;
 FrameBuffer Framebuffer;
 
 //Textures
-const char* shader_batched_texture_path = BASE_PATH"/shaders/BatchedShader.glsl";
-const char* texture_anime_chibi = BASE_PATH"/textures/other/anime_chibi.png";
-const char* white_texture_path = BASE_PATH"/textures/default/white_texture.png";
+const char* shader_batched_texture_path = asset_shader("BatchedShader.glsl");
+const char* texture_anime_chibi = asset_texture("other/anime_chibi.png");
+const char* white_texture_path = asset_texture("default/white_texture.png");
 
 Texture2D hazelLogoTexture;
 Texture2D chibiTexture;
@@ -33,7 +29,7 @@ TextureAtlas atlas;
 vec4 BlueColor   = { 0.1f, 0.1f, 0.8f, 1.0f };
 vec4 GreenColor  = { 0.2f, 0.7f, 0.2f, 0.3f };
 
-//Scene g_Scene;
+Scene g_Scene;
 
 void engine_editor_on_attach(NativeWindow window)
 {
@@ -54,37 +50,29 @@ void engine_editor_on_attach(NativeWindow window)
     Camera.OrthoCamera.Speed = 5.0f;
 
     window_set_vsync(0);
-    GFORMAT(WindowTitle, "%s %f", g_Window.Title, Camera.OrthoCamera.ZoomLevel);
+    GFORMAT(WindowTitle, "%s %f", APP_NAME, Camera.OrthoCamera.ZoomLevel);
     window_set_title(&g_Window, WindowTitle);
 
     char cwd[1024];
     if (getcwd(cwd, sizeof(cwd)) != NULL)
     {
-	GLOG(GREEN("Current working dir: %s")"\n", cwd);
+        GLOG(GREEN("Current working dir: %s")"\n", cwd);
     }
     else
     {
-	GERROR("getcwd() error");
-	return 1;
+        GERROR("getcwd() error");
+        return;
     }
 
     i32 index = vstring_index_of_string(cwd, "EngineEditor");
-    if (index)
-    {
-	//char* batchedShaderPath = vstring_substring_range(index, );
-	shaderSource = shader_load(shader_batched_texture_path);
-    }
-    else
-    {
-	shaderSource = shader_load(shader_batched_texture_path);
-    }
+    shaderSource = shader_load(shader_batched_texture_path);
 
     assert(shaderSource.name);
     batchedTextureShader = shader_compile(shaderSource);
     if (batchedTextureShader.ShaderID == -1)
     {
-	GERROR("We fucked up with shader sources!!!\n");
-	return;
+        GERROR("We fucked up with shader sources!!!\n");
+        return;
     }
 
     chibiTexture = texture2d_create(texture_anime_chibi);
@@ -93,13 +81,20 @@ void engine_editor_on_attach(NativeWindow window)
 
     if (atlasTexture.Slot == -2)
     {
-	atlasTexture = whiteTexture;
+        atlasTexture = whiteTexture;
     }
 
     framebuffer_invalidate(&Framebuffer, window.Width, window.Height);
 
-    //scene_create(&g_Scene);
-    //Entity rectangleEntity = entity_create(&g_Scene, "Just rectangle");
+    scene_create(&g_Scene);
+    Entity rectangleEntity = entity_create(&g_Scene, "Just rectangle");
+    SpriteComponent spriteComponent;
+    ImVec4_Assign(spriteComponent.Color, BlueColor);
+
+    ECS_ENTITY_ADD_COMPONENT(g_Scene.World, rectangleEntity.ID, PositionComponent);
+    ECS_ENTITY_ADD_COMPONENT(g_Scene.World, rectangleEntity.ID, SpriteComponent);
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, rectangleEntity.ID, PositionComponent, PositionComponent(GLM_MAT4_IDENTITY_INIT));
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, rectangleEntity.ID, PositionComponent, spriteComponent);
 }
 
 void engine_editor_on_update(f32 timestep)
@@ -112,18 +107,14 @@ void engine_editor_on_update(f32 timestep)
     editor_camera_on_update(&Camera, &g_Window, timestep);
     renderer_clear((vec4) { 0.2f, 0.245f, 0.356f, 1.0f });
 
+    scene_on_update(&g_Scene, timestep);
+
     renderer_submit_rectangle((vec3) { 3.0f, 1.5f, 0.0f }, (vec2) {1.5f,1.5f}, NULL, &chibiTexture);
-    renderer_submit_colored_rectangle((vec3) {2.0f, 1.0f, 0.0f}, (vec2) { 1.0f, 1.0f }, BlueColor);
+    // renderer_submit_colored_rectangle((vec3) {2.0f, 1.0f, 0.0f}, (vec2) { 1.0f, 1.0f }, BlueColor);
     renderer_submit_colored_rotated_rectangle((vec3) {1.0f, 1.0f, 0.0f}, (vec2) { 1.f, 1.f }, GreenColor, 45);
 
     renderer_flush();
     framebuffer_unbind();
-}
-
-force_inline u32
-SP(u32 percent, u32 width)
-{
-    return ((f32)width * percent / 100);
 }
 
 i32 g_IsRendererStatisticDrawing = 0;
@@ -135,7 +126,6 @@ i8 opt_fullscreen = 1;
 i8 opt_fullscreen_persistant = 1;
 i8 is_docspace_open = 1;
 i8 g_IsOpenFileDialogOpened = 1;
-
 ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
 void engine_editor_on_ui_render()
@@ -146,135 +136,137 @@ void engine_editor_on_ui_render()
     ImGuiWindowClass class;
     if (opt_fullscreen)
     {
-	ImGuiViewport* viewport = igGetMainViewport();
-	igSetNextWindowPos(viewport->Pos, ImGuiCond_None, (ImVec2){0.0f,0.0f});
-	igSetNextWindowSize(viewport->Size, ImGuiCond_None);
-	igSetNextWindowViewport(viewport->ID);
-	igPushStyleVarFloat(ImGuiStyleVar_WindowRounding, 0.0f);
-	igPushStyleVarFloat(ImGuiStyleVar_WindowBorderSize, 0.0f);
-	window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-	window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+        ImGuiViewport* viewport = igGetMainViewport();
+        igSetNextWindowPos(viewport->Pos, ImGuiCond_None, (ImVec2){0.0f,0.0f});
+        igSetNextWindowSize(viewport->Size, ImGuiCond_None);
+        igSetNextWindowViewport(viewport->ID);
+        igPushStyleVarFloat(ImGuiStyleVar_WindowRounding, 0.0f);
+        igPushStyleVarFloat(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
     }
     else
     {
-	dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+        dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
     }
 
     if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-	window_flags |= ImGuiWindowFlags_NoBackground;
+        window_flags |= ImGuiWindowFlags_NoBackground;
 
     if (!opt_padding)
     {
-	igPushStyleVarVec2(ImGuiStyleVar_WindowPadding, (ImVec2) { 0.0f, 0.0f });
+        igPushStyleVarVec2(ImGuiStyleVar_WindowPadding, (ImVec2) { 0.0f, 0.0f });
     }
 
     igBegin("DockSpace Demo", &is_docspace_open, window_flags);
 
     if (!opt_padding)
-	igPopStyleVar(1);
+        igPopStyleVar(1);
 
     if (opt_fullscreen)
-	igPopStyleVar(2);
+        igPopStyleVar(2);
 
     // DockSpace
     ImGuiIO* io = igGetIO();
     if (io->ConfigFlags & ImGuiConfigFlags_DockingEnable)
     {
-	ImGuiID dockspace_id = igGetIDStr("MyDockSpace");
-	igDockSpace(dockspace_id, (ImVec2) { 0.0f, 0.0f }, dockspace_flags, &class);
+        ImGuiID dockspace_id = igGetIDStr("MyDockSpace");
+        igDockSpace(dockspace_id, (ImVec2) { 0.0f, 0.0f }, dockspace_flags, &class);
     }
     else
     {
-	//ShowDockingDisabledMessage();
+        //ShowDockingDisabledMessage();
     }
 
     if (igBeginMenuBar())
     {
-	if (igBeginMenu("File", 1))
-	{
-	    // Disabling fullscreen would allow the window to be moved to the front of other windows,
-	    // which we can't undo at the moment without finer window depth/z control.
-	    if (igMenuItemBool("Open", "Ctrl + O", 0, 1))
-	    {
-		GWARNING("Ctrl O\n");
-	    }
-	    if (igMenuItemBool("New", "Ctrl+N", 0, 1))
-	    {
-		GWARNING("Ctrl N\n");
-	    }
-	    igSeparator();
+        if (igBeginMenu("File", 1))
+        {
+            // Disabling fullscreen would allow the window to be moved to the front of other windows,
+            // which we can't undo at the moment without finer window depth/z control.
+            if (igMenuItemBool("Open", "Ctrl + O", 0, 1))
+            {
+                GWARNING("Ctrl O\n");
+            }
+            if (igMenuItemBool("New", "Ctrl+N", 0, 1))
+            {
+                GWARNING("Ctrl N\n");
+            }
+            igSeparator();
 
-	    igSeparator();
+            igSeparator();
 
-	    if (igMenuItemBool("Close", NULL, false, 0))
-		is_docspace_open = 0;
+            if (igMenuItemBool("Close", NULL, false, 0))
+                is_docspace_open = 0;
 
-	    igEndMenu();
-	}
+            igEndMenu();
+        }
 
-	if (igBeginMenu("Windows", 1))
-	{
-	    igSeparator();
-	    if (igMenuItemBool("Info", NULL, g_IsRendererStatisticDrawing, 1))
-	    {
-		g_IsRendererStatisticDrawing = !g_IsRendererStatisticDrawing;
-	    }
+        if (igBeginMenu("Windows", 1))
+        {
+            igSeparator();
+            if (igMenuItemBool("Info", NULL, g_IsRendererStatisticDrawing, 1))
+            {
+                g_IsRendererStatisticDrawing = !g_IsRendererStatisticDrawing;
+            }
 
-	    igEndMenu();
-	}
+            igEndMenu();
+        }
 
-	igEndMenuBar();
+        igEndMenuBar();
     }
 
     i8 worldOutlinerOpen;
     if (igBegin("World Outliner", &worldOutlinerOpen, ImGuiWindowFlags_None))
     {
-	igEnd();
+        igEnd();
     }
 
     igPushStyleVarVec2(ImGuiStyleVar_WindowPadding, (ImVec2) { 0.0f, 0.0f });
     i8 viewportOpen;
     if (igBegin("Viewport", &viewportOpen, ImGuiWindowFlags_None))
     {
-	i8 isWindowFocused = igIsWindowFocused(ImGuiWindowFlags_None);
-	i8 isWindowHovered = igIsWindowHovered(ImGuiWindowFlags_None);
-	ui_block_event(!isWindowFocused && !isWindowHovered);
+        i8 isWindowFocused = igIsWindowFocused(ImGuiWindowFlags_None);
+        i8 isWindowHovered = igIsWindowHovered(ImGuiWindowFlags_None);
+        ui_block_event(!isWindowFocused && !isWindowHovered);
 
-	ImVec2 availableRegion;
-	igGetContentRegionAvail(&availableRegion);
-	if (!ImVec2_Equals(g_ViewportSize, availableRegion))
-	{
-	    ImVec2_Assign(g_ViewportSize, availableRegion);
-	    framebuffer_invalidate(&Framebuffer, g_ViewportSize.x, g_ViewportSize.y);
-	}
+        ImVec2 availableRegion;
+        igGetContentRegionAvail(&availableRegion);
+        if (!ImVec2_Equals(g_ViewportSize, availableRegion))
+        {
+            ImVec2_Assign(g_ViewportSize, availableRegion);
+            framebuffer_invalidate(&Framebuffer, g_ViewportSize.x, g_ViewportSize.y);
+        }
 
-	igImage((ImTextureID)Framebuffer.ColorAttachment, ImVec2(g_ViewportSize.x, g_ViewportSize.y), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(1,1,1,0));
+        igImage((ImTextureID)Framebuffer.ColorAttachment, ImVec2(g_ViewportSize.x, g_ViewportSize.y), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(1,1,1,0));
 
-	igPopStyleVar(1);
+        igPopStyleVar(1);
 
-	igEnd();
+        igEnd();
     }
 
     if (g_IsRendererStatisticDrawing)
     {
-	if (igBegin("Renderer statistic", &g_IsRendererStatisticDrawing, ImGuiWindowFlags_None))
-	{
-	    igText("Frametime: %f ms", 1000 * g_RendererStatistics.Frametime);
-	    igText("Draw Calls: %d", g_RendererStatistics.DrawCalls);
-	    igText("Rectangles Count: %d", g_RendererStatistics.RectanglesCount);
-	    igText("Max object to draw: %d", g_RendererStatistics.MaximumObjectToDraw);
-	    igText("Max texture slots: %d", g_RendererStatistics.MaximumTextureSlots);
+        if (igBegin("Renderer statistic", &g_IsRendererStatisticDrawing, ImGuiWindowFlags_None))
+        {
+            igText("Frametime: %f ms", 1000 * g_RendererStatistics.Frametime);
+            igText("Draw Calls: %d", g_RendererStatistics.DrawCalls);
+            igText("Rectangles Count: %d", g_RendererStatistics.RectanglesCount);
+            igText("Max object to draw: %d", g_RendererStatistics.MaximumObjectToDraw);
+            igText("Max texture slots: %d", g_RendererStatistics.MaximumTextureSlots);
 
-	    igEnd();
-	}
+            igEnd();
+        }
     }
     igEnd();
 
+#if 0
     char* sceneName = NULL;
     if ((sceneName = igFileDialog()) != NULL)
     {
-	GWARNING("Load scene: %s\n", sceneName);
+        GWARNING("Load scene: %s\n", sceneName);
     }
+#endif
 
     framebuffer_unbind();
 }
@@ -285,38 +277,38 @@ void engine_editor_on_event(Event* event)
 
     if (event->Category == KeyCategory)
     {
-	KeyPressedEvent* keyEvent = (KeyPressedEvent*) event;
-	if (window_is_key_pressed(&g_Window, KEY_ESCAPE))
-	{
-	    window_set_should_close(&g_Window, 1);
-	    event->IsHandled = 1;
-	}
-	else if (window_is_key_pressed(&g_Window, KEY_SPACE))
-	{
-	    Camera.OrthoCamera.Position[0] = 3.0f;
-	    Camera.OrthoCamera.Position[1] = 1.5f;
-	    Camera.OrthoCamera.Position[2] = 0.0f;
-	    event->IsHandled = 1;
-	}
-	else if (window_is_key_pressed(&g_Window, KEY_F11))
-	{
-	    window_set_fullscreen(&g_Window);
-	}
+        KeyPressedEvent* keyEvent = (KeyPressedEvent*) event;
+        if (window_is_key_pressed(&g_Window, KEY_ESCAPE))
+        {
+            window_set_should_close(&g_Window, 1);
+            event->IsHandled = 1;
+        }
+        else if (window_is_key_pressed(&g_Window, KEY_SPACE))
+        {
+            Camera.OrthoCamera.Position[0] = 3.0f;
+            Camera.OrthoCamera.Position[1] = 1.5f;
+            Camera.OrthoCamera.Position[2] = 0.0f;
+            event->IsHandled = 1;
+        }
+        else if (window_is_key_pressed(&g_Window, KEY_F11))
+        {
+            window_set_fullscreen(&g_Window);
+        }
     }
     else if (event->Category == MouseCategory && event->Type == MouseScrolled)
     {
-	//check if viewport is focused
-	GFORMAT(WindowTitle, "%s %f", g_Window.Title, Camera.OrthoCamera.ZoomLevel);
-	window_set_title(&g_Window, WindowTitle);
-	event->IsHandled = 1;
+        //check if viewport is focused
+        GFORMAT(WindowTitle, "%s %f", APP_NAME, Camera.OrthoCamera.ZoomLevel);
+        window_set_title(&g_Window, WindowTitle);
+        event->IsHandled = 1;
     }
     else if (event->Category == WindowCategory)
     {
-	if (event->Type == WindowResized)
-	{
-	    WindowResizedEvent* windowEvent = (WindowResizedEvent*)event;
-	    framebuffer_invalidate(&Framebuffer, windowEvent->Width, windowEvent->Height);
-	    event->IsHandled = 1;
-	}
+        if (event->Type == WindowResized)
+        {
+            WindowResizedEvent* windowEvent = (WindowResizedEvent*)event;
+            framebuffer_invalidate(&Framebuffer, windowEvent->Width, windowEvent->Height);
+            event->IsHandled = 1;
+        }
     }
 }

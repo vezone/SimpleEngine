@@ -1,10 +1,13 @@
 #include "UTest_ECS.h"
 
+#include <time.h>
+
 #include "UTests/Test.h"
 #include "ECS/ECS.h"
 #include "ECS/Components.h"
 #include "Utils/Logger.h"
 #include "Utils/String.h"
+#include "Utils/MemoryAllocator.h"
 
 typedef struct A
 {
@@ -57,6 +60,57 @@ get_component_data(World* world, void* data, i32 count, ...)
     va_end(components);
 
     return result;
+}
+
+World*
+world_init_for_test()
+{
+    World* world = world_create();
+    ECS_REGISTER_COMPONENT(world, A);
+    ECS_REGISTER_COMPONENT(world, B);
+
+    u64 playerId = ECS_ENTITY_CREATE(world);
+
+    ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
+    ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
+
+    ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 203, .AAge = 27 }));
+    ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = 17083, .BAge = 59 }));
+
+    return world;
+}
+
+void
+world_more_entities(World* world)
+{
+    srand(time(NULL));
+
+    i32 i;
+    i32 count = 10;
+    u64 playerId;
+
+    for (i32 i = 0; i < array_count(world->Archetypes); i++)
+    {
+	const ComponentID* ids = world->Archetypes[i]->Components;
+	u32 size = world->Archetypes[i]->ComponentsSize;
+	GERROR("Archetype[%d]: ComponentSize=%d ids: \n", i, size);
+	for (i32 j = 0; j < array_count(ids); j++)
+	{
+	    GERROR("%d\n", ids[j]);
+	}
+	GERROR("\n");
+    }
+
+    for (i = 0; i < count; i++)
+    {
+	playerId = ECS_ENTITY_CREATE(world);
+
+	ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
+	ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
+
+	ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = i32(rand() % 20000), .AAge = i32(rand() % 110) }));
+	ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = i32(rand() % 20000), .BAge = i32(rand() % 110) }));
+    }
 }
 
 /*
@@ -148,7 +202,7 @@ ecs_entity_add_component_test()
     Condition(ECS_ENTITY_HAS_COMPONENT(world, playerId, A));
     Condition(ECS_ENTITY_HAS_COMPONENT(world, playerId, B));
 
-    i32* components = _ecs_entity_get_components_id(world, playerId);
+    const ComponentID* components = _ecs_entity_get_components_id(world, playerId);
     for (i32 i = 0; i < array_count(components); i++)
     {
 	Int_Value(components[i]);
@@ -176,7 +230,7 @@ ecs_entity_get_components_test()
     Condition(ECS_ENTITY_HAS_COMPONENT(world, playerId, A) == 1);
     Condition(ECS_ENTITY_HAS_COMPONENT(world, playerId, B) == 1);
 
-    ComponentID* components = _ecs_entity_get_components_id(world, playerId);
+    const ComponentID* components = _ecs_entity_get_components_id(world, playerId);
     Condition(array_count(components) == 2);
     Condition(components[0] == COMPONENTS_FIRST_ID);
     Condition(components[1] == COMPONENTS_FIRST_ID + 1);
@@ -197,25 +251,15 @@ ecs_entity_get_components_test()
 void
 ecs_entity_set_component_test()
 {
-    World* world = world_create();
-    ECS_REGISTER_COMPONENT(world, A);
-    ECS_REGISTER_COMPONENT(world, B);
-
-    u64 playerId = ECS_ENTITY_CREATE(world);
-
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
-
-    A ta = (A) { .AId = 203, .AAge = 27 };
-    B tb = (B) { .BId = 17083, .BAge = 59 };
-    ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 203, .AAge = 27 }));
-    ECS_ENTITY_SET_COMPONENT(world, playerId, B, tb);
-
-    A* a = ECS_ENTITY_GET_COMPONENT(world, playerId, A);
-    B* b = ECS_ENTITY_GET_COMPONENT(world, playerId, B);
+    World* world = world_init_for_test();
+    A* a = ECS_ENTITY_GET_COMPONENT(world, ENTITIES_FIRST_ID, A);
+    B* b = ECS_ENTITY_GET_COMPONENT(world, ENTITIES_FIRST_ID, B);
 
     Condition(a != NULL);
     Condition(b != NULL);
+
+    A ta = (A) { .AId = 203, .AAge = 27 };
+    B tb = (B) { .BId = 17083, .BAge = 59 };
 
     Condition(ta.AId == a->AId);
     Condition(ta.AAge == a->AAge);
@@ -257,14 +301,95 @@ ecs_entity_set_component_twice_test()
     }
 }
 
+void
+ecs_archetype_get_test()
+{
+    World* world = world_init_for_test();
+    // world_more_entities(world);
+
+    srand(time(NULL));
+    i32 i;
+    i32 count = 10;
+    u64 playerId;
+
+    playerId = ECS_ENTITY_CREATE(world);
+    ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
+    ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
+    ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = i32(rand() % 20000), .AAge = i32(rand() % 110) }));
+    ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = i32(rand() % 20000), .BAge = i32(rand() % 110) }));
+
+    playerId = ECS_ENTITY_CREATE(world);
+    ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
+    ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
+    ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = i32(rand() % 20000), .AAge = i32(rand() % 110) }));
+    ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = i32(rand() % 20000), .BAge = i32(rand() % 110) }));
+
+#if 0
+    for (i = 0; i < count; i++)
+    {
+	playerId = ECS_ENTITY_CREATE(world);
+
+	ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
+	ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
+
+	ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = i32(rand() % 20000), .AAge = i32(rand() % 110) }));
+	ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = i32(rand() % 20000), .BAge = i32(rand() % 110) }));
+    }
+#endif
+
+    Condition(array_count(world->Archetypes) == 2);
+    Int_Value(array_count(world->Archetypes));
+
+    /*
+      FIX: 12 Archetype instead of 2 not ok!
+
+      TODO: remove all 32 from string
+      ECS_ARCHETYPE_GET(world, A, B) > ECS_ARCHETYPE_GET(world, "A,B")
+     */
+    ECSQueryResult queryResult = ECS_ARCHETYPE_GET(world, "A,B");
+
+    Condition(queryResult.Data != NULL);
+    Condition(queryResult.Components != NULL);
+    Condition(queryResult.World == world);
+    Condition(queryResult.Offset == 0);
+    Condition(queryResult.Current == -1);
+    Condition(queryResult.Count == 11);
+    Int_Value(queryResult.Count);
+
+    while (ECS_QUERY_RESULT_NEXT(queryResult))
+    {
+	A* a = ECS_QUERY_RESULT_GET(queryResult, A);
+	B* b = ECS_QUERY_RESULT_GET(queryResult, B);
+
+	Int_Value(a->AId);
+	Int_Value(a->AAge);
+	Int_Value(b->BId);
+	Int_Value(b->BAge);
+
+	Condition(a != NULL);
+	Condition(b != NULL);
+    }
+}
+
+#define CHECK_MEMORY() GWARNING("Allocated memory: %d\n", memory_helper_get_allocated_size())
+
 void ecs_test()
 {
+    CHECK_MEMORY();
+
     TEST(world_create_test());
     TEST(ecs_register_component_test());
     TEST(ecs_get_component_id_by_type_test());
     TEST(ecs_entity_add_component_test());
 
+    CHECK_MEMORY();
+
     TEST(ecs_entity_get_components_test());
+
+    CHECK_MEMORY();
+
     TEST(ecs_entity_set_component_test());
     TEST(ecs_entity_set_component_twice_test());
+
+    TEST(ecs_archetype_get_test());
 }

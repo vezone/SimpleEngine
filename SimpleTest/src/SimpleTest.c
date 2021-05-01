@@ -190,6 +190,7 @@ void simple_test_on_ui()
 		    igPushStyleColorVec4(ImGuiCol_ButtonActive, ImVec4(redVal, greenVal + 0.2f, blueVal + 0.2f, 1.0f));
 		    if (igButton(functionName, ImVec2(0, 0)))
 		    {
+			window_set_title(&g_Window, functionName);
 			testText = functionResult->Builder.Buffer;
 		    }
 

@@ -19,15 +19,14 @@ static BatchRenderer2DData g_RendererData =
     .IndexCount = 0
 };
 static Renderer2DStatistics* g_Statistics;
-vec2 defaultCoords[4] = {
+static vec2 g_DefaultCoords[4] = {
     { 0.0f, 0.0f },
     { 0.0f, 1.0f },
     { 1.0f, 1.0f },
     { 1.0f, 0.0f }
 };
-
-static i32 TextureIndices[32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
-static vec3 BaseVectorPositions[4] = {
+static i32 g_TextureIndices[32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+static vec3 g_BaseVectorPositions[4] = {
     { -0.5f, -0.5f, 0.0f }, /* 0 0 */
     { -0.5f,  0.5f, 0.0f }, /* 0 1 */
     {  0.5f,  0.5f, 0.0f }, /* 1 1 */
@@ -290,7 +289,7 @@ renderer_submit_rectangle(vec3 position, vec2 size, vec2* coords, Texture2D* tex
 
     if (coords == NULL)
     {
-	fill_data_array(g_RendererData.Data, position, size, color, textureAdds, defaultCoords, g_RendererData.DataCount);
+	fill_data_array(g_RendererData.Data, position, size, color, textureAdds, g_DefaultCoords, g_RendererData.DataCount);
     }
     else
     {
@@ -342,10 +341,10 @@ renderer_submit_rotated_rectangle(vec3 position, vec2 size, f32 angle, Texture2D
     glm_mat4_mulN((mat4*[]) {&translation, &rotation, &scale}, 3, transform);
 
     vec3 positionsArray[4];
-    glm_mat4_mulv3(transform, BaseVectorPositions[0], 1.0f, positionsArray[0]);
-    glm_mat4_mulv3(transform, BaseVectorPositions[1], 1.0f, positionsArray[1]);
-    glm_mat4_mulv3(transform, BaseVectorPositions[2], 1.0f, positionsArray[2]);
-    glm_mat4_mulv3(transform, BaseVectorPositions[3], 1.0f, positionsArray[3]);
+    glm_mat4_mulv3(transform, g_BaseVectorPositions[0], 1.0f, positionsArray[0]);
+    glm_mat4_mulv3(transform, g_BaseVectorPositions[1], 1.0f, positionsArray[1]);
+    glm_mat4_mulv3(transform, g_BaseVectorPositions[2], 1.0f, positionsArray[2]);
+    glm_mat4_mulv3(transform, g_BaseVectorPositions[3], 1.0f, positionsArray[3]);
 
     fill_rotated_data_array(g_RendererData.Data, positionsArray, color, textureId, 1, g_RendererData.DataCount);
     g_RendererData.DataCount  += QuadVerticesCount;
@@ -392,10 +391,10 @@ renderer_submit_colored_rotated_rectangle(vec3 position, vec2 size, vec4 color, 
     glm_mat4_mulN((mat4*[]) {&translationMat, &rotationMat, &scaleMat}, 3, transform);
 
     vec3 positionsArray[4];
-    glm_mat4_mulv3(transform, BaseVectorPositions[0], 1.0f, positionsArray[0]);
-    glm_mat4_mulv3(transform, BaseVectorPositions[1], 1.0f, positionsArray[1]);
-    glm_mat4_mulv3(transform, BaseVectorPositions[2], 1.0f, positionsArray[2]);
-    glm_mat4_mulv3(transform, BaseVectorPositions[3], 1.0f, positionsArray[3]);
+    glm_mat4_mulv3(transform, g_BaseVectorPositions[0], 1.0f, positionsArray[0]);
+    glm_mat4_mulv3(transform, g_BaseVectorPositions[1], 1.0f, positionsArray[1]);
+    glm_mat4_mulv3(transform, g_BaseVectorPositions[2], 1.0f, positionsArray[2]);
+    glm_mat4_mulv3(transform, g_BaseVectorPositions[3], 1.0f, positionsArray[3]);
 
     fill_rotated_data_array(g_RendererData.Data, positionsArray, color, 0, 0, g_RendererData.DataCount);
     g_RendererData.DataCount  += QuadVerticesCount;
@@ -430,7 +429,7 @@ void renderer_submit_rectanglet(mat4 transform, Texture2D* texture)
     textureAdds[0] = textureId;
     textureAdds[1] = 1;
 
-    //fill_data_array(g_RendererData.Data, position, size, color, textureAdds, defaultCoords, g_RendererData.DataCount);
+    //fill_data_array(g_RendererData.Data, position, size, color, textureAdds, g_DefaultCoords, g_RendererData.DataCount);
 
     g_RendererData.DataCount  += QuadVerticesCount;
     g_RendererData.IndexCount += 6;
@@ -476,7 +475,7 @@ renderer_flush()
     vertex_buffer_set_data(g_RendererData.Vao.Vertex, g_RendererData.Data, size);
 
     shader_set_mat4(g_Shader, "u_ViewProjection", 1, 0, g_Camera->ViewProjectionMatrix[0]);
-    shader_set_int1(g_Shader, "u_Textures", g_RendererData.List.NextTextureIndex, TextureIndices);
+    shader_set_int1(g_Shader, "u_Textures", g_RendererData.List.NextTextureIndex, g_TextureIndices);
 
     glDrawElements(GL_TRIANGLES, g_RendererData.IndexCount, GL_UNSIGNED_INT, NULL);
 

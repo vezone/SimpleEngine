@@ -3,6 +3,7 @@
 #include "Graphics/KeyCodes.h"
 #include "Event/Event.h"
 #include "Utils/Logger.h"
+#include "Utils/Asset.h"
 
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
 #include "cimgui_impl_glfw.h"
@@ -22,6 +23,10 @@ ui_on_attach(NativeWindow window)
     // Enable Docking
     io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+    GERROR("FONT: %s\n", asset_font("NotoSans.ttf"));
+
+    io->FontDefault = ImFontAtlas_AddFontFromFileTTF(io->Fonts, asset_font("NotoSans.ttf"), 22.0f, NULL, NULL);
 
     igStyleColorsDark(igGetStyle());
 

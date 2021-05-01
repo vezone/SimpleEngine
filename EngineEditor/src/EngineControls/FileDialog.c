@@ -5,13 +5,13 @@
 #include "Utils/Path.h"
 
 static i8 g_IsOpenFileDialogOpened = 1;
-static char* g_CurrentDirectory;
-static char* g_SelectedFile;
+static const char* g_CurrentDirectory;
+static const char* g_SelectedFile;
 
-char*
+const char*
 igFileDialog()
 {
-    char* selectedFile = NULL;
+    const char* selectedFile = NULL;
 
     if (!g_CurrentDirectory)
     {
@@ -25,14 +25,15 @@ igFileDialog()
 	    if (igButton("Documents", ImVec2(0, 0)))
 	    {
 		char* homeDir = path_get_home_directory();
-		char* absPath = istring(path_combine(homeDir, "Documents"));
+		const char* absPath = path_combine_interning(homeDir, "Documents");
 		g_CurrentDirectory = absPath;
 	    }
+
 	    igSameLine(115, 0);
 	    if (igButton("Desktop", ImVec2(0, 0)))
 	    {
 		char* homeDir = path_get_home_directory();
-		char* absPath = istring(path_combine(homeDir, "Desktop"));
+		const char* absPath = path_combine_interning(homeDir, "Desktop");
 		g_CurrentDirectory = absPath;
 	    }
 
@@ -46,13 +47,13 @@ igFileDialog()
 	    }
 	    igSameLine(75, 0);
 
-	    char* currentDirectory = g_CurrentDirectory;
+	    const char* currentDirectory = g_CurrentDirectory;
 	    igText(currentDirectory);
 
-	    char** dirs = directory_get_directories(currentDirectory);
+	    const char** dirs = directory_get_directories(currentDirectory);
 	    for (i32 i = 0; i < array_len(dirs); i++)
 	    {
-		char* dir = dirs[i];
+		const char* dir = dirs[i];
 		if (dir[0] == '.')
 		{
 		    continue;
@@ -66,10 +67,10 @@ igFileDialog()
 		}
 	    }
 
-	    char** files = directory_get_files(currentDirectory);
+	    const char** files = directory_get_files(currentDirectory);
 	    for (i32 i = 0; i < array_len(files); i++)
 	    {
-		char* file = files[i];
+		const char* file = files[i];
 		if (igButton(file, ImVec2(0.0f, .0f)))
 		{
 		    if (file[0] == '.')
@@ -77,7 +78,7 @@ igFileDialog()
 			continue;
 		    }
 
-		    g_SelectedFile = istring(path_combine(currentDirectory, file));
+		    g_SelectedFile = path_combine_interning(currentDirectory, file);
 		}
 	    }
 

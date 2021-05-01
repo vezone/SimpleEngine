@@ -3,6 +3,6 @@
 
 #include "Utils/Types.h"
 
-char* igFileDialog();
+const char* igFileDialog();
 
 #endif

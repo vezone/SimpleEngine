@@ -1,6 +1,6 @@
 #include "Scene.h"
 #include "Components.h"
-
+#include "Graphics/Renderer2D/Renderer2D.h"
 
 //#include "Components.h"
 
@@ -16,53 +16,42 @@ ecs_remove(world, e, Position);
 4km
 */
 
-Entity entity_create(Scene* scene, const char* name)
+static u32 g_SceneLastID = 0;
+
+Entity
+entity_create(Scene* scene, const char* name)
 {
-#if 0
-    ecs_world_t* world = scene->World;
-    ecs_entity_t entity = ecs_new(world, 0);
-    mat4 transform = GLM_MAT4_IDENTITY_INIT;
-    Entity result;
-    result.FlecsEntity = entity;
-
-    PositionComponent posComponent;
-    glm_mat4_copy(transform, posComponent.Transform);
-    ECS_ENTITY(world, MyEntity, 0);
-    entity = ecs_set(world, MyEntity, PositionComponent, posComponent);
-    ecs_set(world, entity, PositionComponent, posComponent);
-
-    u32 length = vstring_length(name);
-    vstring_assign(result.Name, name, length);
-
-    return result;
-#endif
-    return (Entity) { };
+    EntityID entityId = ECS_ENTITY_CREATE(scene->World);
+    return (Entity) { .Name = name, .ID = entityId };
 }
 
-void scene_create(Scene* scene)
+void
+scene_create(Scene* scene)
 {
-    world_init(&scene->World);
-    ECS_REGISTER_COMPONENT(&scene->World, PositionComponent);
-    ECS_REGISTER_COMPONENT(&scene->World, SpriteComponent);
+    scene->ID = g_SceneLastID;
+    scene->World = world_create();
+    ECS_REGISTER_COMPONENT(scene->World, PositionComponent);
+    ECS_REGISTER_COMPONENT(scene->World, SpriteComponent);
 }
 
-void scene_on_update(Scene* scene, f32 timestep)
+void
+scene_on_update(Scene* scene, f32 timestep)
 {
-#if 0
-    //get all entities iter
-    ecs_query_t *query = ecs_query_new(scene->World, "PositionComponent, SpriteComponent");
-    ecs_iter_t it = ecs_query_iter(query);
+    ECSQueryResult queryResult = ECS_ARCHETYPE_GET(scene->World, "PositionComponent,SpriteComponent");
 
-    while (ecs_query_next(&it))
+    while (ECS_QUERY_RESULT_NEXT(queryResult))
     {
-	PositionComponent* position = ecs_column(&it, PositionComponent, 1);
-	SpriteComponent* sprite = ecs_column(&it, SpriteComponent, 2);
-	//
+	PositionComponent* position =
+	    ECS_QUERY_RESULT_GET(queryResult, PositionComponent);
+	SpriteComponent* sprite =
+	    ECS_QUERY_RESULT_GET(queryResult, SpriteComponent);
+
+	renderer_submit_colored_rectanglet(position->Transform, sprite->Color);
     }
-#endif
+
 }
 
-void scene_destroy(Scene* scene)
+void
+scene_destroy(Scene* scene)
 {
-    //ecs_fini(scene->World);
 }
