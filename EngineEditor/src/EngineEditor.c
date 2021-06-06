@@ -87,30 +87,20 @@ void engine_editor_on_attach(NativeWindow window)
     framebuffer_invalidate(&Framebuffer, window.Width, window.Height);
 
     scene_create(&g_Scene);
-    PositionComponent p1 = PositionComponent_(((v3) { 1.0f, 2.5f, 1.0f }));
-    PositionComponent p2 = PositionComponent_(((v3) { 3.0f, 2.5f, 1.0f }));
-    PositionComponent p3 = PositionComponent_(((v3) { 3.0f, 1.5f, 0.0f }));
-    SpriteComponent s1 = SpriteComponent_Color(BlueColor, ((v2) { 1.0f, 1.0f }));
-    SpriteComponent s2 = SpriteComponent_Color(YellowColor, ((v2) { 1.0f, 0.5f }));
-    SpriteComponent s3 = SpriteComponent_Texture(chibiTexture, ((v2) { 2.0f, 2.0f }));
 
-    Entity rectangleEntity = entity_create(&g_Scene, "Just rectangle");
-    ECS_ENTITY_ADD_COMPONENT(g_Scene.World, rectangleEntity.ID, PositionComponent);
+    Entity rectangleEntity = entity_create(&g_Scene, "Blue Rectangle");
     ECS_ENTITY_ADD_COMPONENT(g_Scene.World, rectangleEntity.ID, SpriteComponent);
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, rectangleEntity.ID, PositionComponent, p1);
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, rectangleEntity.ID, SpriteComponent, s1);
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, rectangleEntity.ID, SpriteComponent, SpriteComponent_Color(BlueColor, ((v2) { 1.0f, 1.0f })));
 
-    Entity yellowRectangle = entity_create(&g_Scene, "Just rectangle");
-    ECS_ENTITY_ADD_COMPONENT(g_Scene.World, yellowRectangle.ID, PositionComponent);
+    Entity yellowRectangle = entity_create(&g_Scene, "Yellow Rectangle");
     ECS_ENTITY_ADD_COMPONENT(g_Scene.World, yellowRectangle.ID, SpriteComponent);
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, yellowRectangle.ID, PositionComponent, p2);
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, yellowRectangle.ID, SpriteComponent, s2);
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, yellowRectangle.ID, PositionComponent, PositionComponent_(((v3) { 3.0f, -2.5f, 1.0f })));
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, yellowRectangle.ID, SpriteComponent, SpriteComponent_Color(YellowColor, ((v2) { 1.0f, 0.5f })));
 
-    Entity chibi = entity_create(&g_Scene, "Just rectangle");
-    ECS_ENTITY_ADD_COMPONENT(g_Scene.World, chibi.ID, PositionComponent);
+    Entity chibi = entity_create(&g_Scene, "Chibi Rectangle");
     ECS_ENTITY_ADD_COMPONENT(g_Scene.World, chibi.ID, SpriteComponent);
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, PositionComponent, p3);
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, SpriteComponent, s3);
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, PositionComponent, PositionComponent_(((v3) { 3.0f, 1.5f, 0.0f })));
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, SpriteComponent, SpriteComponent_Texture(chibiTexture, ((v2) { 2.0f, 2.0f })));
 }
 
 void engine_editor_on_update(f32 timestep)

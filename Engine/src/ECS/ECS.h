@@ -128,7 +128,11 @@ World* world_create();
 #define ECS_ENTITY_CREATE(world) _ecs_entity_create((world))
 #define ECS_ENTITY_ADD_COMPONENT(world, entityId, type) _ecs_entity_add_component((world), entityId, #type)
 #define ECS_ENTITY_GET_COMPONENT(world, entityId, type)	(type*)(_ecs_entity_get_component((world), entityId, #type))
-#define ECS_ENTITY_SET_COMPONENT(world, entityId, type, value) _ecs_entity_set_component((world), entityId, #type, sizeof(type), ((void*) &((value))))
+#define ECS_ENTITY_SET_COMPONENT(world, entityId, type, value)		\
+    ({									\
+	__typeof__(value) tValue = value;				\
+	_ecs_entity_set_component((world), entityId, #type, sizeof(type), ((void*) &((tValue)))); \
+    })
 #define ECS_ENTITY_HAS_COMPONENT(world, entityId, type) (_ecs_entity_has_component((world), entityId, #type))
 
 typedef struct ECSQueryResult
@@ -146,6 +150,9 @@ ComponentID* components_name_to_id(World* world, const char* components);
 i32 array_is_equals(const i32* ids1, const i32* ids2);
 i32 array_find(i32* array, i32 value);
 ECSQueryResult _ecs_archetype_get(World* world, const char* components);
+// write function for this
+void _ecs_archetype_put_data(Archetype* archetype, i32 size, void* data);
+
 void* _ecs_query_result_get(ECSQueryResult queryResult, const char* componentName);
 i32 _ecs_query_result_next(ECSQueryResult* queryResult);
 

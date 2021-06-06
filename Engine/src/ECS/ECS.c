@@ -3,7 +3,6 @@
 #include <Utils/MemoryAllocator.h>
 
 static u64 g_WorldsCount = 0;
-static i32 g_ReallocStep = 3;
 
 /*
   ECS INTERNAL
@@ -255,7 +254,7 @@ _ecs_entity_set_component(World* world, EntityID entityId, const char* component
 
     if (archetype->Data == NULL)
     {
-	archetype->Data = memory_allocate(g_ReallocStep * archetype->ComponentsSize);
+	archetype->Data = memory_allocate(2 * archetype->ComponentsSize + 1);
 	archetype->Capacity = archetype->ComponentsSize;
     }
 
@@ -291,7 +290,7 @@ _ecs_archetype_replace_record(ArchetypeStorage* archetypesStorage, EntityID enti
     i32 isReallocNeeded = ((archetype->Size + archetype->ComponentsSize) >= archetype->Capacity);
     if (isReallocNeeded)
     {
-	archetype->Capacity = g_ReallocStep * archetype->Capacity;
+	archetype->Capacity = 2 * archetype->ComponentsSize + 1;
 	archetype->Data = memory_reallocate(archetype->Data, archetype->Capacity);
     }
 

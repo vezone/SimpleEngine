@@ -22,6 +22,11 @@ Entity
 entity_create(Scene* scene, const char* name)
 {
     EntityID entityId = ECS_ENTITY_CREATE(scene->World);
+    PositionComponent p1 = PositionComponent_(((v3) { 1.0f, 1.0f, 1.0f }));
+
+    ECS_ENTITY_ADD_COMPONENT(scene->World, entityId, PositionComponent);
+    ECS_ENTITY_SET_COMPONENT(scene->World, entityId, PositionComponent, p1);
+
     return (Entity) { .Name = name, .ID = entityId };
 }
 
@@ -30,6 +35,7 @@ scene_create(Scene* scene)
 {
     scene->ID = g_SceneLastID;
     scene->World = world_create();
+
     ECS_REGISTER_COMPONENT(scene->World, PositionComponent);
     ECS_REGISTER_COMPONENT(scene->World, SpriteComponent);
 }
