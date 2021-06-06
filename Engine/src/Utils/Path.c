@@ -20,8 +20,8 @@ path_get_filename(const char* path)
 const char*
 path_get_filename_interning(const char* path)
 {
+    //index can be -1
     i32 index = vstring_last_index_of(path, '/');
-    assert(index != -1);
     const char* iPath = istring(path + index + 1);
     return iPath;
 }

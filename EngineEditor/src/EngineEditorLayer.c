@@ -5,7 +5,7 @@ void create_user_application()
 {
     linux_set_current_stack_size(MB(500), MB(528));
 
-    application_init(1280, 720, "Simple Editor");
+    application_init(1600, 900, "Simple Editor");
 
     Layer editorLayer;
     editorLayer.Name = "Engine Editor Layer";

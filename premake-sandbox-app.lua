@@ -29,6 +29,12 @@ project "Engine"
     language "C"
     staticruntime "on"
 
+    buildoptions
+    {
+      "-std=c99",
+      "-O3"
+    }
+
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin/Intermidiates/" .. outputdir .. "/%{prj.name}")
 

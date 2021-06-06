@@ -9,29 +9,10 @@
 #include "Utils/String.h"
 #include "Utils/MemoryAllocator.h"
 
-typedef struct A
-{
-    u32 AId;
-    u32 AAge;
-} A;
-
-typedef struct B
-{
-    u32 BId;
-    u32 BAge;
-} B;
-
-typedef struct C
-{
-    u32 CId;
-    u32 CAge;
-} C;
-
-typedef struct D
-{
-    u32 CId;
-    u32 CAge;
-} D;
+typedef struct A { u32 AId; u32 AAge; } A;
+typedef struct B { u32 BId; u32 BAge; } B;
+typedef struct C { u32 CId; u32 CAge; } C;
+typedef struct D { u32 CId; u32 CAge; } D;
 
 //NOTE(bies): we should check if component exist in talbe, if it not assert(0) it
 //NOTE(bies): return array<void*> for each component from components
@@ -50,7 +31,7 @@ get_component_data(World* world, void* data, i32 count, ...)
     for (i32 i = 0; i < count; i++)
     {
 	u32 componentId = va_arg(components, u32);
-	u32 componentSize = hmget(storage->IdToSize, componentId);
+	u32 componentSize = hash_get(storage->IdToSize, componentId);
 	u64 ptr = u64(data) + offset;
 	array_push(result, ptr);
 	GWARNING("Offset: %lu, Ptr: %ld\n", offset, ptr);
@@ -296,6 +277,8 @@ ecs_entity_set_component_twice_test()
     {
 	ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 991, .AAge = 127 }));
 	A* a = ECS_ENTITY_GET_COMPONENT(world, playerId, A);
+	Condition(a->AId == 991);
+	Condition(a->AAge == 127);
 	Int_Value(a->AId);
 	Int_Value(a->AAge);
     }
@@ -305,7 +288,7 @@ void
 ecs_archetype_get_test()
 {
     World* world = world_init_for_test();
-    // world_more_entities(world);
+    //world_more_entities(world);
 
     srand(time(NULL));
     i32 i;
@@ -315,37 +298,35 @@ ecs_archetype_get_test()
     playerId = ECS_ENTITY_CREATE(world);
     ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
     ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
-    ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = i32(rand() % 20000), .AAge = i32(rand() % 110) }));
-    ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = i32(rand() % 20000), .BAge = i32(rand() % 110) }));
+    ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 1, .AAge = 2 }));
+    ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = 3, .BAge = 4 }));
 
     playerId = ECS_ENTITY_CREATE(world);
     ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
     ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
-    ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = i32(rand() % 20000), .AAge = i32(rand() % 110) }));
-    ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = i32(rand() % 20000), .BAge = i32(rand() % 110) }));
+    ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 5, .AAge = 6 }));
+    ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = 7, .BAge = 8 }));
 
-#if 0
-    for (i = 0; i < count; i++)
-    {
-	playerId = ECS_ENTITY_CREATE(world);
+    playerId = ECS_ENTITY_CREATE(world);
+    ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
+    ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
+    ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 9, .AAge = 10 }));
+    ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = 11, .BAge = 12 }));
 
-	ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
-	ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
+    ECS_ENTITY_ADD_COMPONENT(world, playerId, C);
 
-	ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = i32(rand() % 20000), .AAge = i32(rand() % 110) }));
-	ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = i32(rand() % 20000), .BAge = i32(rand() % 110) }));
-    }
-#endif
-
-    Condition(array_count(world->Archetypes) == 2);
+    Condition(array_count(world->Archetypes) == 3);
     Int_Value(array_count(world->Archetypes));
 
     /*
       FIX: 12 Archetype instead of 2 not ok!
+      NOTE(bies): архетипы добавляются нормально, проблема в query
+      NOTE(bies): (archetype->Size / archetype->ComponentsSize) WRONG !!!
+      NOTE(bies): все ок, так как в архетипе A,B у нас 4 элемента
 
       TODO: remove all 32 from string
       ECS_ARCHETYPE_GET(world, A, B) > ECS_ARCHETYPE_GET(world, "A,B")
-     */
+    */
     ECSQueryResult queryResult = ECS_ARCHETYPE_GET(world, "A,B");
 
     Condition(queryResult.Data != NULL);
@@ -353,7 +334,7 @@ ecs_archetype_get_test()
     Condition(queryResult.World == world);
     Condition(queryResult.Offset == 0);
     Condition(queryResult.Current == -1);
-    Condition(queryResult.Count == 11);
+    Condition(queryResult.Count == 4);
     Int_Value(queryResult.Count);
 
     while (ECS_QUERY_RESULT_NEXT(queryResult))
@@ -366,8 +347,7 @@ ecs_archetype_get_test()
 	Int_Value(b->BId);
 	Int_Value(b->BAge);
 
-	Condition(a != NULL);
-	Condition(b != NULL);
+	Int_Value(queryResult.Current);
     }
 }
 
@@ -383,13 +363,12 @@ void ecs_test()
     TEST(ecs_entity_add_component_test());
 
     CHECK_MEMORY();
-
     TEST(ecs_entity_get_components_test());
 
     CHECK_MEMORY();
-
     TEST(ecs_entity_set_component_test());
     TEST(ecs_entity_set_component_twice_test());
 
+    //NOTE(bies): here we got an error
     TEST(ecs_archetype_get_test());
 }

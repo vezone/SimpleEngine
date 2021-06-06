@@ -2,6 +2,27 @@
 #define BASEMATH_H
 
 #include "Utils/Types.h"
+//TODO(bies): remove this
+#include <math.h>
+
+force_inline i32
+i32_pow(i32 x, i32 n)
+{
+    i32 result = 1;
+
+    if (n == 0 || x == 1)
+    {
+	return 1;
+    }
+
+    while (n)
+    {
+	result *= x;
+	--n;
+    }
+
+    return result;
+}
 
 force_inline f32
 pow2f(f32 x)

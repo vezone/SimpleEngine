@@ -28,7 +28,7 @@ project "Engine"
     kind "StaticLib"
     language "C"
     staticruntime "on"
-
+    buildoptions { "-std=c99" }
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin/Intermidiates/" .. outputdir .. "/%{prj.name}")
 
@@ -40,9 +40,10 @@ project "Engine"
 
     defines
     {
+      "_CRT_SECURE_NO_WARNINGS",
       "GLFW_INCLUDE_NONE",
       "CIMGUI_DEFINE_ENUMS_AND_STRUCTS",
-      "ENGINE_TEST"
+      "_GNU_SOURCE"
     }
 
     includedirs
@@ -55,53 +56,26 @@ project "Engine"
     }
 
     filter "system:linux"
-    defines
-    {
-       "LINUX_PLATFORM"
-    }
+      defines { "LINUX_PLATFORM" }
 
     filter "system:windows"
-    defines
-    {
-       "WINDOWS_PLATFORM"
-    }
+      defines { "WINDOWS_PLATFORM" }
 
     filter "configurations:Debug"
-    defines
-    {
-       "ENGINE_DEBUG",
-       "ENGINE_TEST"
-    }
-    symbols "On"
+      defines { "ENGINE_DEBUG", "ENGINE_TEST" }
+      symbols "On"
 
     filter "configurations:Release"
-    defines
-    {
-       "ENGINE_RELEASE",
-       "ENGINE_TEST"
-    }
-    optimize "On"
-
-    filter "configurations:Dist"
-    defines
-    {
-       "ENGINE_DIST",
-       "ENGINE_TEST"
-    }
-    optimize "On"
+      defines { "ENGINE_RELEASE", "ENGINE_TEST" }
+      buildoptions { "-O3" }
+      optimize "On"
 
 project "SimpleTest"
     location "SimpleTest"
     kind "ConsoleApp"
     language "C"
     staticruntime "on"
-
-    buildoptions
-    {
-      "-std=c99",
-      "-O3"
-    }
-
+    buildoptions { "-std=c99" }
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin/Intermidiates/" .. outputdir .. "/%{prj.name}")
 
@@ -142,37 +116,38 @@ project "SimpleTest"
     }
 
     filter "configurations:Debug"
-    defines
-    {
-       "ENGINE_DEBUG",
-       "ENGINE_TEST"
-    }
-    symbols "On"
+      defines
+      {
+	 "ENGINE_DEBUG",
+	 "ENGINE_TEST"
+      }
+      symbols "On"
 
     filter "configurations:Release"
-    defines
-    {
-       "ENGINE_RELEASE",
-       "ENGINE_TEST"
-    }
-    optimize "On"
+      defines
+      {
+	 "ENGINE_RELEASE",
+	 "ENGINE_TEST"
+      }
+      buildoptions { "-O3" }
+      optimize "On"
 
     filter "configurations:Dist"
-    defines
-    {
-       "ENGINE_DIST",
-       "ENGINE_TEST"
-    }
-    optimize "On"
+      defines
+      {
+	 "ENGINE_DIST",
+	 "ENGINE_TEST"
+      }
+      optimize "On"
 
     filter "system:linux"
-    defines
-    {
-       "LINUX_PLATFORM"
-    }
+      defines
+      {
+	 "LINUX_PLATFORM"
+      }
 
     filter "system:windows"
-    defines
-    {
-       "WINDOWS_PLATFORM"
-    }
+      defines
+      {
+	 "WINDOWS_PLATFORM"
+      }

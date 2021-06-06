@@ -437,7 +437,16 @@ void renderer_submit_rectanglet(mat4 transform, Texture2D* texture)
 
 void renderer_submit_colored_rectanglet(mat4 transform, vec4 color)
 {
+    vec2 size;
+    size[0] = 1.0f; //transform[0][0];
+    size[1] = 1.0f; //transform[1][1];
 
+    vec3 position;
+    position[0] = 1.5f; //transform[0][0];
+    position[1] = 1.5f; //transform[1][1];
+    position[2] = 0.0f; //transform[2][2];
+
+    renderer_submit_colored_rectangle(position, size, color);
 }
 
 //note(bm): use only 1 atlas at time

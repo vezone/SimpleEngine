@@ -28,7 +28,7 @@ project "Engine"
     kind "StaticLib"
     language "C"
     staticruntime "on"
-
+    buildoptions { "-std=c99" }
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin/Intermidiates/" .. outputdir .. "/%{prj.name}")
 
@@ -56,37 +56,19 @@ project "Engine"
     }
 
     filter "system:linux"
-      defines
-      {
-	 "LINUX_PLATFORM"
-      }
+      defines { "LINUX_PLATFORM" }
 
     filter "system:windows"
-      defines
-      {
-	 "WINDOWS_PLATFORM"
-      }
+      defines { "WINDOWS_PLATFORM" }
 
     filter "configurations:Debug"
-    defines
-    {
-       "ENGINE_DEBUG"
-    }
-    symbols "On"
+      defines { "ENGINE_DEBUG" }
+      symbols "On"
 
     filter "configurations:Release"
-    defines
-    {
-       "ENGINE_RELEASE"
-    }
-    optimize "On"
-
-    filter "configurations:Dist"
-    defines
-    {
-       "ENGINE_DIST"
-    }
-    optimize "On"
+      defines { "ENGINE_RELEASE" }
+      optimize "On"
+      buildoptions { "-O3" }
 
 project "EngineEditor"
     location "EngineEditor"
@@ -94,12 +76,7 @@ project "EngineEditor"
     language "C"
     staticruntime "on"
 
-    buildoptions
-    {
-      "-std=c99",
-      "-O3"
-    }
-
+    buildoptions { "-std=c99" }
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin/Intermidiates/" .. outputdir .. "/%{prj.name}")
 
@@ -140,34 +117,20 @@ project "EngineEditor"
     }
 
     filter "configurations:Debug"
-    defines
-    {
-       "ENGINE_DEBUG"
-    }
-    symbols "On"
+      defines { "ENGINE_DEBUG" }
+      symbols "On"
 
     filter "configurations:Release"
-    defines
-    {
-       "ENGINE_RELEASE"
-    }
-    optimize "On"
+      defines { "ENGINE_RELEASE" }
+      buildoptions { "-O3" }
+      optimize "On"
 
     filter "configurations:Dist"
-    defines
-    {
-       "ENGINE_DIST"
-    }
-    optimize "On"
+      defines { "ENGINE_DIST" }
+      optimize "On"
 
     filter "system:linux"
-      defines
-      {
-	 "LINUX_PLATFORM"
-      }
+      defines { "LINUX_PLATFORM" }
 
     filter "system:windows"
-      defines
-      {
-	 "WINDOWS_PLATFORM"
-      }
+      defines { "WINDOWS_PLATFORM" }

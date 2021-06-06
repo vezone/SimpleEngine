@@ -5,6 +5,8 @@
 #include "Math/MathTypes.h"
 #include "Math/BaseMath.h"
 
+#define v2(x, y) (v2 v; v[0] = x; v[1] = y)
+
 force_inline void
 vector2f_create(Vector2f vec, f32 x, f32 y)
 {

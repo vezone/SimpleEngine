@@ -39,7 +39,7 @@ void
 file_info_add_function_result(FileInfo* fileInfo, const char* functionName, i32 code, const char* message)
 {
     FunctionResult* functionResult = file_info_get_function_result(fileInfo, functionName);
-    if (functionResult)
+    if (functionResult != NULL)
     {
 	if (!code)
 	{
@@ -47,14 +47,14 @@ file_info_add_function_result(FileInfo* fileInfo, const char* functionName, i32 
 	}
 
 	array_push(functionResult->Codes, code);
-	vstring_builder_append_format(&functionResult->Builder, "%s [Result: %d]\n", message, code);
+	string_builder_appendf(functionResult->Builder, "%s [Result: %d]\n", message, code);
     }
     else
     {
-	functionResult = malloc(sizeof(FunctionResult));
+	functionResult = malloc(sizeof(*functionResult));
 	functionResult->Codes = NULL;
-	vstring_builder_init(&functionResult->Builder);
-	vstring_builder_append_format(&functionResult->Builder, "%s [Result: %d]\n", message, code);
+	functionResult->Builder = NULL;
+	string_builder_appendf(functionResult->Builder, "%s [Result: %d]\n", message, code);
 	array_push(functionResult->Codes, code);
 	functionResult->IsSuccess = code;
 
@@ -95,24 +95,21 @@ void
 test_table_add_file_info(TestTable* testTable, const char* filename, i8 code, const char* message)
 {
     FileInfo* fileInfo = test_table_get_file_info(testTable, filename);
-    if (fileInfo != NULL)
+    if (fileInfo == NULL)
     {
-	file_info_add_function_result(fileInfo, g_CurrentFunction, code, message);
-    }
-    else
-    {
-	fileInfo = malloc(sizeof(FileInfo));
+	fileInfo = malloc(sizeof(*fileInfo));
 	fileInfo->Functions = NULL;
 	fileInfo->Results = NULL;
-	file_info_add_function_result(fileInfo, g_CurrentFunction, code, message);
 	array_push(testTable->Filenames, filename);
 	array_push(testTable->Infos, fileInfo);
     }
+
+    file_info_add_function_result(fileInfo, g_CurrentFunction, code, message);
 }
 
 void test_set_function(const char* function)
 {
-    g_CurrentFunction = istring(function);
+    g_CurrentFunction = function;
 }
 
 void
@@ -124,6 +121,7 @@ test(i8 code, const char* filename, const char* message)
 
     const char* ifilename = path_get_filename_interning(filename);
     vassert(ifilename);
+    vassert(ifilename != NULL);
 
     if (!g_IsInitialized)
     {

@@ -10,62 +10,54 @@
 #include "Types.h"
 #include "MemoryAllocator.h"
 
-typedef struct InterningString
-{
-    u32 Length;
-    const char* String;
-} InterningString;
-
-static InterningString* g_InterningStrings = NULL;
+static IStringHeader** g_IStringHeaders = NULL;
 
 const char*
-istring(const char* src)
+internal_istring(const char* src)
 {
     vassert(src);
 
-    i32 i;
-    u32 length;
-    u32 interningsCount;
+    i32 length = vstring_length(src);
+    i32 size = sizeof(IStringHeader) + (length + 1) * sizeof(*src);
+    IStringHeader* interning = (IStringHeader*) internal_memory_allocate(size);
+    char* buffer = (char*) (((void*)interning) + sizeof(*interning));
+    memcpy(buffer, src, length * sizeof(*src));
+    buffer[length] = '\0';
+    vassert(buffer != NULL);
 
-    length = vstring_length(src);
-    interningsCount = array_count(g_InterningStrings);
+    interning->Buffer = (const char*) buffer;
+    interning->Length = length;
+    interning->Exist = 1;
 
-    for (i = 0; i < interningsCount; i++)
-    {
-	InterningString istr = g_InterningStrings[i];
-	if (vstring_compare(istr.String, src))
-	{
-	    return istr.String;
-	}
-    }
+    vassert(interning->Buffer != NULL);
+    vassert(interning->Buffer == ((void*)interning) + sizeof(*interning));
 
-    u32 size = (length + 1) * sizeof(char);
-    char* str = (char*) internal_memory_allocate(size);
-    memcpy(str, src, length);
-    str[length] = '\0';
+    array_push(g_IStringHeaders, interning);
 
-    InterningString istr = DEFAULT(InterningString);
-    istr.String = str;
-    istr.Length = length;
-
-    array_push(g_InterningStrings, istr);
-
-    return istr.String;
+    return interning->Buffer;
 }
 
-u32
-istring_length(const char* str)
+const char*
+istring_get_buffer(const char* src)
 {
-    for (i32 i = 0; i < array_len(g_InterningStrings); i++)
+    i32 i;
+    i32 count = array_count(g_IStringHeaders);
+
+    for (i = 0; i < count; i++)
     {
-	InterningString istr = g_InterningStrings[i];
-	if (istr.String == str)
+	if (vstring_compare(src, g_IStringHeaders[i]->Buffer))
 	{
-	    return istr.Length;
+	    return g_IStringHeaders[i]->Buffer;
 	}
     }
 
-    return 0;
+    return NULL;
+}
+
+void
+istring_free()
+{
+    array_free(g_IStringHeaders);
 }
 
 char*
@@ -75,7 +67,7 @@ vstring(const char* string)
     char* newString;
 
     length = vstring_length(string);
-    newString = (char*) memory_allocate((length + 1) * sizeof(char));
+    newString = (char*) internal_memory_allocate((length + 1) * sizeof(char));
     newString[length] = '\0';
     memcpy(newString, string, length*sizeof(char));
 
@@ -92,7 +84,7 @@ vstring_set(char* string, char c, u32 length)
     }
 }
 
-u32
+i32
 vstring_length(const char* str)
 {
     vassert(str);
@@ -103,22 +95,23 @@ vstring_length(const char* str)
 }
 
 char*
-vstring_copy(const char* oth, u32 length)
+vstring_copy(const char* oth, i32 length)
 {
     vassert(oth);
 
-    char* result = (char*) memory_allocate(length * sizeof(char));
+    char* result = (char*) internal_memory_allocate((length + 1) * sizeof(char));
     memcpy(result, oth, length);
+    result[length] = '\0';
     return result;
 }
 
 char*
 vstring_concat(const char* left, const char* right)
 {
-    u32 leftLength = vstring_length(left);
-    u32 rightLength = vstring_length(right);
+    i32 leftLength = vstring_length(left);
+    i32 rightLength = vstring_length(right);
 
-    char* newString = (char*) memory_allocate(leftLength + rightLength + 1);
+    char* newString = (char*) internal_memory_allocate(leftLength + rightLength + 1);
 
     memcpy(newString, left, leftLength);
     memcpy(newString + leftLength, right, rightLength);
@@ -130,11 +123,11 @@ vstring_concat(const char* left, const char* right)
 char*
 vstring_concat3(const char* left, const char* middle, const char* right)
 {
-    u32 leftLength = vstring_length(left);
-    u32 middleLength = vstring_length(middle);
-    u32 rightLength = vstring_length(right);
+    i32 leftLength = vstring_length(left);
+    i32 middleLength = vstring_length(middle);
+    i32 rightLength = vstring_length(right);
 
-    char* newString = (char*) memory_allocate(leftLength + middleLength + rightLength + 1);
+    char* newString = (char*) internal_memory_allocate(leftLength + middleLength + rightLength + 1);
 
     memcpy(newString, left, leftLength);
     memcpy(newString + leftLength, middle, middleLength);
@@ -169,14 +162,32 @@ vstring_compare(const char* left, const char* right)
     return 1;
 }
 
+i32
+vstring_compare_length(const char* left, const char* right, i32 length)
+{
+    vassert(left);
+    vassert(right);
+
+    i32 i;
+    for (i = 0; i < length; i++)
+    {
+	if (left[i] != right[i])
+	{
+	    return 0;
+	}
+    }
+
+    return 1;
+}
+
 char*
 vstring_to_upper(const char* input)
 {
     i32 i;
-    i32 input_length = vstring_length(input);
-    char* result = memory_allocate((input_length + 1) * sizeof(char));
+    i32 inputLength = vstring_length(input);
+    char* result = internal_memory_allocate((inputLength + 1) * sizeof(char));
 
-    for (i = 0; i < input_length; i++)
+    for (i = 0; i < inputLength; i++)
     {
 	char element = input[i];
 	if (element >= 'a' && element <= 'z')
@@ -188,7 +199,7 @@ vstring_to_upper(const char* input)
 	    result[i] = element;
 	}
     }
-    result[input_length] = '\0';
+    result[inputLength] = '\0';
     return result;
 }
 
@@ -206,7 +217,7 @@ vstring_to_lower(const char* input)
     }
 
     input_length = vstring_length(input);
-    result = memory_allocate((input_length + 1) * sizeof(char));
+    result = internal_memory_allocate((input_length + 1) * sizeof(char));
     for (i = 0; i < input_length; i++)
     {
 	element = input[i];
@@ -296,6 +307,7 @@ vstring_last_index_of(const char* input, char character)
 
     i32 i;
     i32 start_index;
+
     start_index = vstring_length(input) - 1;
 
     for (i = start_index; i >= 0; i--)
@@ -310,54 +322,48 @@ vstring_last_index_of(const char* input, char character)
 }
 
 char*
-vstring_substring(const char* input, i32 start_index)
+vstring_substring(const char* input, i32 startIndex)
 {
     i32 i;
-    i32 new_length;
-    i32 input_length;
+    i32 newLength;
+    i32 inputLength;
     char* result;
 
-    input_length = vstring_length(input);
-    vassert(start_index < input_length);
-    vassert(start_index > 0);
+    vassert(input && input != NULL);
 
-    new_length = input_length - start_index;
-    result = memory_allocate((new_length + 1) * sizeof(char));
-    memcpy(result, input + start_index, new_length);
-    result[new_length] = '\0';
-#if 0
-    for (i = start_index; i < input_length; i++)
-    {
-	result[i - start_index] = input[i];
-    }
-#endif
+    inputLength = vstring_length(input);
+    vassert(startIndex < inputLength);
+    vassert(startIndex > 0);
+
+    newLength = inputLength - startIndex;
+    result = internal_memory_allocate((newLength + 1) * sizeof(char));
+    memcpy(result, input + startIndex, newLength);
+    result[newLength] = '\0';
 
     return result;
 }
 
 char*
-vstring_substring_range(const char* input, i32 start_index, i32 end_index)
+vstring_substring_range(const char* input, i32 startIndex, i32 endIndex)
 {
     i32 i;
-    i32 input_length;
-    i32 new_length;
+    i32 inputLength;
+    i32 newLength;
     char* result;
 
-    input_length = vstring_length(input);
-    new_length = end_index - start_index + 1;
-    result = memory_allocate((new_length + 1) * sizeof(char));
+    vassert(input && input != NULL);
 
-    vassert(start_index < input_length);
-    vassert(start_index >= 0);
-    vassert(input_length > end_index);
-    vassert(start_index <= end_index);
+    inputLength = vstring_length(input);
+    newLength = endIndex - startIndex + 1;
+    result = internal_memory_allocate((newLength + 1) * sizeof(char));
 
-    for (i = start_index; i <= end_index; i++)
-    {
-	result[i - start_index] = input[i];
-    }
+    vassert(startIndex < inputLength);
+    vassert(startIndex >= 0);
+    vassert(inputLength > endIndex);
+    vassert(startIndex <= endIndex);
 
-    result[new_length] = '\0';
+    memcpy(result, input + startIndex, newLength);
+    result[newLength] = '\0';
 
     return result;
 }
@@ -382,7 +388,7 @@ vstring_cut(const char* input, u32 begin, u32 end)
     assert(inputLength);
     assert(resultLength);
 
-    char* result = memory_allocate(resultLength);
+    char* result = internal_memory_allocate(resultLength);
     for (i = 0; i < begin; i++)
     {
 	result[i] = input[i];
@@ -453,7 +459,7 @@ vstring_join(const char** list, char joinCharacter)
 	finalLength += vstring_length(list[i]);
     }
 
-    finalString = (char*) memory_allocate(finalLength);
+    finalString = (char*) internal_memory_allocate(finalLength);
     for (i = 0; i < (length - 1); i++)
     {
 	str = list[i];
@@ -472,7 +478,8 @@ vstring_join(const char** list, char joinCharacter)
     return finalString;
 }
 
-void vstring_parse_i32(char* input, i32 number)
+void
+vstring_parse_i32(char* input, i32 number)
 {
     i8 isNumberNegative = ((number < 0) ? 1 : 0);
     i32 i, rank = number_rank(number), numberLength = rank + isNumberNegative + 1;
@@ -489,7 +496,8 @@ void vstring_parse_i32(char* input, i32 number)
     }
 }
 
-void vstring_parse_i64(char* input, i64 number)
+void
+vstring_parse_i64(char* input, i64 number)
 {
     i8 isNumberNegative = ((number < 0) ? 1 : 0);
     i32 i, rank = number_rank(number), numberLength = rank + isNumberNegative + 1;
@@ -506,7 +514,24 @@ void vstring_parse_i64(char* input, i64 number)
     }
 }
 
-void vstring_parse_f64(char* input, f64 number)
+void
+vstring_i32_to_string(char* input, i32 number)
+{
+    i32 threshold = 10;
+    i32 digit = number % threshold;
+
+
+    while (number < threshold)
+    {
+
+    }
+}
+
+/*
+TODO(bies): rename to vstring_f64_to_string
+*/
+void
+vstring_parse_f64(char* input, f64 number)
 {
     if (vstring_length(input) < 64)
     {

@@ -2,9 +2,11 @@
 
 #include "UTests/Test.h"
 #include "UTests/Math/UTest_BaseMath.h"
+#include "UTests/Math/UTest_V2.h"
 #include "UTests/Utils/UTest_String.h"
 #include "UTests/Utils/UTest_Path.h"
 #include "UTests/Utils/UTest_Array.h"
+#include "UTests/Utils/UTest_HashTable.h"
 #include "UTests/ECS/UTest_ECS.h"
 
 #include "ToggleButton.h"
@@ -19,11 +21,18 @@ void simple_test_on_attach(NativeWindow window)
     g_Window = window;
 
     //memory_allocator_test();
-    string_test();
+#if 1
     base_math_test();
+    v2_test();
+
+    string_test();
     path_test();
     array_test();
+    hash_test();
     ecs_test();
+#endif
+
+    string_builder_test();
 }
 
 void simple_test_on_update(f32 timestep)
@@ -191,7 +200,7 @@ void simple_test_on_ui()
 		    if (igButton(functionName, ImVec2(0, 0)))
 		    {
 			window_set_title(&g_Window, functionName);
-			testText = functionResult->Builder.Buffer;
+			testText = functionResult->Builder;
 		    }
 
 		    igPopStyleColor(3);

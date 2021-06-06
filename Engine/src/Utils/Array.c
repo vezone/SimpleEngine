@@ -2,12 +2,26 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "MemoryAllocator.h"
 
-static i32 g_StartSize = 1;
+static i32 g_StartSize = 5;
 
 void*
-array_grow(const void* array, i32 elementSize)
+internal_array_reserve(void* array, i32 elementsCount, i32 elementSize)
+{
+    vassert(array == NULL);
+
+    i32 capacity = elementsCount * elementSize;
+    i32 size = capacity + sizeof(BufferHeader);
+    BufferHeader* newHeader = (BufferHeader*) memory_allocate(size);
+    newHeader->Count = 0;
+    newHeader->Capacity = elementsCount;
+    newHeader->ElementSize = elementSize;
+
+    return newHeader->Buffer;
+}
+
+void*
+internal_array_grow(const void* array, i32 elementSize)
 {
     BufferHeader* newHeader = NULL;
 

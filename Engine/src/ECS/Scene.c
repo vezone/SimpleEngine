@@ -46,9 +46,15 @@ scene_on_update(Scene* scene, f32 timestep)
 	SpriteComponent* sprite =
 	    ECS_QUERY_RESULT_GET(queryResult, SpriteComponent);
 
-	renderer_submit_colored_rectanglet(position->Transform, sprite->Color);
+	if (sprite->IsTextured)
+	{
+	    renderer_submit_rectangle(position->Position, sprite->Size, NULL, &sprite->Texture);
+	}
+	else
+	{
+	    renderer_submit_colored_rectangle(position->Position, sprite->Size, sprite->Color);
+	}
     }
-
 }
 
 void

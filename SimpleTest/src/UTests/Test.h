@@ -12,7 +12,7 @@ typedef struct FunctionResult
     //NOTE(bies): Массив результирующих кодов
     i8 IsSuccess;
     i8* Codes;
-    StringBuilder Builder;
+    char* Builder;
 } FunctionResult;
 
 typedef struct FileInfo

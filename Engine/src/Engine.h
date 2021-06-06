@@ -26,9 +26,13 @@
 
 //Math
 #include "Math/BaseMath.h"
+#include "Math/V2.h"
+#include "Math/V3.h"
+#include "Math/V4.h"
 
 //Utils
 #include "Utils/Array.h"
+#include "Utils/HashTable.h"
 #include "Utils/String.h"
 #include "Utils/Logger.h"
 #include "Utils/Types.h"
@@ -39,7 +43,6 @@
 
 //Platform
 #include "Platform/Linux/Linux.h"
-
 
 
 #endif

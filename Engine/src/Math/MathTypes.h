@@ -3,6 +3,13 @@
 
 #include "Utils/Types.h"
 
+/*
+
+Vectors:
+v2 v3 v4 - by default it's f32 vn[n]
+
+*/
+
 // e
 #define MATH_E         2.71828182845904523536028747135266250
 // log2(e)
@@ -20,7 +27,7 @@
 // pi/4
 #define MATH_PI_4      0.785398163397448309615660845819875721
 // 1/pi
-#define MATH_1_PI      0.318309886183790671537767526745028724  
+#define MATH_1_PI      0.318309886183790671537767526745028724
 // 2/pi
 #define MATH_2_PI      0.636619772367581343075535053490057448
 // 2/sqrt(pi)
@@ -31,9 +38,9 @@
 #define MATH_SQRT1_2   0.707106781186547524400844362104849039
 
 #define MATH_Ef        ((f32) MATH_E)
-#define MATH_LOG2Ef    ((f32) MATH_LOG2E) 
-#define MATH_LOG10Ef   ((f32) MATH_LOG10E)   
-#define MATH_LN2f      ((f32) MATH_LN2)  
+#define MATH_LOG2Ef    ((f32) MATH_LOG2E)
+#define MATH_LOG10Ef   ((f32) MATH_LOG10E)
+#define MATH_LN2f      ((f32) MATH_LN2)
 #define MATH_LN10f     ((f32) MATH_LN10)
 #define MATH_PIf       ((f32) MATH_PI)
 #define MATH_PI_2f     ((f32) MATH_PI_2f)
@@ -58,8 +65,14 @@ typedef f64 Vector4d[4];
 
 typedef Vector3f Matrix3f[3];
 typedef Vector4f Matrix4f[4];
-
 typedef Vector3i Matrix3i[3];
 typedef Vector3i Matrix4i[4];
+
+typedef f32 v2[2];
+typedef f32 v3[3];
+typedef f32 v4[4];
+
+typedef v3 m3[3];
+typedef v4 m4[4];
 
 #endif
