@@ -90,7 +90,7 @@ const char* _ecs_get_component_name_by_id(World* world, ComponentID componentId)
 i32 _ecs_is_archetype_registered(World* world, const ComponentID* componentsId);
 Archetype* _ecs_get_archetype(World* world, const ComponentID* components, u32 size);
 void _ecs_register_component(World* world, const char* componentName, u32 componentSize);
-Archetype* _ecs_register_archetype(World* world, const ComponentID* componentsId, u32 componentsSize);
+void _ecs_entity_register_archetype(World* world, EntityID entityId, Archetype* archetype);
 ArchetypeRecord _ecs_get_archetype_record(World* world, EntityID entityId);
 
 /*
@@ -105,12 +105,22 @@ _ecs_entity_create(World* world)
     return entityId;
 }
 
-i8 _ecs_entity_has_component(World* world, EntityID entityId, const char* componentName);
 const ComponentID* _ecs_entity_get_components_id(World* world, EntityID entityId);
 void _ecs_entity_add_component(World* world, EntityID entityId, const char* componentName);
 void* _ecs_entity_get_component(World* world, EntityID entityId, const char* componentName);
 void _ecs_entity_set_component(World* world, EntityID entityId, const char* componentName, i32 componentSize, void* value);
-void _ecs_entity_register_archetype(World* world, EntityID entityId, Archetype* archetype);
+i8 _ecs_entity_has_component(World* world, EntityID entityId, const char* componentName);
+//WIP
+/*
+i32* _ecs_entity_get_components(World* world, EntityID entityId);
+i32* componentsIDs = ECS_ENTITY_GET_COMPONENTS(world, entityId);
+for (i32 c = 0; c < array_count(componentsIDs); c++)
+{
+    ComponentID id = componentsIDs[c];
+    PositionComponent* component = ECS_ENTITY_GET_COMPONENT(g_Scene.World, id, PositionComponent);
+    m4_transform_decompose(m4 transform, v3 translation, v3 rotation, v3 scale);
+}
+*/
 
 /*
   ECS PUBLIC API
@@ -134,6 +144,7 @@ World* world_create();
 	_ecs_entity_set_component((world), entityId, #type, sizeof(type), ((void*) &((tValue)))); \
     })
 #define ECS_ENTITY_HAS_COMPONENT(world, entityId, type) (_ecs_entity_has_component((world), entityId, #type))
+#define ECS_ENTITY_GET_COMPONENTS(world, entityId) _ecs_entity_get_components((world), entityId)
 
 typedef struct ECSQueryResult
 {
@@ -147,8 +158,6 @@ typedef struct ECSQueryResult
 } ECSQueryResult;
 
 ComponentID* components_name_to_id(World* world, const char* components);
-i32 array_is_equals(const i32* ids1, const i32* ids2);
-i32 array_find(i32* array, i32 value);
 ECSQueryResult _ecs_archetype_get(World* world, const char* components);
 // write function for this
 void _ecs_archetype_put_data(Archetype* archetype, i32 size, void* data);

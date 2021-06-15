@@ -7,7 +7,7 @@
 #include "Utils/Array.h"
 #include "Utils/Logger.h"
 
-Shader* ShadersCollection = NULL;
+Shader* g_Shaders = NULL;
 
 ShaderSource
 shader_load(const char* shader_path)
@@ -55,16 +55,19 @@ shader_load(const char* shader_path)
 }
 
 static void
-shader_error_check(u32 shader_id)
+shader_error_check(u32 shaderID)
 {
-    i32 is_compiled;
-    glGetShaderiv(shader_id, GL_COMPILE_STATUS, &is_compiled);
-    if (is_compiled == GL_FALSE)
+    i32 isCompiled = GL_FALSE;
+    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &isCompiled);
+    if (isCompiled == GL_FALSE)
     {
-	i32 log_length = 0;
-	char error_message[1024];
-	glGetShaderInfoLog(shader_id, 1024, &log_length, error_message);
-	GERROR("shader_error_check[is_compiled: %d, log_length:%d]: %s\n", is_compiled, log_length, error_message);
+	i32 logLength = 0;
+	char errorMessage[1024];
+	glGetShaderInfoLog(shaderID, 1024, &logLength, errorMessage);
+	if (logLength > 0)
+	{
+	    GERROR("shader_error_check[is_compiled: %d, log_length:%d]: %s\n", isCompiled, logLength, errorMessage);
+	}
     }
 }
 
@@ -72,6 +75,7 @@ Shader
 shader_compile(ShaderSource source)
 {
     Shader shader = {};
+
     u32 vertex_shader_id;
     u32 fragment_shader_id;
     u32 shader_program_id;
@@ -81,10 +85,7 @@ shader_compile(ShaderSource source)
     if (source.vertex_shader == NULL || source.fragment_shader == NULL || vstring_length(source.vertex_shader) < 0 || vstring_length(source.fragment_shader) < 0)
     {
 	GERROR("Shader source is not loaded correctly!\n");
-	return (Shader) {
-	    .ShaderID = -1,
-	    .UniformTable = NULL
-	};
+	return (Shader) { .ShaderID = -1, .UniformTable = NULL };
     }
 
     SHADERDEBUG(GREEN("Compiling")" vertex shader\n");
@@ -113,19 +114,16 @@ shader_compile(ShaderSource source)
     glDeleteShader(vertex_shader_id);
     glDeleteShader(fragment_shader_id);
 
-    shader.ShaderID = shader_program_id;
-    shader.UniformTable = NULL;
+    array_push(g_Shaders, shader);
 
-    array_push(ShadersCollection, shader);
-
-    return shader;
+    return (Shader) { .ShaderID = shader_program_id, .UniformTable = NULL };
 }
 
 void
 shader_delete(Shader* shader)
 {
     glDeleteProgram(shader->ShaderID);
-    shfree(shader->UniformTable);
+    shash_free(shader->UniformTable);
 }
 
 void
@@ -143,17 +141,20 @@ shader_unbind()
 void
 shader_delete_collection()
 {
-    Shader shader;
-    if (ShadersCollection == NULL)
+    GDEBUG(GREEN("Begin: delete collection of shaders\n"));
+
+    if (g_Shaders == NULL)
     {
 	return;
     }
 
-    for (i32 i = 0; i < array_len(ShadersCollection); i++)
+    Shader shader;
+    i32 i, count = array_count(g_Shaders);
+    for (i = 0; i < count; i++)
     {
-	shader = ShadersCollection[i];
+	shader = g_Shaders[i];
 	shader_delete(&shader);
     }
 
-    GLOG(GREEN("Delete collection of shaders\n"));
+    GDEBUG(GREEN("End: delete collection of shaders\n"));
 }

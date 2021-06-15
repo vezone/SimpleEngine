@@ -54,15 +54,12 @@ v2 v3 v4 - by default it's f32 vn[n]
 typedef f32 Vector2f[2];
 typedef f32 Vector3f[3];
 typedef f32 Vector4f[4];
-
 typedef i32 Vector2i[2];
 typedef i32 Vector3i[3];
 typedef i32 Vector4i[4];
-
 typedef f64 Vector2d[2];
 typedef f64 Vector3d[3];
 typedef f64 Vector4d[4];
-
 typedef Vector3f Matrix3f[3];
 typedef Vector4f Matrix4f[4];
 typedef Vector3i Matrix3i[3];
@@ -71,8 +68,19 @@ typedef Vector3i Matrix4i[4];
 typedef f32 v2[2];
 typedef f32 v3[3];
 typedef f32 v4[4];
-
 typedef v3 m3[3];
 typedef v4 m4[4];
+
+#define v2_(x, y) ((v2) { x, y })
+#define v3_(x, y, z) ((v3) { x, y, z })
+#define v4_(x, y, z, w) ((v4) { x, y, z, w })
+
+#define M4_IDENTITY				\
+    {						\
+	{ 1.0f, 0.0f, 0.0f, 0.0f },		\
+	{ 0.0f, 1.0f, 0.0f, 0.0f },		\
+	{ 0.0f, 0.0f, 1.0f, 0.0f },		\
+	{ 0.0f, 0.0f, 0.0f, 1.0f }		\
+    }
 
 #endif

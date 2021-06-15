@@ -1,15 +1,80 @@
 #include "ECS.h"
-#include "Components.h"
+#include "Components/PositionComponent.h"
+#include "Components/SpriteComponent.h"
 #include <Utils/MemoryAllocator.h>
 
 static u64 g_WorldsCount = 0;
 
 /*
-  ECS INTERNAL
+  ECS UTILS
 */
+force_inline i32
+components_ids_equals(const ComponentID* first, const ComponentID* second, u32 firstSize, u32 secondSize)
+{
+    i32 c;
+    i32 firstCount = array_count(first);
+    i32 secondCount = array_count(second);
+
+    if (firstSize != secondSize || firstCount != secondCount)
+    {
+	return -1;
+    }
+
+    for (c = 0; c < firstCount; c++)
+    {
+	ComponentID firstId = first[c];
+	ComponentID secondId = second[c];
+
+	if (firstId != secondId)
+	{
+	    return -1;
+	}
+    }
+
+    return 1;
+}
+
+force_inline i32
+array_is_equals(const i32* ids1, const i32* ids2)
+{
+    i32 c;
+    i32 ids1Count = array_count(ids1);
+    i32 ids2Count = array_count(ids2);
+
+    if (ids1Count != ids2Count)
+    {
+	return 0;
+    }
+
+    for (c = 0; c < ids1Count; c++)
+    {
+	if (ids1[c] != ids2[c])
+	{
+	    return 0;
+	}
+    }
+
+    return 1;
+}
+
+force_inline i32
+array_find(i32* array, i32 value)
+{
+    i32 count = array_count(array);
+    for (i32 i = 0; i < count; i++)
+    {
+	if (array[i] == value)
+	{
+	    return i;
+	}
+    }
+
+    return -1;
+}
+
 
 /*
-  ECS PUBLIC
+  ECS INTERNAL
 */
 ComponentID
 _ecs_get_component_id_by_name(World* world, const char* componentName)
@@ -37,34 +102,6 @@ _ecs_get_component_name_by_id(World* world, ComponentID componentId)
 
     assert(0);
     return NULL;
-}
-
-force_inline i32
-components_ids_equals(const ComponentID* first, const ComponentID* second, u32 firstSize, u32 secondSize)
-{
-    i32 c;
-    i32 firstCount = array_count(first);
-    i32 secondCount = array_count(second);
-
-    if (firstSize != secondSize || firstCount != secondCount)
-    {
-	return -1;
-    }
-
-    for (c = 0; c < firstCount; c++)
-    {
-	ComponentID firstId = first[c];
-	ComponentID secondId = second[c];
-
-	//GWARNING("FirstId: %d, SecondId: %d\n", firstId, secondId);
-
-	if (firstId != secondId)
-	{
-	    return -1;
-	}
-    }
-
-    return 1;
 }
 
 Archetype*
@@ -171,7 +208,7 @@ _ecs_entity_get_components_id(World* world, EntityID entityId)
 {
     if (hash_geti(world->ArchetypesStorage, entityId) == -1)
     {
-	GWARNING("Entity don't have a components and don't belong to any archetype!\n");
+	//GWARNING("Entity don't have a components and don't belong to any archetype!\n");
 	return NULL;
     }
 
@@ -191,7 +228,7 @@ _ecs_entity_add_component(World* world, EntityID entityId, const char* component
 
     if (hash_geti(world->ArchetypesStorage, entityId) == -1)
     {
-	GWARNING("Entity don't have a components and don't belong to any archetype!\n");
+	// GWARNING("Entity don't have a components and don't belong to any archetype!\n");
 	componentSize = 0;
 	componentsId = NULL;
 	newIds = NULL;
@@ -283,9 +320,9 @@ void
 _ecs_archetype_replace_record(ArchetypeStorage* archetypesStorage, EntityID entityId, Archetype* archetype, ArchetypeRecord prevArchetypeRecord)
 {
     Archetype* prevArchetype = prevArchetypeRecord.Archetype;
-    i64 beginDataAddress = u64(prevArchetype->Data) + prevArchetypeRecord.Offset;
+    i64 beginDataAddress = prevArchetype->Data + prevArchetypeRecord.Offset;
     i64 endDataAddress = beginDataAddress + prevArchetype->ComponentsSize;
-    i32 cutDataSize = u64(prevArchetype->Data) + prevArchetype->Size - endDataAddress;
+    i32 cutDataSize = prevArchetype->Data + prevArchetype->Size - endDataAddress;
 
     i32 isReallocNeeded = ((archetype->Size + archetype->ComponentsSize) >= archetype->Capacity);
     if (isReallocNeeded)
@@ -317,7 +354,7 @@ _ecs_entity_register_archetype(World* world, EntityID entityId, Archetype* arche
 
     if (archetype == prevArchetype)
     {
-	GWARNING("Trying register archetype to entity that alread registered!\n");
+	// GWARNING("Trying register archetype to entity that alread registered!\n");
 	return;
     }
 
@@ -333,12 +370,15 @@ _ecs_entity_register_archetype(World* world, EntityID entityId, Archetype* arche
     }
 
     archetype->Size += archetype->ComponentsSize;
-
     if (prevArchetype != NULL)
     {
 	prevArchetype->Size -= prevArchetype->ComponentsSize;
     }
 }
+
+/*
+  ECS PUBLIC
+*/
 
 World*
 world_create()
@@ -374,44 +414,6 @@ components_name_to_id(World* world, const char* components)
     }
 
     return ids;
-}
-
-i32
-array_is_equals(const i32* ids1, const i32* ids2)
-{
-    i32 c;
-    i32 ids1Count = array_count(ids1);
-    i32 ids2Count = array_count(ids2);
-
-    if (ids1Count != ids2Count)
-    {
-	return 0;
-    }
-
-    for (c = 0; c < ids1Count; c++)
-    {
-	if (ids1[c] != ids2[c])
-	{
-	    return 0;
-	}
-    }
-
-    return 1;
-}
-
-i32
-array_find(i32* array, i32 value)
-{
-    i32 count = array_count(array);
-    for (i32 i = 0; i < count; i++)
-    {
-	if (array[i] == value)
-	{
-	    return i;
-	}
-    }
-
-    return -1;
 }
 
 /*

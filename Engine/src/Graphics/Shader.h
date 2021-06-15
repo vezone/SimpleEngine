@@ -5,7 +5,8 @@
 #include "OpenGLBase.h"
 #include "Utils/Types.h"
 #include "Utils/Logger.h"
-#include "Utils/stb_ds.h"
+// #include "Utils/stb_ds.h"
+#include "Utils/HashTable.h"
 
 typedef struct ShaderSource
 {
@@ -16,8 +17,8 @@ typedef struct ShaderSource
 
 typedef struct UniformTableType
 {
-    const char* key;
-    i32 value;
+    const char* Key;
+    i32 Value;
 } UniformTableType;
 
 typedef struct Shader
@@ -36,15 +37,17 @@ void shader_delete_collection();
 force_inline i32
 shader_get_location(Shader* shader, const char* uniformName)
 {
-    i32 location = shgeti(shader->UniformTable, uniformName);
+    vassert(uniformName != NULL);
+
+    i32 location = shash_geti(shader->UniformTable, uniformName);
     if (location == -1)
     {
 	location = glGetUniformLocation(shader->ShaderID, uniformName);
-	shput(shader->UniformTable, uniformName, location);
+	shash_put(shader->UniformTable, uniformName, location);
     }
     else
     {
-	location = shget(shader->UniformTable, uniformName);
+	location = shash_get(shader->UniformTable, uniformName);
     }
 
     return location;

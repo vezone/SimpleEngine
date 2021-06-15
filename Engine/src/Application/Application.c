@@ -2,21 +2,22 @@
 #include "Graphics/Renderer2D/Renderer2D.h"
 #include "Graphics/OpenGLBase.h"
 
-Application App;
+Application g_Application;
 i32 LayersCount;
 
-Application* application_get()
+Application*
+application_get()
 {
-    return &App;
+    return &g_Application;
 }
 
 void
 application_push_layer(Layer layer)
 {
-    array_push(App.Layers, layer);
+    array_push(g_Application.Layers, layer);
     if (layer.OnAttach != NULL)
     {
-	layer.OnAttach(App.Window);
+	layer.OnAttach(g_Application.Window);
     }
 }
 
@@ -24,15 +25,15 @@ void application_init(u32 width, u32 height, const char* name)
 {
     i32 isWindowCreated;
 
-    App.IsMinimized = 0;
-    App.IsRunning = 1;
-    App.Layers = NULL;
+    g_Application.IsMinimized = 0;
+    g_Application.IsRunning = 1;
+    g_Application.Layers = NULL;
 
     linux_set_current_stack_size(MB(500), MB(528));
 
-    event_init_table(App.EventTypeToString, 32);
+    event_init_table(g_Application.EventTypeToString, 32);
 
-    isWindowCreated = window_create(&App.Window, width, height, name, application_on_event);
+    isWindowCreated = window_create(&g_Application.Window, width, height, name, application_on_event);
     if (isWindowCreated == -1)
     {
 	GERROR("Can't create window!\n");
@@ -57,39 +58,38 @@ void application_start()
     f32 timeStep;
     f32 lastFrameTime;
 
-    LayersCount = array_len(App.Layers);
+    LayersCount = array_len(g_Application.Layers);
 
-    while (!window_should_close(&App.Window))
+    while (!window_should_close(&g_Application.Window))
     {
 	tempTime = (f32) glfwGetTime();
 	timeStep = tempTime - lastFrameTime;
 	lastFrameTime = tempTime;
 
-
-	if (!App.IsMinimized)
+	if (!g_Application.IsMinimized)
 	{
 	    for (i32 l = 0; l < LayersCount; l++)
 	    {
-		if (App.Layers[l].OnUpdate != NULL)
-		    App.Layers[l].OnUpdate(timeStep);
+		if (g_Application.Layers[l].OnUpdate != NULL)
+		    g_Application.Layers[l].OnUpdate(timeStep);
 	    }
 
 	    ui_begin();
 	    for (i32 l = 0; l < LayersCount; l++)
 	    {
-		if (App.Layers[l].OnUIRender != NULL)
-		    App.Layers[l].OnUIRender();
+		if (g_Application.Layers[l].OnUIRender != NULL)
+		    g_Application.Layers[l].OnUIRender();
 	    }
 	    ui_end();
 	}
 
-	window_on_update(&App.Window);
+	window_on_update(&g_Application.Window);
 
     }
 
     for (i32 l = 0; l < LayersCount; l++)
     {
-	Layer layer = App.Layers[l];
+	Layer layer = g_Application.Layers[l];
 	if (layer.OnDestoy != NULL)
 	{
 	    if (layer.Name != NULL)
@@ -100,8 +100,6 @@ void application_start()
 	    layer.OnDestoy();
 	}
     }
-
-    window_terminate();
 }
 
 void
@@ -116,28 +114,33 @@ application_on_event(Event* event)
 
 	    if (wevent->Width == 0 || wevent->Height == 0)
 	    {
-		App.IsMinimized = 1;
+		g_Application.IsMinimized = 1;
 	    }
 
-	    App.IsMinimized = 0;
 	    renderer_set_viewport(wevent->Width, wevent->Height);
 	}
 	else if (event->Type == WindowMinimized)
 	{
-	    App.IsMinimized = 1;
+	    g_Application.IsMinimized = 1;
 	}
 	else if (event->Type == WindowRestored)
 	{
-	    App.IsMinimized = 0;
+	    g_Application.IsMinimized = 0;
 	}
     }
 
     for (i32 l = 0; l < LayersCount; l++)
     {
-	layer = App.Layers[l];
+	layer = g_Application.Layers[l];
 	if (layer.OnEvent != NULL && event->IsHandled == 0)
 	{
 	    layer.OnEvent(event);
 	}
     }
+}
+
+void
+application_end()
+{
+    window_terminate();
 }

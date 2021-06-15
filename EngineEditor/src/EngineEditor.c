@@ -7,47 +7,23 @@
 #include "EngineControls/FileDialog.h"
 
 #define APP_NAME "Engine Editor"
-
 static NativeWindow g_Window;
 char WindowTitle[32];
-Renderer2DStatistics g_RendererStatistics;
 EditorCamera Camera;
-Shader batchedTextureShader;
-FrameBuffer Framebuffer;
-
-//Textures
-const char* shader_batched_texture_path = asset_shader("BatchedShader.glsl");
-const char* texture_anime_chibi = asset_texture("other/anime_chibi.png");
-const char* white_texture_path = asset_texture("default/white_texture.png");
-
-Texture2D hazelLogoTexture;
-Texture2D chibiTexture;
-Texture2D hotlineMiamiTexture;
-Texture2D atlasTexture;
-TextureAtlas atlas;
-
-vec4 BlueColor  = { 0.1f, 0.1f, 0.8f, 1.0f };
-vec4 GreenColor = { 0.2f, 0.7f, 0.2f, 0.3f };
-vec4 YellowColor = { 0.2f, 0.7f, 0.7f, 1.0f };
-
 Scene g_Scene;
+FrameBuffer g_Framebuffer;
+Renderer2DStatistics g_RendererStatistics;
+Shader g_Shader;
 
 void engine_editor_on_attach(NativeWindow window)
 {
-    f32 aspectRatio;
-    f32 zoomLevel;
-    char path[512];
-    char buffer[1024];
-    ShaderSource shaderSource;
-    Texture2D whiteTexture;
+    f32 aspectRatio = window.Width / window.Height;
 
     g_Window = window;
-    aspectRatio = window.Width / window.Height;
-    zoomLevel = 5.0f;
 
-    Camera = editor_camera_create(aspectRatio * zoomLevel, aspectRatio * zoomLevel, zoomLevel, -zoomLevel);
+    Camera = editor_camera_create(aspectRatio * 5.0f, aspectRatio * 5.0f, 5.0f, -5.0f);
     Camera.OrthoCamera.AspectRatio = aspectRatio;
-    Camera.OrthoCamera.ZoomLevel = zoomLevel;
+    Camera.OrthoCamera.ZoomLevel = 5.0f;
     Camera.OrthoCamera.Speed = 5.0f;
 
     window_set_vsync(0);
@@ -65,58 +41,59 @@ void engine_editor_on_attach(NativeWindow window)
 	return;
     }
 
-    shaderSource = shader_load(shader_batched_texture_path);
-
+    /*
+       NOTE(bies): All Renderer Init things should be on editor side
+    */
+    // Initialize Renderer
+    const char* shaderPath = asset_shader("BatchedShader.glsl");
+    ShaderSource shaderSource = shader_load(shaderPath);
     assert(shaderSource.name);
-    batchedTextureShader = shader_compile(shaderSource);
-    if (batchedTextureShader.ShaderID == -1)
+    g_Shader = shader_compile(shaderSource);
+    if (g_Shader.ShaderID == -1)
     {
 	GERROR("We fucked up with shader sources!!!\n");
 	return;
     }
+    Texture2D whiteTexture = texture2d_create(asset_texture("default/white_texture.png"));
+    renderer_batch_init(&g_RendererStatistics, &g_Shader, &whiteTexture, &Camera.OrthoCamera);
+    framebuffer_invalidate(&g_Framebuffer, window.Width, window.Height);
 
-    chibiTexture = texture2d_create(texture_anime_chibi);
-    whiteTexture = texture2d_create(white_texture_path);
-    renderer_batch_init(&g_RendererStatistics, &batchedTextureShader, &whiteTexture, &Camera.OrthoCamera);
+    scene_create(&g_Scene, &Camera);
 
-    if (atlasTexture.Slot == -2)
-    {
-	atlasTexture = whiteTexture;
-    }
-
-    framebuffer_invalidate(&Framebuffer, window.Width, window.Height);
-
-    scene_create(&g_Scene);
+    v4 blueColor   = v4_(0.1f, 0.1f, 0.8f, 1.0f);
+    v4 greenColor  = v4_(0.2f, 0.7f, 0.2f, 0.3f);
+    v4 yellowColor = v4_(0.2f, 0.7f, 0.7f, 1.0f);
+    Texture2D chibiTexture = texture2d_create(asset_texture("other/anime_chibi.png"));
 
     Entity rectangleEntity = entity_create(&g_Scene, "Blue Rectangle");
     ECS_ENTITY_ADD_COMPONENT(g_Scene.World, rectangleEntity.ID, SpriteComponent);
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, rectangleEntity.ID, SpriteComponent, SpriteComponent_Color(BlueColor, ((v2) { 1.0f, 1.0f })));
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, rectangleEntity.ID, SpriteComponent, SpriteComponent_Color(blueColor, v2_(1.0f, 1.0f )));
 
     Entity yellowRectangle = entity_create(&g_Scene, "Yellow Rectangle");
     ECS_ENTITY_ADD_COMPONENT(g_Scene.World, yellowRectangle.ID, SpriteComponent);
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, yellowRectangle.ID, PositionComponent, PositionComponent_(((v3) { 3.0f, -2.5f, 1.0f })));
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, yellowRectangle.ID, SpriteComponent, SpriteComponent_Color(YellowColor, ((v2) { 1.0f, 0.5f })));
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, yellowRectangle.ID, PositionComponent, PositionComponent_(v3_(3.0f, -2.5f, 1.0f)));
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, yellowRectangle.ID, SpriteComponent, SpriteComponent_Color(yellowColor, v2_(1.0f, 0.5f)));
 
     Entity chibi = entity_create(&g_Scene, "Chibi Rectangle");
     ECS_ENTITY_ADD_COMPONENT(g_Scene.World, chibi.ID, SpriteComponent);
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, PositionComponent, PositionComponent_(((v3) { 3.0f, 1.5f, 0.0f })));
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, SpriteComponent, SpriteComponent_Texture(chibiTexture, ((v2) { 2.0f, 2.0f })));
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, PositionComponent, PositionComponent_(v3_(3.0f, 1.5f, 0.0f)));
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, SpriteComponent, SpriteComponent_Texture(chibiTexture, v2_(2.0f, 2.0f)));
 }
 
 void engine_editor_on_update(f32 timestep)
 {
-    framebuffer_bind(&Framebuffer);
+    framebuffer_bind(&g_Framebuffer);
 
     renderer_reset_statistics(&g_RendererStatistics, timestep);
-    renderer_clear((vec4) { 0.1f, 0.1f, 0.1f, 1.0f });
+    renderer_clear(v4_(0.2f, 0.245f, 0.356f, 1.0f));
+    renderer_clear(v4_(0.1f, 0.1f, 0.1f, 1.0f));
 
     editor_camera_on_update(&Camera, &g_Window, timestep);
-    renderer_clear((vec4) { 0.2f, 0.245f, 0.356f, 1.0f });
-
-    scene_on_update(&g_Scene, timestep);
+    scene_on_update(&g_Scene);
 
     renderer_flush();
-    framebuffer_unbind();
+
+    framebuffer_unbind(&g_Framebuffer);
 }
 
 i32 g_IsRendererStatisticDrawing = 0;
@@ -132,7 +109,7 @@ ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
 void engine_editor_on_ui_render()
 {
-    framebuffer_bind(&Framebuffer);
+    framebuffer_bind(&g_Framebuffer);
 
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
     ImGuiWindowClass class;
@@ -221,6 +198,18 @@ void engine_editor_on_ui_render()
     i8 worldOutlinerOpen;
     if (igBegin("World Outliner", &worldOutlinerOpen, ImGuiWindowFlags_None))
     {
+	Entity* entities = scene_get_entities();
+	i32 count = array_count(entities);
+	for (i32 i = 0; i < count; i++)
+	{
+	    Entity entity = entities[i];
+	    // for each entity
+	    if (igCollapsingHeaderBoolPtr(entity.Name, NULL, ImGuiWindowFlags_NoCollapse))
+	    {
+		// ECS_ENTITY_GET_COMPONENTS();
+	    }
+	}
+
 	igEnd();
     }
 
@@ -237,10 +226,10 @@ void engine_editor_on_ui_render()
 	if (!ImVec2_Equals(g_ViewportSize, availableRegion))
 	{
 	    ImVec2_Assign(g_ViewportSize, availableRegion);
-	    framebuffer_invalidate(&Framebuffer, g_ViewportSize.x, g_ViewportSize.y);
+	    framebuffer_invalidate(&g_Framebuffer, g_ViewportSize.x, g_ViewportSize.y);
 	}
 
-	igImage((ImTextureID)Framebuffer.ColorAttachment, ImVec2(g_ViewportSize.x, g_ViewportSize.y), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(1,1,1,0));
+	igImage((ImTextureID)g_Framebuffer.ColorAttachment, ImVec2(g_ViewportSize.x, g_ViewportSize.y), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(1,1,1,0));
 
 	igPopStyleVar(1);
 
@@ -251,11 +240,12 @@ void engine_editor_on_ui_render()
     {
 	if (igBegin("Renderer statistic", &g_IsRendererStatisticDrawing, ImGuiWindowFlags_None))
 	{
-	    igText("Frametime: %f ms", 1000 * g_RendererStatistics.Frametime);
-	    igText("Draw Calls: %d", g_RendererStatistics.DrawCalls);
-	    igText("Rectangles Count: %d", g_RendererStatistics.RectanglesCount);
-	    igText("Max object to draw: %d", g_RendererStatistics.MaximumObjectToDraw);
-	    igText("Max texture slots: %d", g_RendererStatistics.MaximumTextureSlots);
+	    Renderer2DStatistics rendererStatistics = g_RendererStatistics;
+	    igText("Frametime: %f ms", 1000 * rendererStatistics.Frametime);
+	    igText("Draw Calls: %d", rendererStatistics.DrawCalls);
+	    igText("Rectangles Count: %d", rendererStatistics.RectanglesCount);
+	    igText("Max object to draw: %d", rendererStatistics.MaximumObjectToDraw);
+	    igText("Max texture slots: %d", rendererStatistics.MaximumTextureSlots);
 
 	    igEnd();
 	}
@@ -309,7 +299,7 @@ void engine_editor_on_event(Event* event)
 	if (event->Type == WindowResized)
 	{
 	    WindowResizedEvent* windowEvent = (WindowResizedEvent*)event;
-	    framebuffer_invalidate(&Framebuffer, windowEvent->Width, windowEvent->Height);
+	    framebuffer_invalidate(&g_Framebuffer, windowEvent->Width, windowEvent->Height);
 	    event->IsHandled = 1;
 	}
     }

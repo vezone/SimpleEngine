@@ -1,6 +1,8 @@
 #include "Scene.h"
-#include "Components.h"
-#include "Graphics/Renderer2D/Renderer2D.h"
+#include "Components/PositionComponent.h"
+#include "Components/SpriteComponent.h"
+
+#include <Utils/Asset.h>
 
 //#include "Components.h"
 
@@ -17,6 +19,9 @@ ecs_remove(world, e, Position);
 */
 
 static u32 g_SceneLastID = 0;
+static i32 g_IsEditorScene = 0;
+static EditorCamera* g_EditorCamera = NULL;
+static Entity* g_Entities = NULL;
 
 Entity
 entity_create(Scene* scene, const char* name)
@@ -27,21 +32,33 @@ entity_create(Scene* scene, const char* name)
     ECS_ENTITY_ADD_COMPONENT(scene->World, entityId, PositionComponent);
     ECS_ENTITY_SET_COMPONENT(scene->World, entityId, PositionComponent, p1);
 
-    return (Entity) { .Name = name, .ID = entityId };
+    Entity entity = (Entity) { .Name = name, .ID = entityId };
+    array_push(g_Entities, entity);
+
+    return entity;
 }
 
 void
-scene_create(Scene* scene)
+scene_create(Scene* scene, EditorCamera* camera)
 {
+    // Initialize ECS
     scene->ID = g_SceneLastID;
     scene->World = world_create();
 
+    if (camera != NULL)
+    {
+	g_IsEditorScene = 1;
+	g_EditorCamera = camera;
+    }
+
     ECS_REGISTER_COMPONENT(scene->World, PositionComponent);
     ECS_REGISTER_COMPONENT(scene->World, SpriteComponent);
+
+    ++g_SceneLastID;
 }
 
 void
-scene_on_update(Scene* scene, f32 timestep)
+scene_on_update(Scene* scene)
 {
     ECSQueryResult queryResult = ECS_ARCHETYPE_GET(scene->World, "PositionComponent,SpriteComponent");
 
@@ -66,4 +83,10 @@ scene_on_update(Scene* scene, f32 timestep)
 void
 scene_destroy(Scene* scene)
 {
+}
+
+Entity*
+scene_get_entities()
+{
+    return g_Entities;
 }

@@ -4,17 +4,17 @@
 #include "Application/Application.h"
 #include "Event/Event.h"
 
-//Renderer
-#include "Graphics/Renderer2D/OrthographicCamera.h"
-#include "Graphics/Renderer2D/EditorCamera.h"
-#include "Graphics/Renderer2D/ApplicationCamera.h"
-#include "Graphics/Renderer2D/Renderer2D.h"
 //Graphics
 #include "Graphics/Buffer.h"
 #include "Graphics/FrameBuffer.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Texture2D.h"
 #include "Graphics/Window.h"
+//Graphics -> Renderer
+#include "Graphics/Renderer2D/OrthographicCamera.h"
+#include "Graphics/Renderer2D/EditorCamera.h"
+#include "Graphics/Renderer2D/ApplicationCamera.h"
+#include "Graphics/Renderer2D/Renderer2D.h"
 
 //Simple ui
 #include "UI/ui.h"
@@ -22,13 +22,16 @@
 //ECS
 #include "ECS/ECS.h"
 #include "ECS/Scene.h"
-#include "ECS/Components.h"
+#include "ECS/Components/PositionComponent.h"
+#include "ECS/Components/SpriteComponent.h"
 
 //Math
 #include "Math/BaseMath.h"
 #include "Math/V2.h"
 #include "Math/V3.h"
 #include "Math/V4.h"
+#include "Math/M3.h"
+#include "Math/M4.h"
 
 //Utils
 #include "Utils/Array.h"

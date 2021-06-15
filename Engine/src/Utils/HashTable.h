@@ -97,7 +97,10 @@ void shash_free(void* table);
 /* TODO(bies): check if table != NULL */
 //hash_get(table, key)
 #define shash_get(table, key) base_hash_get((table), (key), internal_shash_get)
-#define shash_geti(table, key) base_hash_geti((table), (key), internal_shash_get)
+#define shash_geti(table, key)					\
+    ({								\
+	base_hash_geti((table), (key), internal_shash_get);	\
+    })
 
 /*
   Int Hash Table (int Key)
@@ -108,6 +111,9 @@ void* internal_hash_get(void* table, i32 key);
 
 #define hash_put(table, key, value) base_hash_put((table), (key), (value), hash_put_helper, -1, -1)
 #define hash_get(table, key) base_hash_get((table), (key), internal_hash_get)
-#define hash_geti(table, key) base_hash_geti((table), (key), internal_hash_get)
+#define hash_geti(table, key)					\
+    ({								\
+	base_hash_geti((table), (key), internal_hash_get);	\
+    })
 
 #endif

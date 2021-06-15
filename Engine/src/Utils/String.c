@@ -515,28 +515,7 @@ vstring_parse_i64(char* input, i64 number)
 }
 
 void
-vstring_i32_to_string(char* input, i32 number)
-{
-    i32 threshold = 10;
-    i32 digit = number % threshold;
-
-
-    while (number < threshold)
-    {
-
-    }
-}
-
-/*
-TODO(bies): rename to vstring_f64_to_string
-*/
-void
 vstring_parse_f64(char* input, f64 number)
 {
-    if (vstring_length(input) < 64)
-    {
-	return;
-    }
-
     sprintf(input, "%f", number);
 }

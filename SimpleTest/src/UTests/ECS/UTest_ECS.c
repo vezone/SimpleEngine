@@ -4,7 +4,8 @@
 
 #include "UTests/Test.h"
 #include "ECS/ECS.h"
-#include "ECS/Components.h"
+#include "ECS/Components/SpriteComponent.h"
+#include "ECS/Components/PositionComponent.h"
 #include "Utils/Logger.h"
 #include "Utils/String.h"
 #include "Utils/MemoryAllocator.h"
@@ -313,6 +314,7 @@ ecs_archetype_get_test()
     ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 9, .AAge = 10 }));
     ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = 11, .BAge = 12 }));
 
+    // NOTE(bies): старые данные остаются в предыдущем архетипе, наверное не критично, но может запутать в будущем
     ECS_ENTITY_ADD_COMPONENT(world, playerId, C);
 
     Condition(array_count(world->Archetypes) == 3);
@@ -334,7 +336,7 @@ ecs_archetype_get_test()
     Condition(queryResult.World == world);
     Condition(queryResult.Offset == 0);
     Condition(queryResult.Current == -1);
-    Condition(queryResult.Count == 4);
+    Condition(queryResult.Count == 3);
     Int_Value(queryResult.Count);
 
     while (ECS_QUERY_RESULT_NEXT(queryResult))

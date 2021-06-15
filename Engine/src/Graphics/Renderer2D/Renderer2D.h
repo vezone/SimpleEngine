@@ -83,6 +83,8 @@ typedef struct BatchRenderer2DData
 
 void renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Texture2D* whiteTexture, OrthographicCamera* camera);
 
+/* Submit functions */
+
 void renderer_submit_rectangle(vec3 position, vec2 size, vec2* coords, Texture2D* texture);
 void renderer_submit_rotated_rectangle(vec3 position, vec2 size, f32 angle, Texture2D* texture);
 void renderer_submit_colored_rectangle(vec3 position, vec2 size, vec4 color);
@@ -94,6 +96,12 @@ void renderer_submit_colored_rectanglet(mat4 transform, vec4 color);
 //functions for texture atlas
 void renderer_submit_atlas(vec3 position, vec2 size, TextureAtlas* atlas, i32 row, i32 col);
 
+/*Dots*/
+void renderer_submit_dot(vec3 position, vec4 color);
+
+/* Flush functions */
 void renderer_flush();
+
+Renderer2DStatistics renderer_get_statistics();
 
 #endif

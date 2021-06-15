@@ -4,7 +4,7 @@
 #include <Graphics/Shader.h>
 #include <Utils/Logger.h>
 #include <Utils/Array.h>
-
+#include <Math/MathTypes.h>
 
 /*
   Batch renderer
@@ -165,6 +165,7 @@ fill_rotated_data_array(f32* destination, vec3 positionsArray[4], vec4 color, i3
     ++g_Statistics->RectanglesCount;
 }
 
+// TODO (bies): mb add list->MaxTextureSlot check
 force_inline void
 texture_list_set_immutable(TextureList* list, Texture2D* texture)
 {
@@ -180,8 +181,7 @@ texture_list_is_full(TextureList* list)
 force_inline i32
 texture_list_contains(TextureList* list, Texture2D* texture)
 {
-    i8 isAlreadyInList = -1;
-    i32 i;
+    i32 i, isAlreadyInList = -1;
     u32 id;
 
     for (i = 1; i < list->NextTextureIndex; i++)
@@ -223,13 +223,39 @@ texture_list_unbind(TextureList* list)
     }
 }
 
+force_inline i32
+texture_list_submit_texture_or_flush(BatchRenderer2DData* rendererData, Texture2D* texture)
+{
+    i32 textureId;
+    i32 isTextureListNotFull = !(texture_list_is_full(&rendererData->List));
+    i32 isVerticesBufferNotFull = ((rendererData->DataCount + QuadVerticesCount) < VerticesCount);
+
+    if (isTextureListNotFull && isVerticesBufferNotFull)
+    {
+	textureId = texture_list_contains(&rendererData->List, texture);
+	if (textureId == -1)
+	{
+	    textureId = rendererData->List.NextTextureIndex;
+	    texture_list_add(&rendererData->List, texture, textureId);
+	}
+    }
+    else
+    {
+	renderer_flush();
+	textureId = rendererData->List.StartIndex;
+	texture_list_add(&rendererData->List, texture, textureId);
+    }
+
+    return textureId;
+}
+
 void
 renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Texture2D* whiteTexture, OrthographicCamera* camera)
 {
     VertexBuffer vbo = {};
     IndexBuffer ibo = {};
-    g_Statistics = statistics;
 
+    g_Statistics = statistics;
     g_Shader = shader;
     g_Camera = camera;
 
@@ -262,30 +288,9 @@ renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Texture2D*
 void
 renderer_submit_rectangle(vec3 position, vec2 size, vec2* coords, Texture2D* texture)
 {
-    i32 textureId;
-    vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-    i8 isTextureListFull = texture_list_is_full(&g_RendererData.List);
-    if (!isTextureListFull &&
-	((g_RendererData.DataCount + QuadVerticesCount) < VerticesCount))
-    {
-	textureId = texture_list_contains(&g_RendererData.List, texture);
-	if (textureId == -1)
-	{
-	    textureId = g_RendererData.List.NextTextureIndex;
-	    texture_list_add(&g_RendererData.List, texture, textureId);
-	}
-    }
-    else
-    {
-	renderer_flush();
-	textureId = g_RendererData.List.StartIndex;
-	texture_list_add(&g_RendererData.List, texture, textureId);
-    }
-
-    vec2 textureAdds;
-    textureAdds[0] = textureId;
-    textureAdds[1] = 1;
+    i32 textureId = texture_list_submit_texture_or_flush(&g_RendererData, texture);
+    v4 color = v4_(1.0f, 1.0f, 1.0f, 1.0f);
+    v2 textureAdds = v2_(textureId, 1);
 
     if (coords == NULL)
     {
@@ -303,33 +308,13 @@ renderer_submit_rectangle(vec3 position, vec2 size, vec2* coords, Texture2D* tex
 void
 renderer_submit_rotated_rectangle(vec3 position, vec2 size, f32 angle, Texture2D* texture)
 {
-    i32 textureId;
-    vec3 rotatedPosVec;
-    vec3 scaleVec = { 0.0f, 0.0f, 1.0f };
-    vec2 nullSizeVec = {0.0f, 0.0f};
-    vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
-    mat4 transform = GLM_MAT4_IDENTITY_INIT;
-    mat4 translation = GLM_MAT4_IDENTITY_INIT;
-    mat4 rotation = GLM_MAT4_IDENTITY_INIT;
-    mat4 scale = GLM_MAT4_IDENTITY_INIT;
-
-    i8 isTextureListFull = texture_list_is_full(&g_RendererData.List);
-    if (!isTextureListFull &&
-	((g_RendererData.DataCount + QuadVerticesCount) < VerticesCount))
-    {
-	textureId = texture_list_contains(&g_RendererData.List, texture);
-	if (textureId == -1)
-	{
-	    textureId = g_RendererData.List.NextTextureIndex;
-	    texture_list_add(&g_RendererData.List, texture, textureId);
-	}
-    }
-    else
-    {
-	renderer_flush();
-	textureId = g_RendererData.List.StartIndex;
-	texture_list_add(&g_RendererData.List, texture, textureId);
-    }
+    v3 scaleVec = v3_(0.0f, 0.0f, 1.0f);
+    v2 nullSizeVec =  v2_(0.0f, 0.0f);
+    v4 color = v4_(1.0f, 1.0f, 1.0f, 1.0f);
+    m4 transform = GLM_MAT4_IDENTITY_INIT;
+    m4 translation = GLM_MAT4_IDENTITY_INIT;
+    m4 rotation = GLM_MAT4_IDENTITY_INIT;
+    m4 scale = GLM_MAT4_IDENTITY_INIT;
 
     glm_translate(translation, position);
     glm_rotate_z(rotation, glm_rad(angle), rotation);
@@ -346,6 +331,7 @@ renderer_submit_rotated_rectangle(vec3 position, vec2 size, f32 angle, Texture2D
     glm_mat4_mulv3(transform, g_BaseVectorPositions[2], 1.0f, positionsArray[2]);
     glm_mat4_mulv3(transform, g_BaseVectorPositions[3], 1.0f, positionsArray[3]);
 
+    i32 textureId = texture_list_submit_texture_or_flush(&g_RendererData, texture);
     fill_rotated_data_array(g_RendererData.Data, positionsArray, color, textureId, 1, g_RendererData.DataCount);
     g_RendererData.DataCount  += QuadVerticesCount;
     g_RendererData.IndexCount += 6;
@@ -354,18 +340,9 @@ renderer_submit_rotated_rectangle(vec3 position, vec2 size, f32 angle, Texture2D
 void
 renderer_submit_colored_rectangle(vec3 position, vec2 size, vec4 color)
 {
-    vec2 textureAdds;
-    textureAdds[0] = 0;
-    textureAdds[1] = 0;
+    v2 textureAdds = v2_(0, 0);
 
-    vec2 coords[4] = {
-	{ 0, 0 },
-	{ 0, 1 },
-	{ 1, 1 },
-	{ 1, 0 },
-    };
-
-    fill_data_array(g_RendererData.Data, position, size, color, textureAdds, coords, g_RendererData.DataCount);
+    fill_data_array(g_RendererData.Data, position, size, color, textureAdds, g_DefaultCoords, g_RendererData.DataCount);
     g_RendererData.DataCount  += QuadVerticesCount;
     g_RendererData.IndexCount += 6;
 }
@@ -377,15 +354,11 @@ renderer_submit_colored_rotated_rectangle(vec3 position, vec2 size, vec4 color, 
     mat4 translationMat = GLM_MAT4_IDENTITY_INIT;
     mat4 rotationMat = GLM_MAT4_IDENTITY_INIT;
     mat4 scaleMat = GLM_MAT4_IDENTITY_INIT;
-    vec3 scaleVec = { 0.0f, 0.0f, 1.0f };
-    vec2 nullSizeVec = {0.0f, 0.0f};
-    vec3 rotatedPosVec;
+    vec3 scaleVec = (vec3) { size[0], size[1], 1.0f };
+    vec2 nullSizeVec = (vec2) {0.0f, 0.0f};
 
     glm_translate(translationMat, position);
     glm_rotate_z(rotationMat, glm_rad(angle), rotationMat);
-
-    scaleVec[0] = size[0];
-    scaleVec[1] = size[1];
     glm_scale(scaleMat, scaleVec);
 
     glm_mat4_mulN((mat4*[]) {&translationMat, &rotationMat, &scaleMat}, 3, transform);
@@ -404,30 +377,9 @@ renderer_submit_colored_rotated_rectangle(vec3 position, vec2 size, vec4 color, 
 //transform
 void renderer_submit_rectanglet(mat4 transform, Texture2D* texture)
 {
-    i32 textureId;
-    vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-    i8 isTextureListFull = texture_list_is_full(&g_RendererData.List);
-    if (!isTextureListFull
-	&& ((g_RendererData.DataCount + QuadVerticesCount) < VerticesCount))
-    {
-	textureId = texture_list_contains(&g_RendererData.List, texture);
-	if (textureId == -1)
-	{
-	    textureId = g_RendererData.List.NextTextureIndex;
-	    texture_list_add(&g_RendererData.List, texture, textureId);
-	}
-    }
-    else
-    {
-	renderer_flush();
-	textureId = g_RendererData.List.StartIndex;
-	texture_list_add(&g_RendererData.List, texture, textureId);
-    }
-
-    vec2 textureAdds;
-    textureAdds[0] = textureId;
-    textureAdds[1] = 1;
+    i32 textureId = texture_list_submit_texture_or_flush(&g_RendererData, texture);
+    v4 color = v4_(1.0f, 1.0f, 1.0f, 1.0f);
+    v2 textureAdds = v2_(textureId, 1);
 
     //fill_data_array(g_RendererData.Data, position, size, color, textureAdds, g_DefaultCoords, g_RendererData.DataCount);
 
@@ -437,15 +389,8 @@ void renderer_submit_rectanglet(mat4 transform, Texture2D* texture)
 
 void renderer_submit_colored_rectanglet(mat4 transform, vec4 color)
 {
-    vec2 size;
-    size[0] = 1.0f; //transform[0][0];
-    size[1] = 1.0f; //transform[1][1];
-
-    vec3 position;
-    position[0] = 1.5f; //transform[0][0];
-    position[1] = 1.5f; //transform[1][1];
-    position[2] = 0.0f; //transform[2][2];
-
+    v2 size = v2_(1.0f, 1.0f);
+    v3 position = v3_(1.5f, 1.5f, 0.0f);
     renderer_submit_colored_rectangle(position, size, color);
 }
 
@@ -465,6 +410,23 @@ renderer_submit_atlas(vec3 position, vec2 size, TextureAtlas* atlas, i32 row, i3
     vec2_ctr(coords[3], endX, startY);
 
     renderer_submit_rectangle(position, size, coords, &atlas->Texture);
+}
+
+void
+renderer_submit_dot(vec3 position, vec4 color)
+{
+    // we need another buffer for dots
+    vec2 coords[4];
+    coords[0][0] = 0.0f;
+    coords[0][1] = 0.0f;
+    coords[1][0] = 0.0f;
+    coords[1][1] = 0.0f;
+    coords[2][0] = 0.0f;
+    coords[2][1] = 0.0f;
+    coords[3][0] = 0.0f;
+    coords[3][1] = 0.0f;
+
+    fill_data_array(g_RendererData.Data, position, (vec2) { 0.0f, 0.0f }, color, (vec2) { 0.0f, 0.0f }, coords, g_RendererData.DataCount);
 }
 
 void
@@ -496,4 +458,10 @@ renderer_flush()
 
     texture_list_unbind(&g_RendererData.List);
     glDisable(GL_BLEND);
+}
+
+Renderer2DStatistics
+renderer_get_statistics()
+{
+    return *g_Statistics;
 }

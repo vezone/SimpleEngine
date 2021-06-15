@@ -3,7 +3,8 @@
 #include <GLFW/glfw3.h>
 
 #include "Event/Event.h"
-#include "Utils/Types.h"
+#include <Utils/Types.h>
+#include <Utils/Logger.h>
 
 //#define window_get_frequency() glfwGetTimerFrequency()
 //#define window_get_cursor_position(window, xPos, yPos) glfwGetCursorPos((window)->GlfwWindow, xPos, yPos);
@@ -33,6 +34,7 @@ window_set_should_close(NativeWindow* window, i8 shouldClose)
 force_inline void
 window_terminate()
 {
+    GERROR("\n\n\n TERMINATE !!! \n\n\n");
     glfwTerminate();
 }
 

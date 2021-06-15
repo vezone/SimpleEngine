@@ -3,6 +3,7 @@
 #include "UTests/Test.h"
 #include "UTests/Math/UTest_BaseMath.h"
 #include "UTests/Math/UTest_V2.h"
+#include "UTests/Math/UTest_M4.h"
 #include "UTests/Utils/UTest_String.h"
 #include "UTests/Utils/UTest_Path.h"
 #include "UTests/Utils/UTest_Array.h"
@@ -21,18 +22,28 @@ void simple_test_on_attach(NativeWindow window)
     g_Window = window;
 
     //memory_allocator_test();
-#if 1
     base_math_test();
     v2_test();
+    m4_test();
 
     string_test();
     path_test();
     array_test();
     hash_test();
     ecs_test();
-#endif
-
     string_builder_test();
+
+    m4 translation = M4_IDENTITY;
+    v3 position = v3_(5, 3, 2);
+    // glm_translate(translation, position);
+    m4_translate(translation, position);
+    M4_Value(translation);
+    GERROR("%f %f %f %f\n", translation[3][0], translation[3][1], translation[3][2], translation[3][3]);
+
+    glm_vec4_scale(m[0], v[0], dest[0]);
+    glm_vec4_scale(m[1], v[1], dest[1]);
+    glm_vec4_scale(m[2], v[2], dest[2]);
+    glm_vec4_copy(m[3], dest[3]);
 }
 
 void simple_test_on_update(f32 timestep)

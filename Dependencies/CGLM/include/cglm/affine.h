@@ -26,7 +26,7 @@
    CGLM_INLINE void glm_rotate_atm(mat4 m, vec3 pivot, float angle, vec3 axis);
    CGLM_INLINE void glm_decompose_scalev(mat4 m, vec3 s);
    CGLM_INLINE bool glm_uniscaled(mat4 m);
-   CGLM_INLINE void glm_decompose_rs(mat4 m, mat4 r, vec3 s);
+   CGLM_INLINE void glmy_decompose_rs(mat4 m, mat4 r, vec3 s);
    CGLM_INLINE void glm_decompose(mat4 m, vec4 t, mat4 r, vec3 s);
  */
 
@@ -56,17 +56,16 @@ void
 glm_translate(mat4 m, vec3 v) {
 #if defined( __SSE__ ) || defined( __SSE2__ )
   glmm_store(m[3],
-             _mm_add_ps(_mm_add_ps(_mm_mul_ps(glmm_load(m[0]),
-                                              _mm_set1_ps(v[0])),
-                                   _mm_mul_ps(glmm_load(m[1]),
-                                              _mm_set1_ps(v[1]))),
-                        _mm_add_ps(_mm_mul_ps(glmm_load(m[2]),
-                                              _mm_set1_ps(v[2])),
-                                   glmm_load(m[3]))))
+	     _mm_add_ps(_mm_add_ps(_mm_mul_ps(glmm_load(m[0]),
+					      _mm_set1_ps(v[0])),
+				   _mm_mul_ps(glmm_load(m[1]),
+					      _mm_set1_ps(v[1]))),
+			_mm_add_ps(_mm_mul_ps(glmm_load(m[2]),
+					      _mm_set1_ps(v[2])),
+				   glmm_load(m[3]))))
   ;
 #else
   vec4 v1, v2, v3;
-
   glm_vec4_scale(m[0], v[0], v1);
   glm_vec4_scale(m[1], v[1], v2);
   glm_vec4_scale(m[2], v[2], v3);
@@ -105,9 +104,9 @@ void
 glm_translate_x(mat4 m, float x) {
 #if defined( __SSE__ ) || defined( __SSE2__ )
   glmm_store(m[3],
-             _mm_add_ps(_mm_mul_ps(glmm_load(m[0]),
-                                   _mm_set1_ps(x)),
-                        glmm_load(m[3])))
+	     _mm_add_ps(_mm_mul_ps(glmm_load(m[0]),
+				   _mm_set1_ps(x)),
+			glmm_load(m[3])))
   ;
 #else
   vec4 v1;
@@ -127,9 +126,9 @@ void
 glm_translate_y(mat4 m, float y) {
 #if defined( __SSE__ ) || defined( __SSE2__ )
   glmm_store(m[3],
-             _mm_add_ps(_mm_mul_ps(glmm_load(m[1]),
-                                   _mm_set1_ps(y)),
-                        glmm_load(m[3])))
+	     _mm_add_ps(_mm_mul_ps(glmm_load(m[1]),
+				   _mm_set1_ps(y)),
+			glmm_load(m[3])))
   ;
 #else
   vec4 v1;
@@ -149,9 +148,9 @@ void
 glm_translate_z(mat4 m, float z) {
 #if defined( __SSE__ ) || defined( __SSE2__ )
   glmm_store(m[3],
-             _mm_add_ps(_mm_mul_ps(glmm_load(m[2]),
-                                   _mm_set1_ps(z)),
-                        glmm_load(m[3])))
+	     _mm_add_ps(_mm_mul_ps(glmm_load(m[2]),
+				   _mm_set1_ps(z)),
+			glmm_load(m[3])))
   ;
 #else
   vec4 v1;

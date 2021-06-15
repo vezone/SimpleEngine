@@ -53,8 +53,6 @@ void vstring_parse_i32(char* input, i32 number);
 void vstring_parse_i64(char* input, i64 number);
 void vstring_parse_f64(char* input, f64 number);
 
-void vstring_i32_to_string(char* input, i32 number);
-
 force_inline char
 vchar_to_upper(char character)
 {

@@ -17,5 +17,6 @@ int main(int argc, char** argv)
 {
     create_user_application();
     application_start();
+    application_end();
     return 0;
 }
