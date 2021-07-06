@@ -27,6 +27,8 @@ typedef struct TestTable
     FileInfo** Infos;
 } TestTable;
 
+// TODO(bies): change _is_equal to equal
+
 FunctionResult* file_info_get_function_result(FileInfo* fileInfo, const char* functionName);
 FileInfo* test_table_get_file_info(TestTable* testTable, const char* filename);
 void test_set_function(const char* function);
@@ -35,6 +37,12 @@ FileInfo* file_get_info(const char* filename);
 const char** test_get_filenames();
 
 #define Condition(condition) { i8 temp = (condition); test(temp, __FILE__, #condition); }
+
+// USAGE: String_IsEqual(vstring_copy("It's a string"), "It's a string")
+#define String_IsEquals(a, b) { i8 temp = vstring_compare((a), (b)); test(temp, __FILE__, #a" == "#b); }
+#define String_IsNotEquals(a, b) { i8 temp = vstring_compare((a), (b)); test(!temp, __FILE__, #a" != "#b); }
+#define String_Value(str) test((str ? 1 : 0), __FILE__, (str ? str : "NULL"))
+#define String_List_Value(list, joinCharacter) test((array_count(list) ? 1 : 0), __FILE__, (list ? vstring_join(list, joinCharacter) : "EMPTY"))
 
 #define Int_Value(val)					\
     {							\
@@ -59,55 +67,57 @@ const char** test_get_filenames();
 
 #define V2_Value(a)							\
     {									\
-	char str[32];							\
-	sprintf(str, "%f, %f", a[0], a[1]);				\
+	char str[99];							\
+	sprintf(str, "V2 ( %s ): %.2f, %.2f", #a, a[0], a[1]);		\
 	test(1, __FILE__, str);						\
     }
 #define V2_Is_Equal(a, b)						\
     {									\
-	i32 result = f32_equal(a[0], (b)[0]) + f32_equal(a[1], (b)[1]);	\
+	i32 result = f32_equal(a[0], (b)[0]) * f32_equal(a[1], (b)[1]);	\
 	test(result, __FILE__, #a" == "#b);				\
     }
 
 #define V3_Value(a)							\
     {									\
-	char str[32];							\
-	sprintf(str, "%f, %f, %f", a[0], a[1], a[2]);			\
+	char str[99];							\
+	sprintf(str, "V3 ( %s ): %.2f, %.2f, %.2f", #a, a[0], a[1], a[2]); \
 	test(1, __FILE__, str);						\
     }
 #define V3_Is_Equal(a, b)						\
     {									\
-	i32 result = f32_equal(a[0], (b)[0]) + f32_equal(a[1], (b)[1]) + f32_equal(a[2], (b)[2]); \
+	i32 result = f32_equal(a[0], (b)[0]) * f32_equal(a[1], (b)[1]) * f32_equal(a[2], (b)[2]); \
 	test(result, __FILE__, #a" == "#b);				\
     }
 
 #define V4_Value(a)							\
     {									\
-	char str[32];							\
-	sprintf(str, "%f, %f, %f, %f", a[0], a[1], a[2], a[3]);		\
+	char str[99];							\
+	sprintf(str, "V4 ( %s ): %.2f, %.2f, %.2f, %.2f", #a, a[0], a[1], a[2], a[3]); \
 	test(1, __FILE__, str);						\
     }
 #define V4_Is_Equal(a, b)						\
     {									\
-	i32 result = f32_equal(a[0], (b)[0]) + f32_equal(a[1], (b)[1]) + f32_equal(a[2], (b)[2]) + f32_equal(a[3], (b)[3]); \
+	i32 result = f32_equal(a[0], (b)[0]) * f32_equal(a[1], (b)[1]) * f32_equal(a[2], (b)[2]) * f32_equal(a[3], (b)[3]); \
 	test(result, __FILE__, #a" == "#b);				\
     }
 
-// USAGE: String_IsEqual(vstring_copy("It's a string"), "It's a string")
-#define String_IsEquals(a, b) { i8 temp = vstring_compare((a), (b)); test(temp, __FILE__, #a" == "#b); }
-#define String_IsNotEquals(a, b) { i8 temp = vstring_compare((a), (b)); test(!temp, __FILE__, #a" != "#b); }
-#define String_Value(str) test((str ? 1 : 0), __FILE__, (str ? str : "NULL"))
-#define String_List_Value(list, joinCharacter) test((array_count(list) ? 1 : 0), __FILE__, (list ? vstring_join(list, joinCharacter) : "EMPTY"))
-
 #define M4_Value(m)							\
     {									\
-	char* sb = NULL;						\
-	for (i32 i = 0; i < 4; i++)					\
-	{								\
-	    GERROR("Matrix: %f %f %f %f\n", m[i][0], m[i][1], m[i][2], m[i][3]); \
-	}								\
-	string_builder_appendf(sb, "%s: %f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f", "Matrix", m[0][0], m[0][1], m[0][2], m[0][3], m[1][0], m[1][1], m[1][2], m[1][3], m[2][0], m[2][1], m[2][2], m[2][3], m[3][0], m[3][1], m[3][2], m[3][3]); \
+	char sb[511];							\
+	sprintf(sb, "M4 ( %s ):\n%.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f", #m, m[0][0], m[0][1], m[0][2], m[0][3], m[1][0], m[1][1], m[1][2], m[1][3], m[2][0], m[2][1], m[2][2], m[2][3], m[3][0], m[3][1], m[3][2], m[3][3]); \
 	String_Value(sb);						\
+    }
+
+#define M4_Equal(m1, m2)						\
+    {									\
+	i32 isEqual = 1;						\
+	const char** list = NULL;					\
+	for (i32 r = 0; r < 4; r++)					\
+	    for (i32 c = 0; c < 4; c++)					\
+	    {								\
+		isEqual *= f32_equal(m1[r][c], m2[r][c]);		\
+	    }								\
+	test(isEqual, __FILE__, #m1" == "#m2);				\
     }
 
 #define TEST(function)					\

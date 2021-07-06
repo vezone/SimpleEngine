@@ -2,6 +2,9 @@
 #define M4_H
 
 #include "MathTypes.h"
+#include "BaseMath.h"
+#include "V3.h"
+#include "V4.h"
 
 /* Base operation */
 
@@ -15,12 +18,83 @@ m4_copy(m4 a, m4 b)
 }
 
 force_inline void
-m4_mul_v4(v4 result, m4 matrix, v4 vector)
+m4_set_identity(m4 m)
 {
-    result[0] = matrix[0][0] * vector[0] + matrix[0][1] * vector[1] + matrix[0][2] * vector[2] + matrix[0][3] * vector[3];
-    result[1] = matrix[1][0] * vector[0] + matrix[1][1] * vector[1] + matrix[1][2] * vector[2] + matrix[1][3] * vector[3];
-    result[1] = matrix[2][0] * vector[0] + matrix[2][1] * vector[1] + matrix[2][2] * vector[2] + matrix[2][3] * vector[3];
-    result[1] = matrix[3][0] * vector[0] + matrix[3][1] * vector[1] + matrix[3][2] * vector[2] + matrix[3][3] * vector[3];
+    m[0][0] = 1;
+    m[1][1] = 1;
+    m[2][2] = 1;
+    m[3][3] = 1;
+
+    m[0][1] = 0; m[0][2] = 0; m[0][3] = 0;
+    m[1][0] = 0; m[1][2] = 0; m[1][3] = 0;
+    m[2][0] = 0; m[2][1] = 0; m[2][3] = 0;
+    m[3][0] = 0; m[3][1] = 0; m[3][2] = 0;
+}
+
+force_inline void
+m4_mul_v4(m4 m, v4 v, v4 r)
+{
+    r[0] = m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2] + m[3][0] * v[3];
+    r[1] = m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2] + m[3][1] * v[3];
+    r[2] = m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2] + m[3][2] * v[3];
+    r[3] = m[0][3] * v[0] + m[1][3] * v[1] + m[2][3] * v[2] + m[3][3] * v[3];
+}
+
+force_inline void
+m4_mul_v3(m4 m, v3 v, v3 r)
+{
+    v4 r4;
+    v4 xyzw = v4_(v[0], v[1], v[2], 1.0f);
+    m4_mul_v4(m, xyzw, r4);
+
+    r[0] = r4[0];
+    r[1] = r4[1];
+    r[2] = r4[2];
+}
+
+force_inline void
+m4_mul(m4 m1, m4 m2, m4 r)
+{
+    /*
+      Column major order for OpenGL
+
+      1 2 3 4     1 2 3 4
+      2 2 3 3  *  2 2 3 3
+      4 4 2 1     4 4 2 1
+      3 3 1 4     3 3 1 4
+
+     */
+
+    f32 l00 = m1[0][0], l01 = m1[0][1], l02 = m1[0][2], l03 = m1[0][3],
+	l10 = m1[1][0], l11 = m1[1][1], l12 = m1[1][2], l13 = m1[1][3],
+	l20 = m1[2][0], l21 = m1[2][1], l22 = m1[2][2], l23 = m1[2][3],
+	l30 = m1[3][0], l31 = m1[3][1], l32 = m1[3][2], l33 = m1[3][3],
+
+	r00 = m2[0][0], r01 = m2[0][1], r02 = m2[0][2], r03 = m2[0][3],
+	r10 = m2[1][0], r11 = m2[1][1], r12 = m2[1][2], r13 = m2[1][3],
+	r20 = m2[2][0], r21 = m2[2][1], r22 = m2[2][2], r23 = m2[2][3],
+	r30 = m2[3][0], r31 = m2[3][1], r32 = m2[3][2], r33 = m2[3][3];
+
+    // column
+    r[0][0] = l00 * r00 + l10 * r01 + l20 * r02 + l30 * r03;
+    r[0][1] = l01 * r00 + l11 * r01 + l21 * r02 + l31 * r03;
+    r[0][2] = l02 * r00 + l12 * r01 + l22 * r02 + l32 * r03;
+    r[0][3] = l03 * r00 + l13 * r01 + l23 * r02 + l33 * r03;
+
+    r[1][0] = l00 * r10 + l10 * r11 + l20 * r12 + l30 * r13;
+    r[1][1] = l01 * r10 + l11 * r11 + l21 * r12 + l31 * r13;
+    r[1][2] = l02 * r10 + l12 * r11 + l22 * r12 + l32 * r13;
+    r[1][3] = l03 * r10 + l13 * r11 + l23 * r12 + l33 * r13;
+
+    r[2][0] = l00 * r20 + l10 * r21 + l20 * r22 + l30 * r23;
+    r[2][1] = l01 * r20 + l11 * r21 + l21 * r22 + l31 * r23;
+    r[2][2] = l02 * r20 + l12 * r21 + l22 * r22 + l32 * r23;
+    r[2][3] = l03 * r20 + l13 * r21 + l23 * r22 + l33 * r23;
+
+    r[3][0] = l00 * r30 + l10 * r31 + l20 * r32 + l30 * r33;
+    r[3][1] = l01 * r30 + l11 * r31 + l21 * r32 + l31 * r33;
+    r[3][2] = l02 * r30 + l12 * r31 + l22 * r32 + l32 * r33;
+    r[3][3] = l03 * r30 + l13 * r31 + l23 * r32 + l33 * r33;
 }
 
 force_inline void
@@ -68,25 +142,6 @@ m4_mul_m4(m4 r, m4 m1, m4 m2)
     r[3][3] = l03 * r30 + l13 * r31 + l23 * r32 + l33 * r33;
 }
 
-/* Object transformation operation */
-
-force_inline void
-m4_translate(m4 m, v3 translation)
-{
-    m[3][0] = translation[0];
-    m[3][1] = translation[1];
-    m[3][2] = translation[2];
-}
-
-force_inline void
-m4_scale_v3(m4 m, v3 v, m4 dest)
-{
-    v4_scale(m[0], v[0], dest[0]);
-    v4_scale(m[1], v[1], dest[1]);
-    v4_scale(m[2], v[2], dest[2]);
-    v4_copy(m[3], dest[3]);
-}
-
 force_inline void
 m4_mul_rot(m4 a, m4 b, m4 dest)
 {
@@ -120,6 +175,25 @@ m4_mul_rot(m4 a, m4 b, m4 dest)
     dest[3][3] = a33;
 }
 
+/* Object transformation operation */
+
+force_inline void
+m4_translate(m4 m, v3 translation)
+{
+    m[3][0] = translation[0];
+    m[3][1] = translation[1];
+    m[3][2] = translation[2];
+}
+
+force_inline void
+m4_scale_v3(m4 m, v3 v, m4 dest)
+{
+    v4_scale(m[0], v[0], dest[0]);
+    v4_scale(m[1], v[1], dest[1]);
+    v4_scale(m[2], v[2], dest[2]);
+    v4_copy(m[3], dest[3]);
+}
+
 force_inline void
 m4_rotate_x(m4 m, f32 rad, m4 dest)
 {
@@ -132,7 +206,7 @@ m4_rotate_x(m4 m, f32 rad, m4 dest)
     identity[2][1] = -sinV;
     identity[2][2] =  cosV;
 
-    glm_mul_rot(m, identity, dest);
+    m4_mul_rot(m, identity, dest);
 }
 
 force_inline void
@@ -148,7 +222,7 @@ m4_rotate_y(m4 m, f32 rad, m4 dest)
     identity[2][0] =  sinV;
     identity[2][2] =  cosV;
 
-    glm_mul_rot(m, identity, dest);
+    m4_mul_rot(m, identity, dest);
 }
 
 force_inline void
@@ -164,7 +238,25 @@ m4_rotate_z(m4 m, f32 rad, m4 dest)
     identity[1][0] = -sinV;
     identity[1][1] =  cosV;
 
-    glm_mul_rot(m, identity, dest);
+    m4_mul_rot(m, identity, dest);
+}
+
+force_inline void
+m4_transform(v3 position, v3 scale, v3 rotation, m4 transform)
+{
+    m4_set_identity(transform);
+
+    m4 translationMat = M4_IDENTITY;
+    m4 rotationMat = M4_IDENTITY;
+    m4 scaleMat = M4_IDENTITY;
+    v3 scaleVec = v3_(scale[0], scale[1], 1.0f);
+
+    m4_translate(translationMat, position);
+    m4_rotate_z(rotationMat, rad(rotation[2]), rotationMat);
+    m4_scale_v3(scaleMat, scaleVec, scaleMat);
+
+    m4_mul(translationMat, rotationMat, transform);
+    m4_mul(transform, scaleMat, transform);
 }
 
 force_inline i32
@@ -208,10 +300,11 @@ m4_transform_decompose(m4 transform, v4 translation, v3 rotation, v3 scale)
     // TODO(bies): fix it
     // Compute X scale factor and normalize first row.
     // scale[0] = length(row[0]);
-    // row[0] = detail::scale(row[0], one);
-    // scale[1] = length(row[1]);
+    scale[0] = v3_length(row[0]);
+    //row[0] = detail::scale(row[0], one);
+    scale[1] = v3_length(row[1]);
     // row[1] = detail::scale(row[1], one);
-    // scale[2] = length(row[2]);
+    scale[2] = v3_length(row[2]);
     // row[2] = detail::scale(row[2], one);
     // TODO(bies): fix it
 

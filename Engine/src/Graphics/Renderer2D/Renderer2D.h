@@ -8,6 +8,7 @@
 #include "Graphics/Texture2D.h"
 #include "Utils/Types.h"
 #include "Utils/Array.h"
+#include <Math/M4.h>
 
 static void
 renderer_set_viewport(u32 width, u32 height)
@@ -30,12 +31,15 @@ renderer_clear(vec4 color)
 #define MaxObjectToDraw (i64)100
 #define MaxTextureSlots 32
 
-#define QuadVertexElementCount (3 + 4 + 2 + 1 + 1)
+#define QuadVertexElementCount (3 + 4 + 2 + 1)
 #define QuadVerticesCount (4 * QuadVertexElementCount)
 #define SizeofQuadVertex (QuadVertexElementCount * sizeof(f32))
+
 #define VerticesCount (MaxObjectToDraw * QuadVerticesCount)
 #define IndicesCount (MaxObjectToDraw * 6)
+
 #define VertexBufferSize (VerticesCount * sizeof(f32))
+#define IndicesBufferSize (IndicesCount * sizeof(u32))
 
 typedef struct Renderer2DStatistics
 {
@@ -77,8 +81,8 @@ typedef struct BatchRenderer2DData
     u32 IndexCount;
     VertexArray Vao;
     TextureList List;
-    u32 Indices[IndicesCount];
     f32 Data[VerticesCount];
+    u32 Indices[IndicesCount];
 } BatchRenderer2DData;
 
 void renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Texture2D* whiteTexture, OrthographicCamera* camera);
@@ -90,8 +94,8 @@ void renderer_submit_rotated_rectangle(vec3 position, vec2 size, f32 angle, Text
 void renderer_submit_colored_rectangle(vec3 position, vec2 size, vec4 color);
 void renderer_submit_colored_rotated_rectangle(vec3 position, vec2 size, vec4 color, f32 angle);
 
-void renderer_submit_rectanglet(mat4 transform, Texture2D* texture);
-void renderer_submit_colored_rectanglet(mat4 transform, vec4 color);
+void renderer_submit_rectanglet(m4 transform, v4 color, Texture2D* texture);
+void renderer_submit_colored_rectanglet(m4 transform, v4 color);
 
 //functions for texture atlas
 void renderer_submit_atlas(vec3 position, vec2 size, TextureAtlas* atlas, i32 row, i32 col);
@@ -101,6 +105,7 @@ void renderer_submit_dot(vec3 position, vec4 color);
 
 /* Flush functions */
 void renderer_flush();
+void renderer_destroy();
 
 Renderer2DStatistics renderer_get_statistics();
 

@@ -441,16 +441,16 @@ vstring_split(char* input, char splitCharacter)
 char*
 vstring_join(const char** list, char joinCharacter)
 {
-    u32 i;
-    u32 length;
-    u32 finalLength;
-    u32 curLength = 0;
-    u32 strLength;
-    char* finalString;
-    const char* str;
+    i32 i;
+    i32 length;
+    i32 finalLength;
+    i32 curLength = 0;
+    i32 strLength;
+    char* finalString = NULL;
+    const char* str = NULL;
 
     vassert(list);
-    length = array_len(list);
+    length = array_count(list);
     vassert(length);
 
     finalLength = length;

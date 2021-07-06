@@ -16,5 +16,4 @@ void create_user_application()
     editorLayer.OnDestoy = engine_editor_on_destroy;
 
     application_push_layer(editorLayer);
-
 }

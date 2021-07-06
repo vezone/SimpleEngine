@@ -22,10 +22,10 @@ enum ToggleButton_State
 
 i32 g_State = ToggleButton_State_None;
 
-#define igToggleButton(name, size, state) \
-    igPushIDInt(1);					\
-    if (g_State == ToggleButton_State_None)		\
-    { \
+#define igToggleButton(name, size, state)				\
+    igPushIDInt(1);							\
+    if (g_State == ToggleButton_State_None)				\
+    {									\
 	igPushStyleColorVec4(ImGuiCol_Button, DEFAULT_BLUE_BTN_COLOR);	\
 	igPushStyleColorVec4(ImGuiCol_ButtonHovered, HOVERED_BLUE_BTN_COLOR); \
 	igPushStyleColorVec4(ImGuiCol_ButtonActive, ACTIVE_BLUE_BTN_COLOR); \

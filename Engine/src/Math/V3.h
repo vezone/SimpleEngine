@@ -6,6 +6,14 @@
 #include "MathTypes.h"
 
 force_inline void
+v3_v4(v4 v, v3 r)
+{
+    r[0] = v[0];
+    r[1] = v[1];
+    r[2] = v[2];
+}
+
+force_inline void
 v3_assign(v3 a, v3 b)
 {
     a[0] = b[0];

@@ -367,6 +367,7 @@ glm_mat4_mulv(mat4 m, vec4 v, vec4 dest) {
   res[1] = m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2] + m[3][1] * v[3];
   res[2] = m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2] + m[3][2] * v[3];
   res[3] = m[0][3] * v[0] + m[1][3] * v[1] + m[2][3] * v[2] + m[3][3] * v[3];
+  // just copy nothing else
   glm_vec4_copy(res, dest);
 #endif
 }
@@ -458,8 +459,10 @@ CGLM_INLINE
 void
 glm_mat4_mulv3(mat4 m, vec3 v, float last, vec3 dest) {
   vec4 res;
+  // ctr w params
   glm_vec4(v, last, res);
   glm_mat4_mulv(m, res, res);
+  // copy constructor just paste data
   glm_vec3(res, dest);
 }
 

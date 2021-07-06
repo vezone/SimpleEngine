@@ -59,6 +59,7 @@
 #define BLACK(x) "\x1B[30m"x"\033[0m"
 #define RED(x) "\x1B[31m"x"\033[0m"
 #define GREEN(x) "\x1B[32m"x"\033[0m"
+#define GREENQ(x) "\x1B[32m"x"\033[0m"
 #define YELLOW(x) "\x1B[33m"x"\033[0m"
 #define BLUE(x) "\x1B[34m"x"\033[0m"
 #define MAGNETA(x) "\x1B[35m"x"\033[0m"
@@ -79,6 +80,7 @@
 #define GREEN5(x) "\033[5;1;32m"x"\033[0m"
 
 #define PLOG(format, ...) printf("[LOG] file: %s, line: %d, message: ", __FILE__, __LINE__);printf(format, ##__VA_ARGS__)
+#define PSUCCESS(format, ...) printf(GREENQ("[SUCCESS]")" file: %s, line: %d, message: ", __FILE__, __LINE__);printf(format, ##__VA_ARGS__)
 #define PERROR(format, ...) printf(RED("[ERROR]")" file: %s, line: %d, message: ", __FILE__, __LINE__);printf(format, ##__VA_ARGS__)
 #define PWARNING(format, ...) printf(YELLOW("[WARNING]")" file: %s, line: %d, message: ", __FILE__, __LINE__);printf(format, ##__VA_ARGS__)
 #define PDEBUG(format, ...) printf("[DEBUG] file: %s, line: %d, message: ", __FILE__, __LINE__);printf(format, ##__VA_ARGS__)

@@ -22,10 +22,11 @@
 //ECS
 #include "ECS/ECS.h"
 #include "ECS/Scene.h"
-#include "ECS/Components/PositionComponent.h"
+#include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/SpriteComponent.h"
 
 //Math
+#include "Math/MathTypes.h"
 #include "Math/BaseMath.h"
 #include "Math/V2.h"
 #include "Math/V3.h"

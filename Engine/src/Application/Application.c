@@ -43,11 +43,12 @@ void application_init(u32 width, u32 height, const char* name)
     //OpenGL
     opengl_context_init((GLADloadproc)glfwGetProcAddress);
 
-    Layer layer = {};
-    layer.Name = "UI Layer";
-    layer.OnAttach = ui_on_attach;
-    layer.OnEvent = ui_on_event;
-    layer.OnDestoy = ui_on_destoy;
+    Layer layer = {
+	.Name = "UI Layer",
+	.OnAttach = ui_on_attach,
+	.OnEvent = ui_on_event,
+	.OnDestoy = ui_on_destoy
+    };
 
     application_push_layer(layer);
 }
@@ -58,7 +59,7 @@ void application_start()
     f32 timeStep;
     f32 lastFrameTime;
 
-    LayersCount = array_len(g_Application.Layers);
+    LayersCount = array_count(g_Application.Layers);
 
     while (!window_should_close(&g_Application.Window))
     {
@@ -70,6 +71,8 @@ void application_start()
 	{
 	    for (i32 l = 0; l < LayersCount; l++)
 	    {
+		if (g_Application.Layers[l].Name == NULL)
+		    continue;
 		if (g_Application.Layers[l].OnUpdate != NULL)
 		    g_Application.Layers[l].OnUpdate(timeStep);
 	    }
@@ -77,6 +80,8 @@ void application_start()
 	    ui_begin();
 	    for (i32 l = 0; l < LayersCount; l++)
 	    {
+		if (g_Application.Layers[l].Name == NULL)
+		    continue;
 		if (g_Application.Layers[l].OnUIRender != NULL)
 		    g_Application.Layers[l].OnUIRender();
 	    }

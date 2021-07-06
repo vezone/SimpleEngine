@@ -1,8 +1,10 @@
 #include "Scene.h"
-#include "Components/PositionComponent.h"
+#include "Components/TransformComponent.h"
 #include "Components/SpriteComponent.h"
 
+#include <Graphics/Renderer2D/Renderer2D.h>
 #include <Utils/Asset.h>
+#include <Math/M4IO.h>
 
 //#include "Components.h"
 
@@ -27,10 +29,10 @@ Entity
 entity_create(Scene* scene, const char* name)
 {
     EntityID entityId = ECS_ENTITY_CREATE(scene->World);
-    PositionComponent p1 = PositionComponent_(((v3) { 1.0f, 1.0f, 1.0f }));
+    TransformComponent transformComponent = TransformComponent_(v3_(1.0f, 1.0f, 1.0f), v3_(1.0f, 1.0f, 0.0f), v3_(0.0f, 0.0f, 0.0f));
 
-    ECS_ENTITY_ADD_COMPONENT(scene->World, entityId, PositionComponent);
-    ECS_ENTITY_SET_COMPONENT(scene->World, entityId, PositionComponent, p1);
+    ECS_ENTITY_ADD_COMPONENT(scene->World, entityId, TransformComponent);
+    ECS_ENTITY_SET_COMPONENT(scene->World, entityId, TransformComponent, transformComponent);
 
     Entity entity = (Entity) { .Name = name, .ID = entityId };
     array_push(g_Entities, entity);
@@ -51,7 +53,7 @@ scene_create(Scene* scene, EditorCamera* camera)
 	g_EditorCamera = camera;
     }
 
-    ECS_REGISTER_COMPONENT(scene->World, PositionComponent);
+    ECS_REGISTER_COMPONENT(scene->World, TransformComponent);
     ECS_REGISTER_COMPONENT(scene->World, SpriteComponent);
 
     ++g_SceneLastID;
@@ -60,22 +62,27 @@ scene_create(Scene* scene, EditorCamera* camera)
 void
 scene_on_update(Scene* scene)
 {
-    ECSQueryResult queryResult = ECS_ARCHETYPE_GET(scene->World, "PositionComponent,SpriteComponent");
+    ECSQueryResult queryResult = ECS_ARCHETYPE_GET(scene->World, "TransformComponent,SpriteComponent");
 
+    PRINT_SINGLE("Count: %d\n", queryResult.Count);
     while (ECS_QUERY_RESULT_NEXT(queryResult))
     {
-	PositionComponent* position =
-	    ECS_QUERY_RESULT_GET(queryResult, PositionComponent);
+	TransformComponent* transform =
+	    ECS_QUERY_RESULT_GET(queryResult, TransformComponent);
 	SpriteComponent* sprite =
 	    ECS_QUERY_RESULT_GET(queryResult, SpriteComponent);
 
+	PRINT_MANY(2, "Color: %f %f %f\n", sprite->Color[0], sprite->Color[1], sprite->Color[2]);
+
+	DO_MANY_TIME(M4_PRINT(transform->Transform), 2);
+
 	if (sprite->IsTextured)
 	{
-	    renderer_submit_rectangle(position->Position, sprite->Size, NULL, &sprite->Texture);
+	    renderer_submit_rectanglet(transform->Transform, sprite->Color, &sprite->Texture);
 	}
 	else
 	{
-	    renderer_submit_colored_rectangle(position->Position, sprite->Size, sprite->Color);
+	    renderer_submit_colored_rectanglet(transform->Transform, sprite->Color);
 	}
     }
 }

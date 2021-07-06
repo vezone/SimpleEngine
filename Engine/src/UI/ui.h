@@ -17,5 +17,6 @@ void ui_block_event(i8 block);
 void ui_begin();
 void ui_end();
 
+ImFont** ui_get_fonts();
 
 #endif

@@ -81,13 +81,11 @@ path_get_home_directory()
     return g_UserInfo->pw_dir;
 }
 
-force_inline char*
+force_inline const char*
 path_get_extension(const char* path)
 {
     i32 extensionIndex = vstring_last_index_of(path, '.');
-    u32 length = vstring_length(path) - 1;
-    char* extension = vstring_substring_range(path, extensionIndex, length);
-    return extension;
+    return (const char*) (path + extensionIndex * sizeof(char));
 }
 
 force_inline char*

@@ -11,42 +11,40 @@ typedef struct SpriteComponent
 {
     i8 IsTextured;
     v4 Color;
-    v2 Size;
     Texture2D Texture;
 } SpriteComponent;
 
-#define SpriteComponent(color, size, texture) _sprite_component(color, size, texture)
-#define SpriteComponent_Color(color, size) _sprite_component_color(color, size)
-#define SpriteComponent_Texture(texture, size) _sprite_component_texture(texture, size)
+#define SpriteComponent(color, texture) _sprite_component(color, texture)
+#define SpriteComponent_Color(color) _sprite_component_color(color)
+#define SpriteComponent_Texture(texture) _sprite_component_texture(texture)
 
 force_inline SpriteComponent
-_sprite_component(v4 color, v2 size, Texture2D texture)
+_sprite_component(v4 color, Texture2D texture)
 {
     SpriteComponent component;
-    v4_assign(component.Color, color);
-    v2_assign(component.Size, size[0], size[1]);
     component.IsTextured = 1;
     component.Texture = texture;
+    v4_assign(component.Color, color);
     return component;
 }
 
 force_inline SpriteComponent
-_sprite_component_color(v4 color, v2 size)
+_sprite_component_color(v4 color)
 {
     SpriteComponent component;
     component.IsTextured = 0;
+    component.Texture = (Texture2D) {};
     v4_assign(component.Color, color);
-    v2_assign(component.Size, size[0], size[1]);
     return component;
 }
 
 force_inline SpriteComponent
-_sprite_component_texture(Texture2D texture, v2 size)
+_sprite_component_texture(Texture2D texture)
 {
     SpriteComponent component;
     component.IsTextured = 1;
     component.Texture = texture;
-    v2_assign(component.Size, size[0], size[1]);
+    v4_assign(component.Color, v4_(1.0f, 1.0f, 1.0f, 1.0f));
     return component;
 }
 

@@ -1,17 +1,19 @@
-#pragma once
+#ifndef LOGGER_H
+#define LOGGER_H
 
 #include "Types.h"
 
 //GLBOBAL
 #define DEBUG_MODE 0
 
-#if DEBUG_MODE == 0
 #define ISGLOBALLOG 1
+#define ISGLOBALSUCCESS 1
+
+#if DEBUG_MODE == 0
 #define ISGLOBALERROR 1
 #define ISGLOBALWARNING 1
 #define ISGLOBALDEBUG 1
 #else
-#define ISGLOBALLOG 0
 #define ISGLOBALERROR 0
 #define ISGLOBALWARNING 0
 #define ISGLOBALDEBUG 0
@@ -33,12 +35,28 @@
 //Create windows logger
 #endif
 
+#include "BaseHelper.h"
+
 #define PRINT(format, ...) printf(format, ##__VA_ARGS__)
+#define PRINT_SINGLE(format, ...)					\
+    {									\
+	DO_SINGLE_TIME(printf(format, ##__VA_ARGS__));			\
+    }
+#define PRINT_MANY(count, format, ...)					\
+    {									\
+	DO_MANY_TIME(printf(format, ##__VA_ARGS__), count);		\
+    }
 
 #if ISGLOBALLOG == 1
 #define GLOG(format, ...) PLOG(format, ##__VA_ARGS__)
 #else
 #define GLOG(format, ...)
+#endif
+
+#if ISGLOBALSUCCESS == 1
+#define GSUCCESS(format, ...) PSUCCESS(format, ##__VA_ARGS__)
+#else
+#define GSUCCESS(format, ...)
 #endif
 
 #if ISGLOBALERROR == 1
@@ -88,4 +106,6 @@
 #define TEXTUREDEBUG(format, ...) GLOG(format, ##__VA_ARGS__)
 #else
 #define TEXTUREDEBUG(format, ...)
+#endif
+
 #endif

@@ -1,4 +1,5 @@
 #include "SimpleTest.h"
+#include "UI/ui.h"
 
 #include "UTests/Test.h"
 #include "UTests/Math/UTest_BaseMath.h"
@@ -16,6 +17,7 @@
 #define ImVec4(x, y, z, w) (ImVec4) {x, y, z, w}
 
 static NativeWindow g_Window;
+static ImFont** g_Fonts = NULL;
 
 void simple_test_on_attach(NativeWindow window)
 {
@@ -33,17 +35,9 @@ void simple_test_on_attach(NativeWindow window)
     ecs_test();
     string_builder_test();
 
-    m4 translation = M4_IDENTITY;
-    v3 position = v3_(5, 3, 2);
-    // glm_translate(translation, position);
-    m4_translate(translation, position);
-    M4_Value(translation);
-    GERROR("%f %f %f %f\n", translation[3][0], translation[3][1], translation[3][2], translation[3][3]);
+    GSUCCESS("Ran all test's!\n");
 
-    glm_vec4_scale(m[0], v[0], dest[0]);
-    glm_vec4_scale(m[1], v[1], dest[1]);
-    glm_vec4_scale(m[2], v[2], dest[2]);
-    glm_vec4_copy(m[3], dest[3]);
+    g_Fonts = ui_get_fonts();
 }
 
 void simple_test_on_update(f32 timestep)
@@ -62,6 +56,9 @@ void simple_test_on_event(Event* event)
 	}
     }
 }
+
+static i32 selectedIndex = -1;
+const char* selectedFileName = NULL;
 
 void simple_test_on_ui()
 {
@@ -147,9 +144,11 @@ void simple_test_on_ui()
     }
     igEnd();
 
+    // NOTE(bies): we can get exaples from demo
+    //igShowDemoWindow(&isDemoOpen);
+
     static bool isDemoOpen = 1;
     static bool isTestPanelOpen = 1;
-    //igShowDemoWindow(&isDemoOpen);
 
     const char** fileNames = test_get_filenames();
     i32 length = array_len(fileNames);
@@ -164,18 +163,19 @@ void simple_test_on_ui()
 	igText("S: %d E: %d TestCount: %d", testInfo.SuccessCount, testInfo.ErrorsCount, testInfo.Count);
 	for (i32 i = 0; i < length; i++)
 	{
-	    if (igCollapsingHeaderBoolPtr(fileNames[i], NULL, ImGuiWindowFlags_NoCollapse))
+	    const char* filename = fileNames[i];
+	    if (igCollapsingHeaderBoolPtr(filename, NULL, ImGuiWindowFlags_NoCollapse))
 	    {
-		FileInfo* fileInfo = file_get_info(fileNames[i]);
+		FileInfo* fileInfo = file_get_info(filename);
 		if (!fileInfo || !fileInfo->Functions)
 		{
 		    continue;
 		}
 
 		i32 functionsCount = array_len(fileInfo->Functions);
-		for (i32 r = 0; r < functionsCount; r++)
+		for (i32 f = 0; f < functionsCount; f++)
 		{
-		    const char* functionName = fileInfo->Functions[r];
+		    const char* functionName = fileInfo->Functions[f];
 		    FunctionResult* functionResult =  file_info_get_function_result(fileInfo, functionName);
 		    if (!functionName || !functionResult)
 		    {
@@ -205,11 +205,28 @@ void simple_test_on_ui()
 		    }
 
 		    igPushIDInt(1);
-		    igPushStyleColorVec4(ImGuiCol_Button, ImVec4(redVal, greenVal, blueVal, 1.0f));
-		    igPushStyleColorVec4(ImGuiCol_ButtonHovered, ImVec4(redVal, greenVal + 0.1f, blueVal + 0.1f, 1.0f));
-		    igPushStyleColorVec4(ImGuiCol_ButtonActive, ImVec4(redVal, greenVal + 0.2f, blueVal + 0.2f, 1.0f));
+		    if (f == selectedIndex && selectedFileName != NULL && vstring_compare(filename, selectedFileName))
+		    {
+			static f32 selectedRedVal   = 0.9f;
+			static f32 selectedGreenVal = 0.5f;
+			static f32 selectedBluesVal = 0.1f;
+
+			igPushStyleColorVec4(ImGuiCol_Button, ImVec4(selectedRedVal, selectedGreenVal, selectedBluesVal, 1.0f));
+			igPushStyleColorVec4(ImGuiCol_ButtonHovered, ImVec4(selectedRedVal, selectedGreenVal + 0.1f, selectedBluesVal + 0.1f, 1.0f));
+			igPushStyleColorVec4(ImGuiCol_ButtonActive, ImVec4(selectedRedVal, selectedGreenVal + 0.2f, selectedBluesVal + 0.2f, 1.0f));
+		    }
+		    else
+		    {
+			igPushStyleColorVec4(ImGuiCol_Button, ImVec4(redVal, greenVal, blueVal, 1.0f));
+			igPushStyleColorVec4(ImGuiCol_ButtonHovered, ImVec4(redVal, greenVal + 0.1f, blueVal + 0.1f, 1.0f));
+			igPushStyleColorVec4(ImGuiCol_ButtonActive, ImVec4(redVal, greenVal + 0.2f, blueVal + 0.2f, 1.0f));
+		    }
+
 		    if (igButton(functionName, ImVec2(0, 0)))
 		    {
+			selectedIndex = f;
+			selectedFileName = filename;
+
 			window_set_title(&g_Window, functionName);
 			testText = functionResult->Builder;
 		    }
@@ -226,7 +243,9 @@ void simple_test_on_ui()
 
     if (igBegin("Test Results", NULL, ImGuiWindowFlags_None))
     {
+	igPushFont(g_Fonts[1]);
 	igText(testText);
+	igPopFont();
 	igEnd();
     }
 }
