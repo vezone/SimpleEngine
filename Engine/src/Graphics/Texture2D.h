@@ -15,8 +15,8 @@ typedef struct Texture2D
     const char* Path;
 } Texture2D;
 
-Texture2D texture2d_create(const char* path);
-Texture2D texture2d_create_from_buffer(void* data, u32 width, u32 height, u8 channels);
+Texture2D* texture2d_create(const char* path);
+Texture2D* texture2d_create_from_buffer(void* data, u32 width, u32 height, u8 channels);
 void texture2d_set_data(Texture2D* texture, void* data);
 // dont do this
 // void texture2d_set_from_file(Texture2D* texture, const char* path);
@@ -30,7 +30,7 @@ typedef struct TextureAtlas
     f32 AtlasHeight;
     f32 TextureWidth;
     f32 TextureHeight;
-    Texture2D Texture;
+    Texture2D* Texture;
 } TextureAtlas;
 
 void texture_atlas_create(TextureAtlas* atlas, const char* path, vec2 atlasSize, vec2 textureSize);

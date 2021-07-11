@@ -91,23 +91,28 @@ string_comparer(const struct dirent **a, const struct dirent **b)
 }
 
 force_inline const char**
-internal_directory_get(const char* directory, u8 elemCode)
+_directory_get(const char* directory, i32 elemCode)
 {
     const char** elements = NULL;
     struct dirent** namelist = NULL;
     i32 n = scandir(directory, &namelist, 0, string_comparer);
 
-    while (n--)
+    while (n > 0)
     {
-	const char* iAbsolutePath = path_combine_interning(directory, namelist[n]->d_name);
-	const char* iPath = istring(namelist[n]->d_name);
+	const char* dName = namelist[n - 1]->d_name;
+	vassert(dName);
+
+	const char* iAbsolutePath = path_combine_interning(directory, dName);
+	const char* iPath = istring(namelist[n - 1]->d_name);
 
 	if (path(iAbsolutePath) == elemCode)
 	{
 	    array_push(elements, iPath);
 	}
 
-	free(namelist[n]);
+	free(namelist[n - 1]);
+
+	--n;
     }
 
     free(namelist);
@@ -116,15 +121,59 @@ internal_directory_get(const char* directory, u8 elemCode)
 }
 
 const char**
+_directory_get_absolute(const char* directory, i32 elemCode)
+{
+    const char** elements = NULL;
+    struct dirent** namelist = NULL;
+    i32 n = scandir(directory, &namelist, 0, string_comparer);
+
+    while (n > 0)
+    {
+	const char* dName = namelist[n - 1]->d_name;
+	vassert(dName);
+
+	const char* iAbsolutePath = path_combine_interning(directory, dName);
+
+	if (path(iAbsolutePath) == elemCode)
+	{
+	    array_push(elements, iAbsolutePath);
+	}
+
+	free(namelist[n - 1]);
+
+	--n;
+    }
+
+    free(namelist);
+
+    return elements;
+}
+
+
+const char**
 directory_get_files(const char* directory)
 {
-    const char** files = internal_directory_get(directory, PATH_IS_FILE);
+    const char** files = _directory_get(directory, PATH_IS_FILE);
     return files;
 }
 
 const char**
 directory_get_directories(const char* directory)
 {
-    const char** dirs = internal_directory_get(directory, PATH_IS_DIRECTORY);
+    const char** dirs = _directory_get(directory, PATH_IS_DIRECTORY);
+    return dirs;
+}
+
+const char**
+directory_get_files_absolute(const char* directory)
+{
+    const char** files = _directory_get_absolute(directory, PATH_IS_FILE);
+    return files;
+}
+
+const char**
+directory_get_directories_absolute(const char* directory)
+{
+    const char** dirs = _directory_get_absolute(directory, PATH_IS_DIRECTORY);
     return dirs;
 }

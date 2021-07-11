@@ -61,7 +61,7 @@ fill_indices_array(u32* indices, u32 length)
 }
 
 force_inline void
-fill_data_array(f32* destination, vec3 position, vec2 size, vec4 color, vec2 textureAdds, vec2* coords, u32 startIndex)
+fill_data_array(f32* destination, u32 startIndex, vec3 position, vec2 size, vec4 color, vec2* coords, f32 textureId, EntityID entityId)
 {
     i32 i = startIndex;
 
@@ -72,11 +72,10 @@ fill_data_array(f32* destination, vec3 position, vec2 size, vec4 color, vec2 tex
     destination[i++] = color[1];
     destination[i++] = color[2];
     destination[i++] = color[3];
-    // [0, 0]
-    destination[i++] = coords[0][0];
+    destination[i++] = coords[0][0]; // [0, 0]
     destination[i++] = coords[0][1];
-    destination[i++] = textureAdds[0]; //(f32) textureId;
-    destination[i++] = textureAdds[1]; //(f32) isTextured;
+    destination[i++] = textureId; //(f32) textureId;
+    destination[i++] = entityId; //(f32) isTextured;
 
     destination[i++] = position[0];
     destination[i++] = position[1] + size[1];
@@ -85,11 +84,10 @@ fill_data_array(f32* destination, vec3 position, vec2 size, vec4 color, vec2 tex
     destination[i++] = color[1];
     destination[i++] = color[2];
     destination[i++] = color[3];
-    // [0, 1]
-    destination[i++] = coords[1][0];
+    destination[i++] = coords[1][0]; // [0, 1]
     destination[i++] = coords[1][1];
-    destination[i++] = textureAdds[0]; //(f32) textureId;
-    destination[i++] = textureAdds[1]; //(f32) isTextured;
+    destination[i++] = textureId; //(f32) textureId;
+    destination[i++] = entityId; //(f32) isTextured;
 
     destination[i++] = position[0] + size[0];
     destination[i++] = position[1] + size[1];
@@ -98,11 +96,10 @@ fill_data_array(f32* destination, vec3 position, vec2 size, vec4 color, vec2 tex
     destination[i++] = color[1];
     destination[i++] = color[2];
     destination[i++] = color[3];
-    // [1, 1]
-    destination[i++] = coords[2][0];
+    destination[i++] = coords[2][0]; // [1, 1]
     destination[i++] = coords[2][1];
-    destination[i++] = textureAdds[0]; //(f32) textureId;
-    destination[i++] = textureAdds[1]; //(f32) isTextured;
+    destination[i++] = textureId; //(f32) textureId;
+    destination[i++] = entityId; //(f32) isTextured;
 
     destination[i++] = position[0] + size[0];
     destination[i++] = position[1];
@@ -111,11 +108,10 @@ fill_data_array(f32* destination, vec3 position, vec2 size, vec4 color, vec2 tex
     destination[i++] = color[1];
     destination[i++] = color[2];
     destination[i++] = color[3];
-    // [1, 0]
-    destination[i++] = coords[3][0];
+    destination[i++] = coords[3][0]; // [1, 0]
     destination[i++] = coords[3][1];
-    destination[i++] = textureAdds[0]; //(f32) textureId;
-    destination[i++] = textureAdds[1]; //(f32) isTextured;
+    destination[i++] = textureId; //(f32) textureId;
+    destination[i++] = entityId; //(f32) isTextured;
 
     ++g_Statistics->RectanglesCount;
 }
@@ -123,7 +119,7 @@ fill_data_array(f32* destination, vec3 position, vec2 size, vec4 color, vec2 tex
 
 // we don't need isTextured here, because we have textureId that is 0 when we don't use a texture
 force_inline void
-fill_rotated_data_array(f32* destination, vec3 positionsArray[4], vec4 color, i32 textureId, u32 startIndex)
+fill_rotated_data_array(f32* destination, u32 startIndex, vec3 positionsArray[4], vec4 color, i32 textureId, EntityID entityId)
 {
     i32 i = startIndex;
 
@@ -138,6 +134,7 @@ fill_rotated_data_array(f32* destination, vec3 positionsArray[4], vec4 color, i3
     destination[i++] = 0;
     destination[i++] = 0;
     destination[i++] = (f32) textureId;
+    destination[i++] = entityId;
 
     destination[i++] = positionsArray[1][0];
     destination[i++] = positionsArray[1][1];
@@ -149,6 +146,7 @@ fill_rotated_data_array(f32* destination, vec3 positionsArray[4], vec4 color, i3
     destination[i++] = 0;
     destination[i++] = 1;
     destination[i++] = (f32) textureId;
+    destination[i++] = entityId;
 
     destination[i++] = positionsArray[2][0];
     destination[i++] = positionsArray[2][1];
@@ -160,6 +158,7 @@ fill_rotated_data_array(f32* destination, vec3 positionsArray[4], vec4 color, i3
     destination[i++] = 1;
     destination[i++] = 1;
     destination[i++] = (f32) textureId;
+    destination[i++] = entityId;
 
     destination[i++] = positionsArray[3][0];
     destination[i++] = positionsArray[3][1];
@@ -171,6 +170,7 @@ fill_rotated_data_array(f32* destination, vec3 positionsArray[4], vec4 color, i3
     destination[i++] = 1;
     destination[i++] = 0;
     destination[i++] = (f32) textureId;
+    destination[i++] = entityId;
 
     ++g_Statistics->RectanglesCount;
 }
@@ -286,6 +286,7 @@ renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Texture2D*
     vertex_buffer_add_layout(&vbo, 0, Float4);
     vertex_buffer_add_layout(&vbo, 0, Float2);
     vertex_buffer_add_layout(&vbo, 0, Float1);
+    vertex_buffer_add_layout(&vbo, 0, Float1);
 
     fill_indices_array(g_RendererData.Indices, IndicesCount);
     index_buffer_create(&ibo, g_RendererData.Indices, IndicesCount);
@@ -306,7 +307,7 @@ renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Texture2D*
 }
 
 force_inline void
-renderer_submit_rotated_base(m4 transform, v4 color, Texture2D* texture)
+renderer_submit_rotated_base(m4 transform, v4 color, Texture2D* texture, EntityID entityId)
 {
     v3 positions[4];
     v4 positionsFourDimensional[4];
@@ -326,77 +327,42 @@ renderer_submit_rotated_base(m4 transform, v4 color, Texture2D* texture)
     v3_v4(positionsFourDimensional[3], positions[3]);
 
     i32 textureId = texture_list_submit_texture_or_flush(&g_RendererData, texture);
-    fill_rotated_data_array(g_RendererData.Data, positions, color, textureId, g_RendererData.DataCount);
+    fill_rotated_data_array(g_RendererData.Data, g_RendererData.DataCount, positions, color, textureId, entityId);
     g_RendererData.DataCount  += QuadVerticesCount;
     g_RendererData.IndexCount += 6;
 }
 
 void
-renderer_submit_rectangle(vec3 position, vec2 size, vec2* coords, Texture2D* texture)
+renderer_submit_rectangle(vec3 position, vec2 size, v4 color, vec2* coords, Texture2D* texture, EntityID entityId)
 {
     i32 textureId = texture_list_submit_texture_or_flush(&g_RendererData, texture);
-    v4 color = v4_(1.0f, 1.0f, 1.0f, 1.0f);
     v2 textureAdds = v2_(textureId, 1);
 
-    if (coords == NULL)
-    {
-	fill_data_array(g_RendererData.Data, position, size, color, textureAdds, g_DefaultCoords, g_RendererData.DataCount);
-    }
-    else
-    {
-	fill_data_array(g_RendererData.Data, position, size, color, textureAdds, coords, g_RendererData.DataCount);
-    }
+    fill_data_array(g_RendererData.Data, g_RendererData.DataCount, position, size, color, coords != NULL ? coords : g_DefaultCoords, textureId, entityId);
 
     g_RendererData.DataCount  += QuadVerticesCount;
     g_RendererData.IndexCount += 6;
 }
 
 void
-renderer_submit_rotated_rectangle(vec3 position, vec2 size, f32 angle, Texture2D* texture)
-{
-    v4 color = v4_(1.0f, 1.0f, 1.0f, 1.0f);
-    v3 scaleVec = v3_(size[0], size[1], 1.0f);
-    v3 rotation = v3_(0.0f, 0.0f, angle);
-    m4 transform;
-    m4_transform(position, scaleVec, rotation, transform);
-    renderer_submit_rotated_base(transform, color, texture);
-}
-
-// TODO(bies): complete it
-void
-renderer_submit_colored_rectangle(vec3 position, vec2 size, vec4 color)
-{
-    v2 textureAdds = v2_(0, 0);
-    fill_data_array(g_RendererData.Data, position, size, color, textureAdds, g_DefaultCoords, g_RendererData.DataCount);
-    g_RendererData.DataCount  += QuadVerticesCount;
-    g_RendererData.IndexCount += 6;
-}
-
-void
-renderer_submit_colored_rotated_rectangle(vec3 position, vec2 size, vec4 color, f32 angle)
+renderer_submit_rotated_rectangle(v3 position, v2 size, v4 color, Texture2D* texture, f32 angle, EntityID entityId)
 {
     v3 scaleVec = v3_(size[0], size[1], 1.0f);
     v3 rotation = v3_(0.0f, 0.0f, angle);
     m4 transform;
     m4_transform(position, scaleVec, rotation, transform);
-    renderer_submit_rotated_base(transform, color, NULL);
+    renderer_submit_rotated_base(transform, color, texture, entityId);
 }
 
 void
-renderer_submit_rectanglet(m4 transform, v4 color, Texture2D* texture)
+renderer_submit_rectanglet(m4 transform, v4 color, Texture2D* texture, EntityID entityId)
 {
-    renderer_submit_rotated_base(transform, color, texture);
-}
-
-void
-renderer_submit_colored_rectanglet(m4 transform, v4 color)
-{
-    renderer_submit_rotated_base(transform, color, NULL);
+    renderer_submit_rotated_base(transform, color, texture, entityId);
 }
 
 //note(bm): use only 1 atlas at time
 void
-renderer_submit_atlas(vec3 position, vec2 size, TextureAtlas* atlas, i32 row, i32 col)
+renderer_submit_atlas(vec3 position, vec2 size, v4 color, TextureAtlas* atlas, i32 row, i32 col, EntityID entityId)
 {
     f32 startX = (col * atlas->TextureWidth) / atlas->AtlasWidth;
     f32 endX = ((col + 1) * atlas->TextureWidth) / atlas->AtlasWidth;
@@ -409,24 +375,12 @@ renderer_submit_atlas(vec3 position, vec2 size, TextureAtlas* atlas, i32 row, i3
     vec2_ctr(coords[2], endX, endY);
     vec2_ctr(coords[3], endX, startY);
 
-    renderer_submit_rectangle(position, size, coords, &atlas->Texture);
+    renderer_submit_rectangle(position, size, color, coords, &atlas->Texture, entityId);
 }
 
 void
 renderer_submit_dot(vec3 position, vec4 color)
 {
-    // we need another buffer for dots
-    vec2 coords[4];
-    coords[0][0] = 0.0f;
-    coords[0][1] = 0.0f;
-    coords[1][0] = 0.0f;
-    coords[1][1] = 0.0f;
-    coords[2][0] = 0.0f;
-    coords[2][1] = 0.0f;
-    coords[3][0] = 0.0f;
-    coords[3][1] = 0.0f;
-
-    fill_data_array(g_RendererData.Data, position, (vec2) { 0.0f, 0.0f }, color, (vec2) { 0.0f, 0.0f }, coords, g_RendererData.DataCount);
 }
 
 void

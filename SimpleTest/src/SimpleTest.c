@@ -38,6 +38,8 @@ void simple_test_on_attach(NativeWindow window)
     GSUCCESS("Ran all test's!\n");
 
     g_Fonts = ui_get_fonts();
+
+    script_test();
 }
 
 void simple_test_on_update(f32 timestep)

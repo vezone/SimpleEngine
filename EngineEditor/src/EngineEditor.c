@@ -14,6 +14,7 @@ Scene g_Scene;
 FrameBuffer g_Framebuffer;
 Renderer2DStatistics g_RendererStatistics;
 Shader g_Shader;
+bool g_IsViewportFocused = 0;
 
 void
 engine_editor_on_attach(NativeWindow window)
@@ -55,17 +56,17 @@ engine_editor_on_attach(NativeWindow window)
 	GERROR("We fucked up with shader sources!!!\n");
 	return;
     }
-    Texture2D whiteTexture = texture2d_create(asset_texture("default/white_texture.png"));
-    renderer_batch_init(&g_RendererStatistics, &g_Shader, &whiteTexture, &g_Camera.OrthoCamera);
+    Texture2D* whiteTexture = texture2d_create(asset_texture("default/white_texture.png"));
+    renderer_batch_init(&g_RendererStatistics, &g_Shader, whiteTexture, &g_Camera.OrthoCamera);
     framebuffer_invalidate(&g_Framebuffer, window.Width, window.Height);
 
     scene_create(&g_Scene, &g_Camera);
 
     v4 blueColor   = v4_(0.1f, 0.1f, 0.8f, 1.0f);
     // TODO(bies): подобрать цвета
-    v4 yellowColor = v4_(0.6f, 0.5f, 0.9f, 1.0f);
+    v4 yellowColor = v4_(0.6f, 0.6f, 0.0f, 1.0f);
     // v4 greenColor  = v4_(0.2f, 0.7f, 0.2f, 0.3f);
-    Texture2D chibiTexture = texture2d_create(asset_texture("other/anime_chibi.png"));
+    Texture2D* chibiTexture = texture2d_create(asset_texture("other/anime_chibi.png"));
 
     Entity rectangleEntity = entity_create(&g_Scene, "Blue Rectangle");
     ECS_ENTITY_ADD_COMPONENT(g_Scene.World, rectangleEntity.ID, SpriteComponent);
@@ -96,7 +97,9 @@ engine_editor_on_update(f32 timestep)
     renderer_clear(v4_(0.2f, 0.245f, 0.356f, 1.0f));
     renderer_clear(v4_(0.1f, 0.1f, 0.1f, 1.0f));
 
-    editor_camera_on_update(&g_Camera, &g_Window, timestep);
+    if (g_IsViewportFocused)
+	editor_camera_on_update(&g_Camera, &g_Window, timestep);
+
     scene_on_update(&g_Scene);
 
     // обычный сабмит сломался :(
@@ -194,7 +197,7 @@ transform_component_panel(Entity entity)
     TransformComponent* transformComponent = ECS_ENTITY_GET_COMPONENT(g_Scene.World, entity.ID, TransformComponent);
     m4_transform_decompose(transformComponent->Transform, translation, rotation, scale);
 
-    igSliderFloat3("Translation", translation, -100.0f, 100.0f, "%f", ImGuiSliderFlags_None);
+    igSliderFloat3("Translation", translation, -10.0f, 10.0f, "%f", ImGuiSliderFlags_None);
     igSliderFloat3("Rotation", rotation, 0.0f, 90.0f, "%f", ImGuiSliderFlags_None);
     igSliderFloat3("Scale", scale, 0.0f, 100.0f, "%f", ImGuiSliderFlags_None);
 
@@ -208,14 +211,14 @@ sprite_component_panel(Entity entity)
     SpriteComponent* spriteComponent = ECS_ENTITY_GET_COMPONENT(g_Scene.World, entity.ID, SpriteComponent);
     if (spriteComponent->IsTextured)
     {
-	Texture2D texture = spriteComponent->Texture;
+	Texture2D* texture = spriteComponent->Texture;
 	static f32 iconWidth = 32.0f;
 	static f32 iconHeight = 32.0f;
 	static ImVec4 backgroundColor = (ImVec4) { 0, 0, 0, 1.0f };
 	static ImVec2 uv0 = (ImVec2) { 0, 1 };
 	static ImVec2 uv1 = (ImVec2) { 1, 0 };
 	static bool shouldFileDialogBeenOpened = 0;
-	if (igImageButton((ImTextureID)texture.RendererID, (ImVec2){iconWidth, iconHeight}, uv0, uv1, 0, backgroundColor, (ImVec4) {1.0f, 1.0f, 1.0f, 1.0f}))
+	if (igImageButton((ImTextureID)texture->RendererID, (ImVec2){iconWidth, iconHeight}, uv0, uv1, 0, backgroundColor, (ImVec4) {1.0f, 1.0f, 1.0f, 1.0f}))
 	{
 	    shouldFileDialogBeenOpened = 1;
 	}
@@ -224,9 +227,9 @@ sprite_component_panel(Entity entity)
 	if (igFileDialog(selectedFile, &shouldFileDialogBeenOpened, FilterFlag_PNG))
 	{
 	    GWARNING("Selected File: %s\n", selectedFile);
-	    texture2d_delete(&spriteComponent->Texture);
+	    texture2d_delete(spriteComponent->Texture);
 
-	    Texture2D newTexture = texture2d_create(selectedFile);
+	    Texture2D* newTexture = texture2d_create(selectedFile);
 	    spriteComponent->Texture = newTexture;
 
 	    shouldFileDialogBeenOpened = 0;
@@ -259,8 +262,10 @@ viewport()
     bool viewportOpen;
     if (igBegin("Viewport", &viewportOpen, ImGuiWindowFlags_None))
     {
-	i8 isWindowFocused = igIsWindowFocused(ImGuiWindowFlags_None);
-	i8 isWindowHovered = igIsWindowHovered(ImGuiWindowFlags_None);
+	bool isWindowFocused = igIsWindowFocused(ImGuiWindowFlags_None);
+	bool isWindowHovered = igIsWindowHovered(ImGuiWindowFlags_None);
+	g_IsViewportFocused = isWindowFocused;
+
 	ui_block_event(!isWindowFocused && !isWindowHovered);
 
 	ImVec2 availableRegion;
@@ -354,6 +359,12 @@ engine_editor_on_ui_render()
     properties_panel();
     viewport();
     window_renderer_statistic();
+
+    static bool shouldOpen = true;
+    const char* selectedFile;
+    igFileDialog(selectedFile, &shouldOpen, FilterFlag_None);
+
+    // for dockspace
     igEnd();
 
 #if 0
@@ -369,7 +380,8 @@ engine_editor_on_ui_render()
 
 void engine_editor_on_event(Event* event)
 {
-    editor_camera_on_event(&g_Camera, event);
+    if (g_IsViewportFocused)
+	editor_camera_on_event(&g_Camera, event);
 
     if (event->Category == KeyCategory)
     {

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-../clean.sh
-./generate_project.sh
-./generate_codelite.sh
+./clean_this.sh
+#./generate_project.sh
 ./build_debug.sh

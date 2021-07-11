@@ -14,26 +14,26 @@ file_get_name_with_extension(const char* path)
 
     for (i = 0; i < path_length; i++)
     {
-        if (path[i] == '/')
-        {
-            last_index = i;
-        }
+	if (path[i] == '/')
+	{
+	    last_index = i;
+	}
     }
 
     if (last_index != 0)
     {
-        name_index = (last_index + 1);
+	name_index = (last_index + 1);
     }
     else
     {
-        name_index = 0;
+	name_index = 0;
     }
 
     new_length = path_length - name_index;
     file_name = malloc((new_length + 1) * sizeof(char));
     for (i = name_index; i < path_length; i++)
     {
-        file_name[i - name_index] = path[i];
+	file_name[i - name_index] = path[i];
     }
     file_name[new_length] = '\0';
     return file_name;
@@ -58,16 +58,16 @@ file_read_string(const char* file_path)
     file = fopen(file_path, "r");
     if (file)
     {
-        fseek(file, 0, SEEK_END);
-        fileLength = (ftell(file));
-        fseek(file, 0, SEEK_SET);
-        result = malloc((fileLength + 1) * sizeof(char));
+	fseek(file, 0, SEEK_END);
+	fileLength = (ftell(file));
+	fseek(file, 0, SEEK_SET);
+	result = malloc((fileLength + 1) * sizeof(char));
 
-        fread(result, sizeof(char), (fileLength), file);
-        result[fileLength] = '\0';
+	fread(result, sizeof(char), (fileLength), file);
+	result[fileLength] = '\0';
 
-        fclose(file);
-        return((char*)result);
+	fclose(file);
+	return((char*)result);
     }
 
     return NULL;
@@ -83,16 +83,30 @@ file_read_bytes(const char* file_path)
     file = fopen(file_path, "rb");
     if (file)
     {
-        fseek(file, 0, SEEK_END);
-        fileLength = (i32)ftell(file);
-        fseek(file, 0, SEEK_SET);
-        result = malloc(fileLength * sizeof(char));
+	fseek(file, 0, SEEK_END);
+	fileLength = (i32)ftell(file);
+	fseek(file, 0, SEEK_SET);
+	result = malloc(fileLength * sizeof(char));
 
-        fread(result, sizeof(char), fileLength, file);
+	fread(result, sizeof(char), fileLength, file);
 
-        fclose(file);
-        return((char*)result);
+	fclose(file);
+	return((char*)result);
     }
 
     return NULL;
+}
+
+i32
+file_get_size(const char* filePath)
+{
+    FILE* file = fopen(filePath, "rb");
+    if (file)
+    {
+	fseek(file, 0, SEEK_END);
+	i32 fileLength = (i32)ftell(file);
+	return fileLength;
+    }
+
+    return 0;
 }

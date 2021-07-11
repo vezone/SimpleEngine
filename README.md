@@ -27,6 +27,9 @@ Simple game engine written in C for 2D games creation.
 
 ### 2D Batch Renderer
 
+Engine Editor
+![Alt](docs/EngineEditor0.png)
+
 74 629 textures rended by 1 draw call
 ![Alt](docs/74_529_chibi_textures_at_1_5_scale.png)
 

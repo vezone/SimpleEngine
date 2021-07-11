@@ -9,14 +9,13 @@
 
 u32* TexturesCollection = NULL;
 
-Texture2D
+Texture2D*
 texture2d_create(const char* path)
 {
     i32 width, height, channels;
     GLenum dataFormat, internalFormat;
-    Texture2D texture = {
-	.Path = path
-    };
+    Texture2D* texture = (Texture2D*) memory_allocate(sizeof(Texture2D));
+    texture->Path = path;
     TEXTUREDEBUG("Texture path: %s\n", path);
 
     //Enable blending
@@ -28,7 +27,7 @@ texture2d_create(const char* path)
     if (data == NULL)
     {
 	GERROR("Failed to load a texture!");
-	texture.Slot = -1;
+	texture->Slot = -1;
 	return texture;
     }
 
@@ -39,9 +38,9 @@ texture2d_create(const char* path)
 	GWARNING("width or height of texture == 0!\n");
     }
 
-    texture.Width = width;
-    texture.Height = height;
-    texture.Channels = channels;
+    texture->Width = width;
+    texture->Height = height;
+    texture->Channels = channels;
 
     TEXTUREDEBUG("Channels: %d\n", channels);
 
@@ -56,41 +55,40 @@ texture2d_create(const char* path)
 	internalFormat = GL_RGBA8;
     }
 
-    glCreateTextures(GL_TEXTURE_2D, 1, &texture.RendererID);
-    glTextureStorage2D(texture.RendererID, 1, internalFormat, texture.Width, texture.Height);
+    glCreateTextures(GL_TEXTURE_2D, 1, &texture->RendererID);
+    glTextureStorage2D(texture->RendererID, 1, internalFormat, texture->Width, texture->Height);
 
-    glTextureParameteri(texture.RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(texture.RendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(texture.RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTextureParameteri(texture.RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTextureParameteri(texture->RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(texture->RendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(texture->RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(texture->RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    glTextureSubImage2D(texture.RendererID, 0, 0, 0, texture.Width, texture.Height, dataFormat, GL_UNSIGNED_BYTE, data);
+    glTextureSubImage2D(texture->RendererID, 0, 0, 0, texture->Width, texture->Height, dataFormat, GL_UNSIGNED_BYTE, data);
 
     if (data)
     {
 	stbi_image_free(data);
     }
 
-    array_push(TexturesCollection, texture.RendererID);
+    array_push(TexturesCollection, texture->RendererID);
 
     return texture;
 }
 
-Texture2D
+Texture2D*
 texture2d_create_from_buffer(void* data, u32 width, u32 height, u8 channels)
 {
     GLenum dataFormat, internalFormat;
-    Texture2D texture = {
-	.Path = "None"
-    };
+    Texture2D* texture = (Texture2D*) memory_allocate(sizeof(Texture2D));
+    texture->Path = "None";
 
     //Enable blending
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    texture.Width = width;
-    texture.Height = height;
-    texture.Channels = channels;
+    texture->Width = width;
+    texture->Height = height;
+    texture->Channels = channels;
 
     TEXTUREDEBUG("Channels: %d\n", channels);
 
@@ -105,20 +103,19 @@ texture2d_create_from_buffer(void* data, u32 width, u32 height, u8 channels)
 	internalFormat = GL_RGBA8;
     }
 
-    texture.DataFormat = dataFormat;
+    texture->DataFormat = dataFormat;
 
-    glCreateTextures(GL_TEXTURE_2D, 1, &texture.RendererID);
-    glTextureStorage2D(texture.RendererID, 1, internalFormat,
-			       texture.Width, texture.Height);
+    glCreateTextures(GL_TEXTURE_2D, 1, &texture->RendererID);
+    glTextureStorage2D(texture->RendererID, 1, internalFormat, texture->Width, texture->Height);
 
-    glTextureParameteri(texture.RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(texture.RendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(texture.RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTextureParameteri(texture.RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTextureParameteri(texture->RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(texture->RendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(texture->RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(texture->RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    glTextureSubImage2D(texture.RendererID, 0, 0, 0, texture.Width, texture.Height, dataFormat, GL_UNSIGNED_BYTE, data);
+    glTextureSubImage2D(texture->RendererID, 0, 0, 0, texture->Width, texture->Height, dataFormat, GL_UNSIGNED_BYTE, data);
 
-    array_push(TexturesCollection, texture.RendererID);
+    array_push(TexturesCollection, texture->RendererID);
 
     return texture;
 }

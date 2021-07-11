@@ -21,7 +21,9 @@
 
 //ECS
 #include "ECS/ECS.h"
+#include "ECS/ECSTypes.h"
 #include "ECS/Scene.h"
+#include "ECS/Components/TagComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/SpriteComponent.h"
 
@@ -48,5 +50,6 @@
 //Platform
 #include "Platform/Linux/Linux.h"
 
+#include "Script/Script.h"
 
 #endif

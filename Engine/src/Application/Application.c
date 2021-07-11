@@ -21,7 +21,8 @@ application_push_layer(Layer layer)
     }
 }
 
-void application_init(u32 width, u32 height, const char* name)
+void
+application_init(u32 width, u32 height, const char* name)
 {
     i32 isWindowCreated;
 
@@ -53,7 +54,8 @@ void application_init(u32 width, u32 height, const char* name)
     application_push_layer(layer);
 }
 
-void application_start()
+void
+application_start()
 {
     f32 tempTime;
     f32 timeStep;

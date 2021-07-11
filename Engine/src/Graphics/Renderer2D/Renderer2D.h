@@ -8,7 +8,8 @@
 #include "Graphics/Texture2D.h"
 #include "Utils/Types.h"
 #include "Utils/Array.h"
-#include <Math/M4.h>
+#include "ECS/ECS.h"
+#include "Math/M4.h"
 
 static void
 renderer_set_viewport(u32 width, u32 height)
@@ -31,7 +32,14 @@ renderer_clear(vec4 color)
 #define MaxObjectToDraw (i64)100
 #define MaxTextureSlots 32
 
-#define QuadVertexElementCount (3 + 4 + 2 + 1)
+/*
+  xyz: 3
+  color: 4
+  texturePos: 2
+  textureId: 1
+  entityId: 1
+*/
+#define QuadVertexElementCount (3 + 4 + 2 + 1 + 1)
 #define QuadVerticesCount (4 * QuadVertexElementCount)
 #define SizeofQuadVertex (QuadVertexElementCount * sizeof(f32))
 
@@ -89,16 +97,11 @@ void renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Textu
 
 /* Submit functions */
 
-void renderer_submit_rectangle(vec3 position, vec2 size, vec2* coords, Texture2D* texture);
-void renderer_submit_rotated_rectangle(vec3 position, vec2 size, f32 angle, Texture2D* texture);
-void renderer_submit_colored_rectangle(vec3 position, vec2 size, vec4 color);
-void renderer_submit_colored_rotated_rectangle(vec3 position, vec2 size, vec4 color, f32 angle);
-
-void renderer_submit_rectanglet(m4 transform, v4 color, Texture2D* texture);
-void renderer_submit_colored_rectanglet(m4 transform, v4 color);
-
+void renderer_submit_rectangle(vec3 position, vec2 size, v4 color, vec2* coords, Texture2D* texture, EntityID entityId);
+void renderer_submit_rotated_rectangle(v3 position, v2 size, v4 color, Texture2D* texture, f32 angle, EntityID entityId);
+void renderer_submit_rectanglet(m4 transform, v4 color, Texture2D* texture, EntityID entityId);
 //functions for texture atlas
-void renderer_submit_atlas(vec3 position, vec2 size, TextureAtlas* atlas, i32 row, i32 col);
+void renderer_submit_atlas(vec3 position, vec2 size, v4 color, TextureAtlas* atlas, i32 row, i32 col, EntityID entityId);
 
 /*Dots*/
 void renderer_submit_dot(vec3 position, vec4 color);

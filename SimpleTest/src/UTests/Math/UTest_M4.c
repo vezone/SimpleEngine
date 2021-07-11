@@ -153,7 +153,7 @@ m4_check_transform_component()
     m4_transform(xyz, size, rotation, transform);
 
     TransformComponent transformDefault  = TransformComponent_(xyz, size, rotation);
-    TransformComponent transformPosition = TransformComponent_Position(xyz);
+    TransformComponent transformPosition = TransformComponent_PositionV3(xyz);
 
     M4_Equal(transformDefault.Transform, transform);
     M4_Equal(transformPosition.Transform, transform);

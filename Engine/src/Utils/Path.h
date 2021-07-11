@@ -88,6 +88,13 @@ path_get_extension(const char* path)
     return (const char*) (path + extensionIndex * sizeof(char));
 }
 
+force_inline const char*
+path_get_name(const char* path)
+{
+    i32 extensionIndex = vstring_last_index_of(path, '/');
+    return (const char*) (path + (extensionIndex + 1) * sizeof(char));
+}
+
 force_inline char*
 path_combine(const char* left, const char* right)
 {
@@ -113,6 +120,7 @@ path_get_absolute(char* path)
 }
 
 const char** directory_get_files(const char* directory);
+const char** directory_get_files_absolute(const char* directory);
 const char** directory_get_directories(const char* directory);
 
 #elif WINDOWS_PLATFORM

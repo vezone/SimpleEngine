@@ -4,6 +4,7 @@ layout(location = 0) in vec3 i_Position;
 layout(location = 1) in vec4 i_Color;
 layout(location = 2) in vec2 i_TextureCoordinates;
 layout(location = 3) in float i_TextureId;
+layout(location = 3) in float i_EntityID;
 
 out vec4 o_Color;
 out vec2 o_TextureCoordinates;
