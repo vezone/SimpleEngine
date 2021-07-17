@@ -34,7 +34,7 @@ window_set_should_close(NativeWindow* window, i8 shouldClose)
 force_inline void
 window_terminate()
 {
-    GERROR("\n\n\n TERMINATE !!! \n\n\n");
+    GSUCCESS("\n\n\n TERMINATING THE WINDOW !!! \n\n\n");
     glfwTerminate();
 }
 

@@ -123,11 +123,11 @@ menu_bar()
 	{
 	    // Disabling fullscreen would allow the window to be moved to the front of other windows,
 	    // which we can't undo at the moment without finer window depth/z control.
-	    if (igMenuItemBool("Open", "Ctrl + O", 0, 1))
+	    if (igMenuItem_Bool("Open", "Ctrl + O", 0, 1))
 	    {
 		GWARNING("Ctrl O\n");
 	    }
-	    if (igMenuItemBool("New", "Ctrl+N", 0, 1))
+	    if (igMenuItem_Bool("New", "Ctrl+N", 0, 1))
 	    {
 		GWARNING("Ctrl N\n");
 	    }
@@ -135,7 +135,7 @@ menu_bar()
 
 	    igSeparator();
 
-	    if (igMenuItemBool("Close", NULL, 0, 1))
+	    if (igMenuItem_Bool("Close", NULL, 0, 1))
 	    {
 		is_docspace_open = 0;
 	    }
@@ -146,7 +146,7 @@ menu_bar()
 	if (igBeginMenu("Windows", 1))
 	{
 	    igSeparator();
-	    if (igMenuItemBool("Info", NULL, g_IsRendererStatisticDrawing, 1))
+	    if (igMenuItem_Bool("Info", NULL, g_IsRendererStatisticDrawing, 1))
 	    {
 		g_IsRendererStatisticDrawing = !g_IsRendererStatisticDrawing;
 	    }
@@ -160,10 +160,14 @@ menu_bar()
     }
 }
 
+static i32 g_IsPopupShowsUp = 0;
+
 void
-close_popup()
+igSimplePopup()
 {
     // Always center this window when appearing
+    g_IsPopupShowsUp = 0;
+
     ImVec2 center;
     ImGuiViewport* igViewport =  igGetMainViewport();
     ImGuiViewport_GetCenter(&center, igViewport);
@@ -175,15 +179,13 @@ close_popup()
 	igSeparator();
 
 	static bool dont_ask_me_next_time = false;
-	igPushStyleVarVec2(ImGuiStyleVar_FramePadding, ImVec2_(0, 0));
+	igPushStyleVar_Vec2(ImGuiStyleVar_FramePadding, ImVec2_(0, 0));
 	igCheckbox("Don't ask me next time", &dont_ask_me_next_time);
 	igPopStyleVar(1);
 
 	if (igButton("OK", ImVec2_(120, 0)))
 	{
 	    application_close();
-	    //window_set_should_close(&g_Window, 1);
-	    igCloseCurrentPopup();
 	}
 
 	igSetItemDefaultFocus();
@@ -221,10 +223,6 @@ world_outliner()
 		g_SceneState.SelectedEntity = e;
 	    }
 	}
-
-	if (igBtn("Do"))
-	    igOpenPopup("Delete?", ImGuiPopupFlags_None);
-	close_popup();
 
 	if (igBeginPopupContextWindow("NONE", ImGuiPopupFlags_MouseButtonRight))
 	{
@@ -316,7 +314,7 @@ properties_panel()
 force_inline void
 viewport()
 {
-    igPushStyleVarVec2(ImGuiStyleVar_WindowPadding, ImVec2_(0.0f, 0.0f));
+    igPushStyleVar_Vec2(ImGuiStyleVar_WindowPadding, ImVec2_(0.0f, 0.0f));
     bool viewportOpen;
     if (igBegin("Viewport", &viewportOpen, ImGuiWindowFlags_None))
     {
@@ -376,8 +374,8 @@ engine_editor_on_ui_render()
 	igSetNextWindowPos(viewport->Pos, ImGuiCond_None, ImVec2_(0, 0));
 	igSetNextWindowSize(viewport->Size, ImGuiCond_None);
 	igSetNextWindowViewport(viewport->ID);
-	igPushStyleVarFloat(ImGuiStyleVar_WindowRounding, 0.0f);
-	igPushStyleVarFloat(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	igPushStyleVar_Float(ImGuiStyleVar_WindowRounding, 0.0f);
+	igPushStyleVar_Float(ImGuiStyleVar_WindowBorderSize, 0.0f);
 	window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 	window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
     }
@@ -391,7 +389,7 @@ engine_editor_on_ui_render()
 
     if (!opt_padding)
     {
-	igPushStyleVarVec2(ImGuiStyleVar_WindowPadding, ImVec2_(0, 0));
+	igPushStyleVar_Vec2(ImGuiStyleVar_WindowPadding, ImVec2_(0, 0));
     }
 
     if (igBegin("DockSpace Demo", &is_docspace_open, window_flags))
@@ -406,7 +404,7 @@ engine_editor_on_ui_render()
 	ImGuiIO* io = igGetIO();
 	if (io->ConfigFlags & ImGuiConfigFlags_DockingEnable)
 	{
-	    ImGuiID dockspace_id = igGetIDStr("MyDockSpace");
+	    ImGuiID dockspace_id = igGetID_Str("MyDockSpace");
 	    igDockSpace(dockspace_id, ImVec2_(0.0f, 0.0f), dockspace_flags, &class);
 	}
 
@@ -416,6 +414,10 @@ engine_editor_on_ui_render()
 	viewport();
 	window_renderer_statistic();
 
+	if (g_IsPopupShowsUp)
+	    igOpenPopup_Str("Delete?", ImGuiPopupFlags_None);
+
+	igSimplePopup();
 	//igShowDemoWindow(NULL);
 
 	// for dockspace
@@ -438,7 +440,7 @@ void engine_editor_on_event(Event* event)
 	KeyPressedEvent* keyEvent = (KeyPressedEvent*) event;
 	if (window_is_key_pressed(&g_Window, KEY_ESCAPE))
 	{
-	    close_popup();
+	    g_IsPopupShowsUp = 1;
 	    event->IsHandled = 1;
 	}
 	else if (window_is_key_pressed(&g_Window, KEY_SPACE))
@@ -478,7 +480,7 @@ void engine_editor_on_event(Event* event)
 	}
 	else if (event->Type == WindowShouldBeClosed)
 	{
-
+	    application_close();
 	}
 	break;
     }

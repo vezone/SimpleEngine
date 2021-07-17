@@ -3,7 +3,6 @@
 #include "Graphics/OpenGLBase.h"
 
 Application g_Application;
-i32 LayersCount;
 
 Application*
 application_get()
@@ -61,9 +60,10 @@ application_start()
     f32 timeStep;
     f32 lastFrameTime;
 
-    LayersCount = array_count(g_Application.Layers);
+    g_Application.IsRunning = 1;
+    i32 layersCount = array_count(g_Application.Layers);
 
-    while (!window_should_close(&g_Application.Window))
+    while (g_Application.IsRunning)
     {
 	tempTime = (f32) glfwGetTime();
 	timeStep = tempTime - lastFrameTime;
@@ -71,7 +71,7 @@ application_start()
 
 	if (!g_Application.IsMinimized)
 	{
-	    for (i32 l = 0; l < LayersCount; l++)
+	    for (i32 l = 0; l < layersCount; l++)
 	    {
 		if (g_Application.Layers[l].Name == NULL)
 		    continue;
@@ -80,7 +80,7 @@ application_start()
 	    }
 
 	    ui_begin();
-	    for (i32 l = 0; l < LayersCount; l++)
+	    for (i32 l = 0; l < layersCount; l++)
 	    {
 		if (g_Application.Layers[l].Name == NULL)
 		    continue;
@@ -91,24 +91,6 @@ application_start()
 	}
 
 	window_on_update(&g_Application.Window);
-    }
-}
-
-void
-application_close()
-{
-    for (i32 l = 0; l < LayersCount; l++)
-    {
-	Layer layer = g_Application.Layers[l];
-	if (layer.OnDestoy != NULL)
-	{
-	    if (layer.Name != NULL)
-	    {
-		GDEBUG("Destoying layer: %s\n", layer.Name);
-	    }
-
-	    layer.OnDestoy();
-	}
     }
 }
 
@@ -139,7 +121,8 @@ application_on_event(Event* event)
 	}
     }
 
-    for (i32 l = 0; l < LayersCount; l++)
+    i32 layersCount = array_count(g_Application.Layers);
+    for (i32 l = 0; l < layersCount; l++)
     {
 	layer = g_Application.Layers[l];
 	if (layer.OnEvent != NULL && event->IsHandled == 0)
@@ -150,7 +133,28 @@ application_on_event(Event* event)
 }
 
 void
+application_close()
+{
+    g_Application.IsRunning = 0;
+}
+
+void
 application_end()
 {
+    i32 layersCount = array_count(g_Application.Layers);
+    for (i32 l = 0; l < layersCount; l++)
+    {
+	Layer layer = g_Application.Layers[l];
+	if (layer.OnDestoy != NULL)
+	{
+	    if (layer.Name != NULL)
+	    {
+		GDEBUG("Destoying layer: %s\n", layer.Name);
+	    }
+
+	    layer.OnDestoy();
+	}
+    }
+
     window_terminate();
 }

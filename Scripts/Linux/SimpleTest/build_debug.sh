@@ -2,12 +2,12 @@
 
 cd ../../..
 
-startTime=$(date +%s)
+startTime=$(date -Ins)
 
 make config=debug
 Scripts/Linux/copy_files.sh "SimpleTest"
 
-endTime=$(date +%s)
+endTime=$(date -Ins)
 diffTime=$(( $endTime - $startTime ))
 
 echo "Build takes $diffTime seconds"
