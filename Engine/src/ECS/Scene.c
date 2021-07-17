@@ -65,7 +65,7 @@ scene_create(Scene* scene, EditorCamera* camera)
 void
 scene_on_update(Scene* scene)
 {
-    ECSQueryResult queryResult = ECS_ARCHETYPE_GET(scene->World, "TagComponent,TransformComponent,SpriteComponent");
+    ECSQueryResult queryResult = ECS_ARCHETYPE_GET(scene->World, TagComponent,TransformComponent,SpriteComponent);
 
     PRINT_SINGLE("Count: %d\n", queryResult.Count);
     while (ECS_QUERY_RESULT_NEXT(queryResult))

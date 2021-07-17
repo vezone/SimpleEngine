@@ -13,7 +13,6 @@
 //Graphics -> Renderer
 #include "Graphics/Renderer2D/OrthographicCamera.h"
 #include "Graphics/Renderer2D/EditorCamera.h"
-#include "Graphics/Renderer2D/ApplicationCamera.h"
 #include "Graphics/Renderer2D/Renderer2D.h"
 
 //Simple ui
@@ -26,6 +25,7 @@
 #include "ECS/Components/TagComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/SpriteComponent.h"
+#include "ECS/Components/NativeScriptComponent.h"
 
 //Math
 #include "Math/MathTypes.h"
@@ -46,6 +46,7 @@
 #include "Utils/MemoryAllocator.h"
 #include "Utils/Path.h"
 #include "Utils/Asset.h"
+#include "Utils/JSONParser.h"
 
 //Platform
 #include "Platform/Linux/Linux.h"

@@ -23,6 +23,8 @@ const char* istring_get_buffer(const char* src);
 void istring_free();
 
 char* vstring(const char* string);
+i32 vstring_count_of(const char* string, char c);
+i32 vstring_count_of_fast(const char* string, i32 length, char c);
 void vstring_set(char* string, char c, u32 length);
 i32 vstring_length(const char* str);
 char* vstring_assign(char* str, const char* oth, u32 length);

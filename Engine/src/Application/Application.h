@@ -32,6 +32,7 @@ void application_push_layer(Layer layer);
 void application_init(u32 width, u32 height, const char* name);
 void application_start();
 void application_on_event(Event* event);
+void application_close();
 void application_end();
 
 #endif

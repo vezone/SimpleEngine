@@ -1,5 +1,5 @@
 #!/bin/bash
 
-./clean_this.sh
-#./generate_project.sh
+./call_clean.sh
+./generate_project.sh
 ./build_debug.sh

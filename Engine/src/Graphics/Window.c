@@ -1,10 +1,10 @@
 #include "Window.h"
 #include "Utils/Logger.h"
 
-static void (*internal_window_on_event_function)(Event* event);
+static void (*_window_on_event_function)(Event* event);
 
 static void
-internal_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset)
+_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset)
 {
     MouseScrolledEvent event = {};
     event.Base.IsHandled = 0;
@@ -13,11 +13,11 @@ internal_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset)
     event.XOffset = xoffset;
     event.YOffset = yoffset;
 
-    internal_window_on_event_function((Event*)&event);
+    _window_on_event_function((Event*)&event);
 }
 
 static void
-internal_window_size_callback(GLFWwindow* window, i32 width, i32 height)
+_window_size_callback(GLFWwindow* window, i32 width, i32 height)
 {
     WindowResizedEvent event = {};
     event.Base.IsHandled = 0;
@@ -26,11 +26,11 @@ internal_window_size_callback(GLFWwindow* window, i32 width, i32 height)
     event.Width = width;
     event.Height = height;
 
-    internal_window_on_event_function((Event*)&event);
+    _window_on_event_function((Event*)&event);
 }
 
 static void
-internal_key_callback(GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods)
+_key_callback(GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods)
 {
     KeyPressedEvent event = {};
     event.Base.IsHandled = 0;
@@ -54,11 +54,11 @@ internal_key_callback(GLFWwindow* window, i32 key, i32 scancode, i32 action, i32
 	event.RepeatCount = 0;
     }
 
-    internal_window_on_event_function((Event*)&event);
+    _window_on_event_function((Event*)&event);
 }
 
 static void
-internal_mouse_button_callback(GLFWwindow* window, i32 button, i32 action, i32 mods)
+_mouse_button_callback(GLFWwindow* window, i32 button, i32 action, i32 mods)
 {
     MouseButtonEvent event = {};
     event.MouseCode = button;
@@ -74,11 +74,11 @@ internal_mouse_button_callback(GLFWwindow* window, i32 button, i32 action, i32 m
 	event.Base.Type = MouseButtonReleased;
     }
 
-    internal_window_on_event_function((Event*)&event);
+    _window_on_event_function((Event*)&event);
 }
 
 static void
-internal_window_minimized(GLFWwindow* window, i32 isMinimized)
+_window_minimized_callback(GLFWwindow* window, i32 isMinimized)
 {
     if (isMinimized)
     {
@@ -87,7 +87,7 @@ internal_window_minimized(GLFWwindow* window, i32 isMinimized)
 	    .Type = WindowMinimized,
 	    .Category = WindowCategory
 	};
-	internal_window_on_event_function((Event*)&event);
+	_window_on_event_function((Event*)&event);
     }
     else
     {
@@ -96,12 +96,12 @@ internal_window_minimized(GLFWwindow* window, i32 isMinimized)
 	    .Type = WindowRestored,
 	    .Category = WindowCategory
 	};
-	internal_window_on_event_function((Event*)&event);
+	_window_on_event_function((Event*)&event);
     }
 }
 
 static void
-internal_window_maximized(GLFWwindow* window, i32 isMaximized)
+_window_maximized_callback(GLFWwindow* window, i32 isMaximized)
 {
     if (isMaximized)
     {
@@ -110,19 +110,30 @@ internal_window_maximized(GLFWwindow* window, i32 isMaximized)
 	    .Type = WindowMaximized,
 	    .Category = WindowCategory
 	};
-	internal_window_on_event_function((Event*)&event);
+	_window_on_event_function((Event*)&event);
     }
 }
 
 static void
-internal_window_refreshed(GLFWwindow* window)
+_window_close_callback(GLFWwindow* window)
+{
+    Event event = {
+	.IsHandled = 0,
+	.Type = WindowShouldBeClosed,
+	.Category = WindowCategory
+    };
+    _window_on_event_function((Event*)&event);
+}
+
+static void
+_window_refreshed(GLFWwindow* window)
 {
     Event event = {
 	.IsHandled = 0,
 	.Type = WindowRestored,
 	.Category = WindowCategory
     };
-    internal_window_on_event_function((Event*)&event);
+    _window_on_event_function((Event*)&event);
 }
 
 i32
@@ -144,16 +155,17 @@ window_create(NativeWindow* window, u32 width, u32 height, const char* tittle, v
     window->Title = tittle;
     window->GlfwWindow = glfwCreateWindow(width, height, tittle, NULL, NULL);
     window->OnEvent = onEvent;
-    internal_window_on_event_function = onEvent;
+    _window_on_event_function = onEvent;
 
     glfwMakeContextCurrent(window->GlfwWindow);
 
-    glfwSetKeyCallback(window->GlfwWindow, internal_key_callback);
-    glfwSetMouseButtonCallback(window->GlfwWindow, internal_mouse_button_callback);
-    glfwSetScrollCallback(window->GlfwWindow, internal_scroll_callback);
-    glfwSetWindowSizeCallback(window->GlfwWindow, internal_window_size_callback);
-    glfwSetWindowIconifyCallback(window->GlfwWindow, internal_window_minimized);
-    glfwSetWindowMaximizeCallback(window->GlfwWindow, internal_window_maximized);
+    glfwSetKeyCallback(window->GlfwWindow, _key_callback);
+    glfwSetMouseButtonCallback(window->GlfwWindow, _mouse_button_callback);
+    glfwSetScrollCallback(window->GlfwWindow, _scroll_callback);
+    glfwSetWindowSizeCallback(window->GlfwWindow, _window_size_callback);
+    glfwSetWindowIconifyCallback(window->GlfwWindow, _window_minimized_callback);
+    glfwSetWindowMaximizeCallback(window->GlfwWindow, _window_maximized_callback);
+    glfwSetWindowCloseCallback(window->GlfwWindow, _window_close_callback);
 
     return(1);
 }

@@ -74,6 +74,28 @@ vstring(const char* string)
     return newString;
 }
 
+i32
+vstring_count_of(const char* string, char c)
+{
+    i32 length = vstring_length(string);
+    i32 count = vstring_count_of_fast(string, length, c);
+
+    return count;
+}
+
+i32
+vstring_count_of_fast(const char* string, i32 length, char c)
+{
+    i32 count = 0;
+    for (i32 i = 0; i < length; i++)
+    {
+	if (string[i] == c)
+	    ++count;
+    }
+
+    return count;
+}
+
 void
 vstring_set(char* string, char c, u32 length)
 {

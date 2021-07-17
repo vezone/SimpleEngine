@@ -335,6 +335,7 @@ m4_transform_decompose(m4 transform, v4 translation, v3 rotation, v3 scale)
 	rotation[0] = atan2(-row[2][0], row[1][1]);
 	rotation[2] = 0;
     }
+    rotation[2] = atan2(row[0][1], row[0][0]);
 
     return 1;
 }

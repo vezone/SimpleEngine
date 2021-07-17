@@ -5,6 +5,8 @@
 #include <stdarg.h>
 #include "EngineControls/Core.h"
 #include "EngineControls/FileDialog.h"
+#include "EngineControls/FileDialog.h"
+#include "EngineControls/ViewportControl.h"
 
 #define APP_NAME "Engine Editor"
 static NativeWindow g_Window;
@@ -23,13 +25,9 @@ engine_editor_on_attach(NativeWindow window)
 
     g_Window = window;
 
-    g_Camera = editor_camera_create(5.0f * aspectRatio, 5.0f * aspectRatio, 5.0f, -5.0f);
-    g_Camera.OrthoCamera.AspectRatio = aspectRatio;
-    g_Camera.OrthoCamera.ZoomLevel = 5.0f;
-    g_Camera.OrthoCamera.Speed = 5.0f;
-
+    g_Camera = editor_camera_create((EditorCameraSettings) {.ZoomLevel = 5.0f, .AspectRatio = aspectRatio, .Speed = 5.0f, .Left = 5.0f * aspectRatio, .Right = 5.0f * aspectRatio, .Bot = 5.0f, .Top = -5.0f});
     window_set_vsync(0);
-    GFORMAT(WindowTitle, "%s %f", APP_NAME, g_Camera.OrthoCamera.ZoomLevel);
+    GFORMAT(WindowTitle, "%s %f", APP_NAME, g_Camera.ZoomLevel);
     window_set_title(&g_Window, WindowTitle);
 
     char cwd[1024];
@@ -57,14 +55,14 @@ engine_editor_on_attach(NativeWindow window)
 	return;
     }
     Texture2D* whiteTexture = texture2d_create(asset_texture("default/white_texture.png"));
-    renderer_batch_init(&g_RendererStatistics, &g_Shader, whiteTexture, &g_Camera.OrthoCamera);
+    renderer_batch_init(&g_RendererStatistics, &g_Shader, whiteTexture, &g_Camera.Orthographic);
     framebuffer_invalidate(&g_Framebuffer, window.Width, window.Height);
 
     scene_create(&g_Scene, &g_Camera);
 
     v4 blueColor   = v4_(0.1f, 0.1f, 0.8f, 1.0f);
     // TODO(bies): подобрать цвета
-    v4 yellowColor = v4_(0.6f, 0.6f, 0.0f, 1.0f);
+    v4 yellowColor = v4_(1.f, 1.f, 0.0f, 1.0f);
     // v4 greenColor  = v4_(0.2f, 0.7f, 0.2f, 0.3f);
     Texture2D* chibiTexture = texture2d_create(asset_texture("other/anime_chibi.png"));
 
@@ -84,8 +82,9 @@ engine_editor_on_attach(NativeWindow window)
     ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, TransformComponent, TransformComponent_Position(3.0f, 1.5f, 0.0f));
     ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, SpriteComponent, SpriteComponent_Texture(chibiTexture));
 
-#if 0
-#endif
+    //const char* comps = COMP_ARGS(11, 2, SpriteComponent, TransformComponent);
+    //GERROR("Comps: %s\n", comps);
+
 }
 
 void
@@ -101,9 +100,6 @@ engine_editor_on_update(f32 timestep)
 	editor_camera_on_update(&g_Camera, &g_Window, timestep);
 
     scene_on_update(&g_Scene);
-
-    // обычный сабмит сломался :(
-    // renderer_submit_colored_rectangle((vec3){2.0f, 2.0f, 1.0f}, (vec2){1.0f, 1.0f}, (vec4){1.0f, 0.6f, 0.5f, 1.0f});
 
     renderer_flush();
 
@@ -139,8 +135,10 @@ menu_bar()
 
 	    igSeparator();
 
-	    if (igMenuItemBool("Close", NULL, false, 0))
+	    if (igMenuItemBool("Close", NULL, 0, 1))
+	    {
 		is_docspace_open = 0;
+	    }
 
 	    igEndMenu();
 	}
@@ -156,7 +154,47 @@ menu_bar()
 	    igEndMenu();
 	}
 
+	viewport_menu_item();
+
 	igEndMenuBar();
+    }
+}
+
+void
+close_popup()
+{
+    // Always center this window when appearing
+    ImVec2 center;
+    ImGuiViewport* igViewport =  igGetMainViewport();
+    ImGuiViewport_GetCenter(&center, igViewport);
+    igSetNextWindowPos(center, ImGuiCond_Appearing, ImVec2_(0.5f, 0.5f));
+
+    if (igBeginPopupModal("Delete?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+	igText("All those beautiful files will be deleted.\nThis operation cannot be undone!\n\n");
+	igSeparator();
+
+	static bool dont_ask_me_next_time = false;
+	igPushStyleVarVec2(ImGuiStyleVar_FramePadding, ImVec2_(0, 0));
+	igCheckbox("Don't ask me next time", &dont_ask_me_next_time);
+	igPopStyleVar(1);
+
+	if (igButton("OK", ImVec2_(120, 0)))
+	{
+	    application_close();
+	    //window_set_should_close(&g_Window, 1);
+	    igCloseCurrentPopup();
+	}
+
+	igSetItemDefaultFocus();
+	igSameLine(50.0f, 12.f);
+
+	if (igButton("Cancel", ImVec2_(120, 0)))
+	{
+	    igCloseCurrentPopup();
+	}
+
+	igEndPopup();
     }
 }
 
@@ -178,10 +216,22 @@ world_outliner()
 	for (i32 e = 0; e < count; e++)
 	{
 	    Entity entity = entities[e];
-	    if (igButton(entity.Name, (ImVec2) {0, 0}))
+	    if (igButton(entity.Name, ImVec2_(0, 0)))
 	    {
 		g_SceneState.SelectedEntity = e;
 	    }
+	}
+
+	if (igBtn("Do"))
+	    igOpenPopup("Delete?", ImGuiPopupFlags_None);
+	close_popup();
+
+	if (igBeginPopupContextWindow("NONE", ImGuiPopupFlags_MouseButtonRight))
+	{
+	    if (igButton("Add Entity", ImVec2_(0, 0)))
+	    {
+	    }
+	    igEndPopup();
 	}
 
 	igEnd();
@@ -199,7 +249,7 @@ transform_component_panel(Entity entity)
 
     igSliderFloat3("Translation", translation, -10.0f, 10.0f, "%f", ImGuiSliderFlags_None);
     igSliderFloat3("Rotation", rotation, 0.0f, 90.0f, "%f", ImGuiSliderFlags_None);
-    igSliderFloat3("Scale", scale, 0.0f, 100.0f, "%f", ImGuiSliderFlags_None);
+    igSliderFloat3("Scale", scale, 0.0f, 10.0f, "%f", ImGuiSliderFlags_None);
 
     m4_transform(translation, scale, rotation, transformComponent->Transform);
 }
@@ -209,16 +259,20 @@ sprite_component_panel(Entity entity)
 {
     igText("Selected entity: %d", g_SceneState.SelectedEntity);
     SpriteComponent* spriteComponent = ECS_ENTITY_GET_COMPONENT(g_Scene.World, entity.ID, SpriteComponent);
+
+    //igCheckbox("IsTextured", &spriteComponent->IsTextured);
+    igColorEdit4("Color", spriteComponent->Color, ImGuiColorEditFlags_None);
+
     if (spriteComponent->IsTextured)
     {
 	Texture2D* texture = spriteComponent->Texture;
 	static f32 iconWidth = 32.0f;
 	static f32 iconHeight = 32.0f;
-	static ImVec4 backgroundColor = (ImVec4) { 0, 0, 0, 1.0f };
-	static ImVec2 uv0 = (ImVec2) { 0, 1 };
-	static ImVec2 uv1 = (ImVec2) { 1, 0 };
+	static ImVec4 backgroundColor = ImVec4_(0, 0, 0, 1);
+	static ImVec2 uv0 = ImVec2_(0, 1);
+	static ImVec2 uv1 = ImVec2_(1, 0);
 	static bool shouldFileDialogBeenOpened = 0;
-	if (igImageButton((ImTextureID)texture->RendererID, (ImVec2){iconWidth, iconHeight}, uv0, uv1, 0, backgroundColor, (ImVec4) {1.0f, 1.0f, 1.0f, 1.0f}))
+	if (igImageButton((ImTextureID)texture->RendererID, ImVec2_(iconWidth, iconHeight), uv0, uv1, 0, backgroundColor, ImVec4_(1.0f, 1.0f, 1.0f, 1.0f)))
 	{
 	    shouldFileDialogBeenOpened = 1;
 	}
@@ -236,7 +290,6 @@ sprite_component_panel(Entity entity)
 	}
     }
 
-    igColorEdit4("Color", spriteComponent->Color, ImGuiColorEditFlags_None);
 }
 
 force_inline void
@@ -248,6 +301,11 @@ properties_panel()
 	Entity* entities = scene_get_entities();
 	Entity entity = entities[g_SceneState.SelectedEntity];
 
+	if (igButton("Add Component", ImVec2_(0, 0)))
+	{
+	    //
+	}
+
 	transform_component_panel(entity);
 	sprite_component_panel(entity);
 
@@ -258,10 +316,12 @@ properties_panel()
 force_inline void
 viewport()
 {
-    igPushStyleVarVec2(ImGuiStyleVar_WindowPadding, (ImVec2) { 0.0f, 0.0f });
+    igPushStyleVarVec2(ImGuiStyleVar_WindowPadding, ImVec2_(0.0f, 0.0f));
     bool viewportOpen;
     if (igBegin("Viewport", &viewportOpen, ImGuiWindowFlags_None))
     {
+	igSetItemDefaultFocus();
+
 	bool isWindowFocused = igIsWindowFocused(ImGuiWindowFlags_None);
 	bool isWindowHovered = igIsWindowHovered(ImGuiWindowFlags_None);
 	g_IsViewportFocused = isWindowFocused;
@@ -276,7 +336,7 @@ viewport()
 	    framebuffer_invalidate(&g_Framebuffer, g_ViewportSize.x, g_ViewportSize.y);
 	}
 
-	igImage((ImTextureID)g_Framebuffer.ColorAttachment, ImVec2(g_ViewportSize.x, g_ViewportSize.y), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(1,1,1,0));
+	igImage((ImTextureID)g_Framebuffer.ColorAttachment, ImVec2_(g_ViewportSize.x, g_ViewportSize.y), ImVec2_(0, 1), ImVec2_(1, 0), ImVec4_(1, 1, 1, 1), ImVec4_(1, 1, 1, 0));
 
 	igPopStyleVar(1);
 
@@ -313,7 +373,7 @@ engine_editor_on_ui_render()
     if (opt_fullscreen)
     {
 	ImGuiViewport* viewport = igGetMainViewport();
-	igSetNextWindowPos(viewport->Pos, ImGuiCond_None, (ImVec2){0.0f,0.0f});
+	igSetNextWindowPos(viewport->Pos, ImGuiCond_None, ImVec2_(0, 0));
 	igSetNextWindowSize(viewport->Size, ImGuiCond_None);
 	igSetNextWindowViewport(viewport->ID);
 	igPushStyleVarFloat(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -331,49 +391,36 @@ engine_editor_on_ui_render()
 
     if (!opt_padding)
     {
-	igPushStyleVarVec2(ImGuiStyleVar_WindowPadding, (ImVec2) { 0.0f, 0.0f });
+	igPushStyleVarVec2(ImGuiStyleVar_WindowPadding, ImVec2_(0, 0));
     }
 
-    igBegin("DockSpace Demo", &is_docspace_open, window_flags);
-
-    if (!opt_padding)
-	igPopStyleVar(1);
-
-    if (opt_fullscreen)
-	igPopStyleVar(2);
-
-    // DockSpace
-    ImGuiIO* io = igGetIO();
-    if (io->ConfigFlags & ImGuiConfigFlags_DockingEnable)
+    if (igBegin("DockSpace Demo", &is_docspace_open, window_flags))
     {
-	ImGuiID dockspace_id = igGetIDStr("MyDockSpace");
-	igDockSpace(dockspace_id, (ImVec2) { 0.0f, 0.0f }, dockspace_flags, &class);
+	if (!opt_padding)
+	    igPopStyleVar(1);
+
+	if (opt_fullscreen)
+	    igPopStyleVar(2);
+
+	// DockSpace
+	ImGuiIO* io = igGetIO();
+	if (io->ConfigFlags & ImGuiConfigFlags_DockingEnable)
+	{
+	    ImGuiID dockspace_id = igGetIDStr("MyDockSpace");
+	    igDockSpace(dockspace_id, ImVec2_(0.0f, 0.0f), dockspace_flags, &class);
+	}
+
+	menu_bar();
+	world_outliner();
+	properties_panel();
+	viewport();
+	window_renderer_statistic();
+
+	//igShowDemoWindow(NULL);
+
+	// for dockspace
+	igEnd();
     }
-    else
-    {
-	//ShowDockingDisabledMessage();
-    }
-
-    menu_bar();
-    world_outliner();
-    properties_panel();
-    viewport();
-    window_renderer_statistic();
-
-    static bool shouldOpen = true;
-    const char* selectedFile;
-    igFileDialog(selectedFile, &shouldOpen, FilterFlag_None);
-
-    // for dockspace
-    igEnd();
-
-#if 0
-    char* sceneName = NULL;
-    if ((sceneName = igFileDialog()) != NULL)
-    {
-	GWARNING("Load scene: %s\n", sceneName);
-    }
-#endif
 
     framebuffer_unbind();
 }
@@ -383,34 +430,45 @@ void engine_editor_on_event(Event* event)
     if (g_IsViewportFocused)
 	editor_camera_on_event(&g_Camera, event);
 
-    if (event->Category == KeyCategory)
+    switch (event->Category)
+    {
+
+    case KeyCategory:
     {
 	KeyPressedEvent* keyEvent = (KeyPressedEvent*) event;
 	if (window_is_key_pressed(&g_Window, KEY_ESCAPE))
 	{
-	    window_set_should_close(&g_Window, 1);
+	    close_popup();
 	    event->IsHandled = 1;
 	}
 	else if (window_is_key_pressed(&g_Window, KEY_SPACE))
 	{
-	    g_Camera.OrthoCamera.Position[0] = 3.0f;
-	    g_Camera.OrthoCamera.Position[1] = 1.5f;
-	    g_Camera.OrthoCamera.Position[2] = 0.0f;
+	    g_Camera.Orthographic.Position[0] = 3.0f;
+	    g_Camera.Orthographic.Position[1] = 1.5f;
+	    g_Camera.Orthographic.Position[2] = 0.0f;
 	    event->IsHandled = 1;
 	}
 	else if (window_is_key_pressed(&g_Window, KEY_F11))
 	{
 	    window_set_fullscreen(&g_Window);
+	    event->IsHandled = 1;
 	}
+	break;
     }
-    else if (event->Category == MouseCategory && event->Type == MouseScrolled)
+
+    case MouseCategory:
     {
-	//check if viewport is focused
-	GFORMAT(WindowTitle, "%s %f", APP_NAME, g_Camera.OrthoCamera.ZoomLevel);
-	window_set_title(&g_Window, WindowTitle);
-	event->IsHandled = 1;
+	if (event->Type == MouseScrolled)
+	{
+	    //check if viewport is focused
+	    GFORMAT(WindowTitle, "%s %f", APP_NAME, g_Camera.ZoomLevel);
+	    window_set_title(&g_Window, WindowTitle);
+	    event->IsHandled = 1;
+	}
+	break;
     }
-    else if (event->Category == WindowCategory)
+
+    case WindowCategory:
     {
 	if (event->Type == WindowResized)
 	{
@@ -418,5 +476,13 @@ void engine_editor_on_event(Event* event)
 	    framebuffer_invalidate(&g_Framebuffer, windowEvent->Width, windowEvent->Height);
 	    event->IsHandled = 1;
 	}
+	else if (event->Type == WindowShouldBeClosed)
+	{
+
+	}
+	break;
     }
+
+    }
+
 }

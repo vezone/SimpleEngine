@@ -10,7 +10,7 @@
 typedef enum EventType
 {
     None = 0,
-    WindowClosed, WindowResized, WindowFocused, WindowUnfocused, WindowMoved, WindowMinimized, WindowMaximized, WindowRestored,
+    WindowShouldBeClosed, WindowResized, WindowFocused, WindowUnfocused, WindowMoved, WindowMinimized, WindowMaximized, WindowRestored,
     AppTick, AppUpdate, AppRender,
     KeyPressed, KeyRepeatPressed, KeyRealeased, KeyTyped,
     MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled

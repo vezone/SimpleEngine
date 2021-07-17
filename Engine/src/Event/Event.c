@@ -4,11 +4,11 @@ void event_init_table(char** EventTypeToString, i32 count)
 {
     if (count < 16)
     {
-        return;
+	return;
     }
 
     EventTypeToString[None] = "None";
-    EventTypeToString[WindowClosed] = "WindowClosed";
+    EventTypeToString[WindowShouldBeClosed] = "WindowShouldBeClosed";
     EventTypeToString[WindowResized] = "WindowResized";
     EventTypeToString[WindowFocused] = "WindowFocused";
     EventTypeToString[WindowUnfocused] = "WindowUnfocused";

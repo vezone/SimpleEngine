@@ -113,7 +113,8 @@ project "EngineEditor"
       "GL", "GLU",
       "X11","dl",
       "Xinerama", "Xcursor", "m",
-      "Xxf86vm", "Xrandr", "pthread", "Xi"
+      "Xxf86vm", "Xrandr", "pthread", "Xi",
+      "asound"
     }
 
     filter "configurations:Debug"

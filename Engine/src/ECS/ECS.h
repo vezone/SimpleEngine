@@ -2,6 +2,7 @@
 #define ECS_H
 
 #include <stddef.h>
+#include <stdarg.h>
 
 #include <Utils/String.h>
 #include <Utils/Array.h>
@@ -95,6 +96,7 @@ _ecs_entity_create(World* world)
 }
 const ComponentID* _ecs_entity_get_components_id(World* world, EntityID entityId);
 void _ecs_entity_add_component(World* world, EntityID entityId, const char* componentName);
+void _ecs_entity_add_entity(World* world, EntityID entityId, EntityID otherId);
 void* _ecs_entity_get_component(World* world, EntityID entityId, const char* componentName);
 void* _ecs_entity_get_component_by_id(World* world, EntityID entityId, ComponentID componentID);
 void _ecs_entity_set_component(World* world, EntityID entityId, const char* componentName, i32 componentSize, void* value);
@@ -102,7 +104,9 @@ i8 _ecs_entity_has_component(World* world, EntityID entityId, const char* compon
 
 i32 _ecs_archetype_get_component_offset(ComponentStorage storage, const ComponentID* componentsId, ComponentID componentId);
 // NOTE(bies): this function for World->
-ECSQueryResult _ecs_archetype_get(World* world, const char* components);
+//ECSQueryResult _ecs_archetype_get(World* world, const char* components);
+ECSQueryResult _ecs_archetype_get(World* world, ComponentID* ids);
+ECSQueryResult _ecs_archetype_get_old(World* world, const char* comps);
 
 void* _ecs_query_result_get(ECSQueryResult queryResult, const char* componentName);
 i32 _ecs_query_result_next(ECSQueryResult* queryResult);
@@ -126,6 +130,7 @@ World* world_create();
 
 #define ECS_REGISTER_COMPONENT(world, component) _ecs_register_component((world), #component, sizeof(component))
 #define ECS_GET_COMPONENT_ID(world, component) _ecs_get_component_id_by_name((world), #component)
+#define ECS_GET_COMPONENT_ID_BY_NAME(world, component) _ecs_get_component_id_by_name((world), component)
 #define ECS_GET_COMPONENT_NAME(world, componentId)  _ecs_get_component_name_by_id((world), componentId);
 
 #define WORLD_HAS_ENTITY(world, entityId) (IS_ENTITY_ID_VALID(entityId) && entityId <= (world)->LastEntityId)
@@ -133,6 +138,7 @@ World* world_create();
 
 #define ECS_ENTITY_CREATE(world) _ecs_entity_create((world))
 #define ECS_ENTITY_ADD_COMPONENT(world, entityId, type) _ecs_entity_add_component((world), entityId, #type)
+#define ECS_ENTITY_ADD_ENTITY(world, entityId, otherId) _ecs_entity_add_entity((world), entityId, otherId)
 #define ECS_ENTITY_GET_COMPONENT(world, entityId, type)	(type*)(_ecs_entity_get_component((world), entityId, #type))
 //TODO convert to type*
 #define ECS_ENTITY_GET_COMPONENT_BY_ID(world, entityId, id)	(_ecs_entity_get_component_by_id((world), entityId, id))
@@ -158,6 +164,10 @@ World* world_create();
 
 #define ECS_QUERY_RESULT_GET(queryResult, type)  _ecs_query_result_get(queryResult, #type)
 #define ECS_QUERY_RESULT_NEXT(queryResult)  _ecs_query_result_next(&queryResult)
-#define ECS_ARCHETYPE_GET(world, components) _ecs_archetype_get(world, components)
+
+#define ECS_ARCHETYPE_GET(world, ...)					\
+    ({									\
+	_ecs_archetype_get_old(world, #__VA_ARGS__);			\
+    })
 
 #endif

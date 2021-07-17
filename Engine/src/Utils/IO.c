@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "String.h"
+#include "Types.h"
+#include "Utils/String.h"
 
 char*
 file_get_name_with_extension(const char* path)
@@ -73,11 +74,11 @@ file_read_string(const char* file_path)
     return NULL;
 }
 
-char*
+u8*
 file_read_bytes(const char* file_path)
 {
     FILE* file;
-    char* result;
+    u8* result;
     i32 fileLength;
 
     file = fopen(file_path, "rb");
@@ -86,12 +87,12 @@ file_read_bytes(const char* file_path)
 	fseek(file, 0, SEEK_END);
 	fileLength = (i32)ftell(file);
 	fseek(file, 0, SEEK_SET);
-	result = malloc(fileLength * sizeof(char));
+	result = malloc(fileLength * sizeof(u8));
 
-	fread(result, sizeof(char), fileLength, file);
+	fread(result, sizeof(u8), fileLength, file);
 
 	fclose(file);
-	return((char*)result);
+	return((u8*)result);
     }
 
     return NULL;

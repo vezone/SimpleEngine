@@ -25,7 +25,7 @@ char* homeDir;
 force_inline void
 entry_point_button(const char* entryPointName)
 {
-    if (igButton(entryPointName, ImVec2(100, 30)))
+    if (igButton(entryPointName, ImVec2_(100, 30)))
     {
 	const char* absPath = path_combine_interning(homeDir, entryPointName);
 	g_CurrentDirectory = absPath;
@@ -45,7 +45,7 @@ _ig_file_dialog(const char* selectedFile, bool* shouldOpen, FilterFlag filter)
 
     if (igBegin("Open Dialog", shouldOpen, ImGuiWindowFlags_None))
     {
-	if (igButton("^", ImVec2(0, 0)))
+	if (igButton("^", ImVec2_(0, 0)))
 	{
 	    char* prev = path_get_prev_directory(g_CurrentDirectory);
 	    if (prev)
@@ -81,9 +81,9 @@ _ig_file_dialog(const char* selectedFile, bool* shouldOpen, FilterFlag filter)
 	    igTableHeadersRow();
 
 	    //igTableNextColumn();
-	    //igButton("Second", ImVec2(0.0f, 0.0f));
+	    //igButton("Second", ImVec2_(0.0f, 0.0f));
 	    //igTableNextColumn();
-	    //igButton("Third", ImVec2(0.0f, 0.0f));
+	    //igButton("Third", ImVec2_(0.0f, 0.0f));
 
 	    const char** dirs = directory_get_directories(g_CurrentDirectory);
 	    for (i32 i = 0; i < array_len(dirs); i++)
@@ -98,7 +98,7 @@ _ig_file_dialog(const char* selectedFile, bool* shouldOpen, FilterFlag filter)
 		{
 		    //igTableNextRow();
 		    igTableNextColumn();
-		    if (igButton(dir, ImVec2(0.0f, .0f)))
+		    if (igButton(dir, ImVec2_(0.0f, .0f)))
 		    {
 			char* newDirectory = path_combine(g_CurrentDirectory, dir);
 			g_CurrentDirectory = newDirectory;
@@ -132,7 +132,7 @@ _ig_file_dialog(const char* selectedFile, bool* shouldOpen, FilterFlag filter)
 		    }
 
 		    igTableNextColumn();
-		    if (igButton(smallFile, ImVec2(0.0f, .0f)))
+		    if (igButton(smallFile, ImVec2_(0.0f, .0f)))
 		    {
 			// TODO(bies): make a function for this
 
@@ -151,14 +151,14 @@ _ig_file_dialog(const char* selectedFile, bool* shouldOpen, FilterFlag filter)
 	    igEndTable();
 	}
 
-	if (igButton("Cancel", ImVec2(150.0f, 50.0f)))
+	if (igButton("Cancel", ImVec2_(150.0f, 50.0f)))
 	{
 	    selectedFile = NULL;
 	    *shouldOpen = 0;
 	}
 
 	igSameLine(160, 0);
-	if (igButton("Open", ImVec2(150.0f, 50.0f)))
+	if (igButton("Open", ImVec2_(150.0f, 50.0f)))
 	{
 	    selectedFile = g_SelectedFile;
 	}

@@ -91,9 +91,12 @@ application_start()
 	}
 
 	window_on_update(&g_Application.Window);
-
     }
+}
 
+void
+application_close()
+{
     for (i32 l = 0; l < LayersCount; l++)
     {
 	Layer layer = g_Application.Layers[l];
