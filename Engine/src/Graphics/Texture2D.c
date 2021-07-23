@@ -147,7 +147,7 @@ texture2d_delete(Texture2D* texture)
 }
 
 void
-texture_atlas_create(TextureAtlas* atlas, const char* path, vec2 atlasSize, vec2 textureSize)
+texture_atlas_create(TextureAtlas* atlas, const char* path, v2 atlasSize, v2 textureSize)
 {
     atlas->AtlasWidth = atlasSize[0];
     atlas->AtlasHeight = atlasSize[1];

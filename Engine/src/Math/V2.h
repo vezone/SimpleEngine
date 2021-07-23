@@ -15,14 +15,13 @@ v2_assign(v2 v, f32 x, f32 y)
 force_inline f32
 v2_length(v2 v)
 {
-    f32 a = v[0] * v[0] + v[1] * v[1];
-    return sqrt(a);
+    return sqrtf(v[0] * v[0] + v[1] * v[1]);
 }
 
 force_inline f32
 v2_distance(v2 a, v2 b)
 {
-    f32 distance = sqrt(pow2f(a[0] - b[0]) + pow2f(a[1] - b[1]));
+    f32 distance = sqrtf(pow2f(a[0] - b[0]) + pow2f(a[1] - b[1]));
     return distance;
 }
 

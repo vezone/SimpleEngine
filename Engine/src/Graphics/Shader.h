@@ -306,7 +306,7 @@ shader_set_mat2(Shader* shader, const char* uniformName, i32 count, i8 transpose
 }
 
 force_inline void
-shader_set_mat3(Shader* shader, const char* uniformName, i32 count, i8 transpose, f32* values)
+shader_set_m3(Shader* shader, const char* uniformName, i32 count, i8 transpose, f32* values)
 {
     i32 location = shader_get_location(shader, uniformName);
     if (location >= 0)
@@ -316,7 +316,7 @@ shader_set_mat3(Shader* shader, const char* uniformName, i32 count, i8 transpose
 }
 
 force_inline void
-shader_set_mat4(Shader* shader, const char* uniformName, i32 count, i8 transpose, f32* values)
+shader_set_m4(Shader* shader, const char* uniformName, i32 count, i8 transpose, f32* values)
 {
     i32 location = shader_get_location(shader, uniformName);
     if (location >= 0)

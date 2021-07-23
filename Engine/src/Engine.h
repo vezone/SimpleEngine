@@ -28,13 +28,7 @@
 #include "ECS/Components/NativeScriptComponent.h"
 
 //Math
-#include "Math/MathTypes.h"
-#include "Math/BaseMath.h"
-#include "Math/V2.h"
-#include "Math/V3.h"
-#include "Math/V4.h"
-#include "Math/M3.h"
-#include "Math/M4.h"
+#include "Math/Math.h"
 
 //Utils
 #include "Utils/Array.h"

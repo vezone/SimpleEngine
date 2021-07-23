@@ -1,8 +1,8 @@
 #ifndef TEXTURE_2D_H
 #define TEXTURE_2D_H
 
-#include <cglm/cglm.h>
 #include "Utils/Types.h"
+#include "Math/MathTypes.h"
 
 typedef struct Texture2D
 {
@@ -33,6 +33,6 @@ typedef struct TextureAtlas
     Texture2D* Texture;
 } TextureAtlas;
 
-void texture_atlas_create(TextureAtlas* atlas, const char* path, vec2 atlasSize, vec2 textureSize);
+void texture_atlas_create(TextureAtlas* atlas, const char* path, v2 atlasSize, v2 textureSize);
 
 #endif

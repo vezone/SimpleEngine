@@ -4,7 +4,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "Math/BaseMath.h"
+#include "Math/Math.h"
 #include "Array.h"
 #include "Logger.h"
 #include "Types.h"
@@ -63,13 +63,19 @@ istring_free()
 char*
 vstring(const char* string)
 {
-    u32 length;
-    char* newString;
-
-    length = vstring_length(string);
-    newString = (char*) internal_memory_allocate((length + 1) * sizeof(char));
+    i32 length = vstring_length(string);
+    char* newString = (char*) internal_memory_allocate((length + 1) * sizeof(char));
     newString[length] = '\0';
-    memcpy(newString, string, length*sizeof(char));
+    vmemcpy(newString, string, length*sizeof(char));
+
+    return newString;
+}
+
+char*
+vstring_allocate(i32 length)
+{
+    char* newString = (char*) internal_memory_allocate((length + 1) * sizeof(char));
+    vmemset(newString, '\0', length*sizeof(char));
 
     return newString;
 }
@@ -500,6 +506,21 @@ vstring_join(const char** list, char joinCharacter)
     return finalString;
 }
 
+char*
+vstring_join_i32(const i32* list, char joinCharacter)
+{
+    char* result = NULL;
+    char stringValue[32];
+
+    for (i32 i = 0; i < array_count(list); i++)
+    {
+	i32 el = list[i];
+	vstring_i32_to_string(stringValue, el);
+
+    }
+
+}
+
 void
 vstring_parse_i32(char* input, i32 number)
 {
@@ -540,4 +561,48 @@ void
 vstring_parse_f64(char* input, f64 number)
 {
     sprintf(input, "%f", number);
+}
+
+void
+vstring_i32_to_string(char* input, i32 number)
+{
+    i32 rank = number_rank(number);
+    i32 temp = rank;
+    //input[temp + 1] = '\0';
+    for (i32 i = 0; i < rank; i++)
+    {
+	i32 digit = number % 10;
+	input[temp] = digit + '0';
+	number /= 10;
+	--temp;
+    }
+}
+
+
+void
+vmemset(void* dest, char value, size_t bytesCount)
+{
+    i32 i;
+    i8* destPtr = (i8*)dest;
+
+    for (i = 0; i < bytesCount; i++)
+    {
+	*destPtr = value;
+	++destPtr;
+    }
+}
+
+void
+vmemcpy(void* dest, const void* src, size_t bytesCount)
+{
+    i32 i;
+    u8* destPtr = (u8*)dest;
+    u8* srcPtr = (u8*)src;
+
+    for (i = 0; i < bytesCount; i++)
+    {
+	*destPtr = *srcPtr;
+	destPtr = destPtr + 1;
+	srcPtr = srcPtr + 1;
+    }
 }

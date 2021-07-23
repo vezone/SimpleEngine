@@ -56,13 +56,13 @@ shash_put_and_get_for_strings()
     Condition(val5 != NULL);
     Condition(val6 != NULL);
 
-    String_IsEquals(val0, "Val0");
-    String_IsEquals(val1, "Val1");
-    String_IsEquals(val2, "Val2");
-    String_IsEquals(val3, "Val3");
-    String_IsEquals(val4, "Val4");
-    String_IsEquals(val5, "Val5");
-    String_IsEquals(val6, "Val6");
+    String_Equal(val0, "Val0");
+    String_Equal(val1, "Val1");
+    String_Equal(val2, "Val2");
+    String_Equal(val3, "Val3");
+    String_Equal(val4, "Val4");
+    String_Equal(val5, "Val5");
+    String_Equal(val6, "Val6");
 }
 
 void
@@ -79,14 +79,14 @@ shash_put_and_get_for_value_struct()
     TypeA val2 = shash_get(table, "Key2");
     TypeA val3 = shash_get(table, "Key3");
 
-    String_IsEquals(val0.Key  , "Key0");
-    String_IsEquals(val0.Value, "Val0");
-    String_IsEquals(val1.Key  , "Key1");
-    String_IsEquals(val1.Value, "Val1");
-    String_IsEquals(val2.Key  , "Key2");
-    String_IsEquals(val2.Value, "Val2");
-    String_IsEquals(val3.Key  , "Key3");
-    String_IsEquals(val3.Value, "Val3");
+    String_Equal(val0.Key  , "Key0");
+    String_Equal(val0.Value, "Val0");
+    String_Equal(val1.Key  , "Key1");
+    String_Equal(val1.Value, "Val1");
+    String_Equal(val2.Key  , "Key2");
+    String_Equal(val2.Value, "Val2");
+    String_Equal(val3.Key  , "Key3");
+    String_Equal(val3.Value, "Val3");
 }
 
 void
@@ -143,7 +143,7 @@ shash_same_key_test()
     shash_put(table, "Key0", "Val1");
 
     const char* val0 = shash_get(table, "Key0");
-    String_IsEquals(val0, "Val1");
+    String_Equal(val0, "Val1");
     String_Value(val0);
 }
 
@@ -193,13 +193,13 @@ hash_put_and_get_test()
     Condition(val5 != NULL);
     Condition(val6 != NULL);
 
-    String_IsEquals(val0, "Val0");
-    String_IsEquals(val1, "Val1");
-    String_IsEquals(val2, "Val2");
-    String_IsEquals(val3, "Val3");
-    String_IsEquals(val4, "Val4");
-    String_IsEquals(val5, "Val5");
-    String_IsEquals(val6, "Val6");
+    String_Equal(val0, "Val0");
+    String_Equal(val1, "Val1");
+    String_Equal(val2, "Val2");
+    String_Equal(val3, "Val3");
+    String_Equal(val4, "Val4");
+    String_Equal(val5, "Val5");
+    String_Equal(val6, "Val6");
 }
 
 void
@@ -223,19 +223,20 @@ hash_put_and_get_for_value_struct_test()
     TypeI val6 = hash_get(table, 6);
 
     Condition(val0.Key == 0);
-    String_IsEquals(val0.Value, "Val0");
     Condition(val1.Key == 1);
-    String_IsEquals(val1.Value, "Val1");
     Condition(val2.Key == 2);
-    String_IsEquals(val2.Value, "Val2");
     Condition(val3.Key == 3);
-    String_IsEquals(val3.Value, "Val3");
     Condition(val4.Key == 4);
-    String_IsEquals(val4.Value, "Val4");
     Condition(val5.Key == 5);
-    String_IsEquals(val5.Value, "Val5");
     Condition(val6.Key == 6);
-    String_IsEquals(val6.Value, "Val6");
+
+    String_Equal(val0.Value, "Val0");
+    String_Equal(val1.Value, "Val1");
+    String_Equal(val2.Value, "Val2");
+    String_Equal(val3.Value, "Val3");
+    String_Equal(val4.Value, "Val4");
+    String_Equal(val5.Value, "Val5");
+    String_Equal(val6.Value, "Val6");
 }
 
 void
@@ -267,7 +268,7 @@ hash_same_key_test()
     hash_put(table, 1, "Val1");
 
     const char* val0 = hash_get(table, 1);
-    String_IsEquals(val0, "Val1");
+    String_Equal(val0, "Val1");
 }
 
 void

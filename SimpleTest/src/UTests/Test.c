@@ -1,7 +1,7 @@
 #include "Test.h"
-#include "Utils/stb_ds.h"
-#include "Utils/Logger.h"
-#include "Utils/Array.h"
+#include <Utils/stb_ds.h>
+#include <Utils/Logger.h>
+#include <Utils/Array.h>
 #include <assert.h>
 
 static i8 g_IsInitialized = 0;

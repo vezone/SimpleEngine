@@ -1,11 +1,11 @@
 #ifndef TEST_H
 #define TEST_H
 
-#include "Utils/String.h"
-#include "Utils/StringBuilder.h"
-#include "Utils/Path.h"
-#include "Utils/Types.h"
-#include "Utils/stb_ds.h"
+#include <Utils/String.h>
+#include <Utils/StringBuilder.h>
+#include <Utils/Path.h>
+#include <Utils/Types.h>
+#include <Math/Math.h>
 
 typedef struct FunctionResult
 {
@@ -39,9 +39,12 @@ const char** test_get_filenames();
 #define Condition(condition) { i8 temp = (condition); test(temp, __FILE__, #condition); }
 
 // USAGE: String_IsEqual(vstring_copy("It's a string"), "It's a string")
-#define String_IsEquals(a, b) { i8 temp = vstring_compare((a), (b)); test(temp, __FILE__, #a" == "#b); }
-#define String_IsNotEquals(a, b) { i8 temp = vstring_compare((a), (b)); test(!temp, __FILE__, #a" != "#b); }
-#define String_Value(str) test((str ? 1 : 0), __FILE__, (str ? str : "NULL"))
+#define String_Equal(a, b) { i8 temp = vstring_compare((a), (b)); test(temp, __FILE__, #a" == "#b); }
+#define String_NotEqual(a, b) { i8 temp = vstring_compare((a), (b)); test(!temp, __FILE__, #a" != "#b); }
+#define String_Value(str)						\
+    ({									\
+	test((str ? 1 : 0), __FILE__, (str ? vstring_concat(#str": ", str) : "NULL")); \
+    })
 #define String_List_Value(list, joinCharacter) test((array_count(list) ? 1 : 0), __FILE__, (list ? vstring_join(list, joinCharacter) : "EMPTY"))
 
 #define Int_Value(val)					\

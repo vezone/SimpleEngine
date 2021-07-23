@@ -72,8 +72,11 @@ typedef v3 m3[3];
 typedef v4 m4[4];
 
 #define v2_(x, y) ((v2) { x, y })
+#define v2_wo_convert(x, y) {x, y}
 #define v3_(x, y, z) ((v3) { x, y, z })
+#define v3_wo_convert(x, y, z) {x, y, z}
 #define v4_(x, y, z, w) ((v4) { x, y, z, w })
+#define v4_wo_convert(x, y, z, w) {x, y, z, w}
 
 #define M4_IDENTITY				\
     {						\

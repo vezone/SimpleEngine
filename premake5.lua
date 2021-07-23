@@ -15,7 +15,6 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 IncludeDirs = {}
 IncludeDirs["GLFW"] = "Dependencies/GLFW/include"
 IncludeDirs["GLAD"] = "Dependencies/glad/include"
-IncludeDirs["CGLM"] = "Dependencies/CGLM/include"
 IncludeDirs["CIMGUI"] = "Dependencies/cimgui/cimgui/src"
 
 group "Dependencies"
@@ -51,7 +50,6 @@ project "Engine"
       "%{prj.name}/src",
       "%{IncludeDirs.GLFW}",
       "%{IncludeDirs.GLAD}",
-      "%{IncludeDirs.CGLM}",
       "%{IncludeDirs.CIMGUI}"
     }
 
@@ -99,7 +97,6 @@ project "EngineEditor"
       "Dependencies",
       "%{IncludeDirs.GLFW}",
       "%{IncludeDirs.GLAD}",
-      "%{IncludeDirs.CGLM}",
       "%{IncludeDirs.CIMGUI}"
     }
 
@@ -113,8 +110,7 @@ project "EngineEditor"
       "GL", "GLU",
       "X11","dl",
       "Xinerama", "Xcursor", "m",
-      "Xxf86vm", "Xrandr", "pthread", "Xi",
-      "asound"
+      "Xxf86vm", "Xrandr", "pthread", "Xi"
     }
 
     filter "configurations:Debug"

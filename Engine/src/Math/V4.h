@@ -29,7 +29,7 @@ v4_copy(v4 a, v4 b)
 force_inline f32
 v4_length(v4 v)
 {
-    return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    return sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 }
 
 force_inline f32

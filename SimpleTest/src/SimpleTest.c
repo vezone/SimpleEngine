@@ -53,9 +53,13 @@ void simple_test_on_event(Event* event)
 	KeyPressedEvent* keyEvent = (KeyPressedEvent*) event;
 	if (keyEvent->KeyCode == KEY_ESCAPE)
 	{
-	    window_set_should_close(&g_Window, 1);
+	    application_close();
 	    event->IsHandled = 1;
 	}
+    }
+    else if (event->Category == WindowCategory && event->Type == WindowShouldBeClosed)
+    {
+	application_close();
     }
 }
 
@@ -76,16 +80,11 @@ void simple_test_on_ui()
     if (opt_fullscreen)
     {
 	ImGuiViewport* viewport = igGetMainViewport();
-	ImVec2 sizeOut;
-	ImVec2 posOut;
-	ImGuiViewport_GetWorkSize(&sizeOut, viewport);
-	ImGuiViewport_GetWorkPos(&posOut, viewport);
-
-	igSetNextWindowPos(posOut, ImGuiCond_FirstUseEver, ImVec2(0.0f, 0.0f));
-	igSetNextWindowSize(sizeOut, ImGuiCond_FirstUseEver);
+	igSetNextWindowPos(viewport->Pos, ImGuiCond_None, ImVec2_(0, 0));
+	igSetNextWindowSize(viewport->Size, ImGuiCond_None);
 	igSetNextWindowViewport(viewport->ID);
-	igPushStyleVarFloat(ImGuiStyleVar_WindowRounding, 0.0f);
-	igPushStyleVarFloat(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	igPushStyleVar_Float(ImGuiStyleVar_WindowRounding, 0.0f);
+	igPushStyleVar_Float(ImGuiStyleVar_WindowBorderSize, 0.0f);
 	window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 	window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
     }
@@ -94,12 +93,13 @@ void simple_test_on_ui()
 	dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
     }
 
+
     if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
 	window_flags |= ImGuiWindowFlags_NoBackground;
 
     if (!opt_padding)
     {
-	igPushStyleVarVec2(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+	igPushStyleVar_Vec2(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     }
 
     igBegin("DockSpace Demo", &p_open, window_flags);
@@ -114,7 +114,7 @@ void simple_test_on_ui()
     ImGuiIO* io = igGetIO();
     if (io->ConfigFlags & ImGuiConfigFlags_DockingEnable)
     {
-	ImGuiID dockspace_id = igGetIDStr("MyDockSpace");
+	ImGuiID dockspace_id = igGetID_Str("MyDockSpace");
 	igDockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, &class);
     }
 
@@ -124,11 +124,11 @@ void simple_test_on_ui()
 	{
 	    // Disabling fullscreen would allow the window to be moved to the front of other windows,
 	    // which we can't undo at the moment without finer window depth/z control.
-	    if (igMenuItemBool("Open", "Ctrl + O", 0, 1))
+	    if (igMenuItem_Bool("Open", "Ctrl + O", 0, 1))
 	    {
 		GWARNING("Ctrl O\n");
 	    }
-	    if (igMenuItemBool("New", "Ctrl+N", 0, 1))
+	    if (igMenuItem_Bool("New", "Ctrl+N", 0, 1))
 	    {
 		GWARNING("Ctrl N\n");
 	    }
@@ -136,7 +136,7 @@ void simple_test_on_ui()
 
 	    igSeparator();
 
-	    if (igMenuItemBool("Close", NULL, false, 0))
+	    if (igMenuItem_Bool("Close", NULL, false, 0))
 		p_open = false;
 
 	    igEndMenu();
@@ -166,7 +166,7 @@ void simple_test_on_ui()
 	for (i32 i = 0; i < length; i++)
 	{
 	    const char* filename = fileNames[i];
-	    if (igCollapsingHeaderBoolPtr(filename, NULL, ImGuiWindowFlags_NoCollapse))
+	    if (igCollapsingHeader_BoolPtr(filename, NULL, ImGuiWindowFlags_NoCollapse))
 	    {
 		FileInfo* fileInfo = file_get_info(filename);
 		if (!fileInfo || !fileInfo->Functions)
@@ -206,22 +206,22 @@ void simple_test_on_ui()
 			blueVal = 0.5f;
 		    }
 
-		    igPushIDInt(1);
+		    igPushID_Int(1);
 		    if (f == selectedIndex && selectedFileName != NULL && vstring_compare(filename, selectedFileName))
 		    {
 			static f32 selectedRedVal   = 0.9f;
 			static f32 selectedGreenVal = 0.5f;
 			static f32 selectedBluesVal = 0.1f;
 
-			igPushStyleColorVec4(ImGuiCol_Button, ImVec4(selectedRedVal, selectedGreenVal, selectedBluesVal, 1.0f));
-			igPushStyleColorVec4(ImGuiCol_ButtonHovered, ImVec4(selectedRedVal, selectedGreenVal + 0.1f, selectedBluesVal + 0.1f, 1.0f));
-			igPushStyleColorVec4(ImGuiCol_ButtonActive, ImVec4(selectedRedVal, selectedGreenVal + 0.2f, selectedBluesVal + 0.2f, 1.0f));
+			igPushStyleColor_Vec4(ImGuiCol_Button, ImVec4(selectedRedVal, selectedGreenVal, selectedBluesVal, 1.0f));
+			igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, ImVec4(selectedRedVal, selectedGreenVal + 0.1f, selectedBluesVal + 0.1f, 1.0f));
+			igPushStyleColor_Vec4(ImGuiCol_ButtonActive, ImVec4(selectedRedVal, selectedGreenVal + 0.2f, selectedBluesVal + 0.2f, 1.0f));
 		    }
 		    else
 		    {
-			igPushStyleColorVec4(ImGuiCol_Button, ImVec4(redVal, greenVal, blueVal, 1.0f));
-			igPushStyleColorVec4(ImGuiCol_ButtonHovered, ImVec4(redVal, greenVal + 0.1f, blueVal + 0.1f, 1.0f));
-			igPushStyleColorVec4(ImGuiCol_ButtonActive, ImVec4(redVal, greenVal + 0.2f, blueVal + 0.2f, 1.0f));
+			igPushStyleColor_Vec4(ImGuiCol_Button, ImVec4(redVal, greenVal, blueVal, 1.0f));
+			igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, ImVec4(redVal, greenVal + 0.1f, blueVal + 0.1f, 1.0f));
+			igPushStyleColor_Vec4(ImGuiCol_ButtonActive, ImVec4(redVal, greenVal + 0.2f, blueVal + 0.2f, 1.0f));
 		    }
 
 		    if (igButton(functionName, ImVec2(0, 0)))

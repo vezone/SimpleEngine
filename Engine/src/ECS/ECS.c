@@ -396,6 +396,7 @@ components_name_to_id(World* world, const char* components)
 	i32 result = array_find(ids, id);
 	if (result != -1 && count > 0)
 	{
+	    GERROR("");
 	    vassert(0);
 	}
 

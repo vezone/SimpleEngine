@@ -23,6 +23,7 @@ const char* istring_get_buffer(const char* src);
 void istring_free();
 
 char* vstring(const char* string);
+char* vstring_allocate(i32 length);
 i32 vstring_count_of(const char* string, char c);
 i32 vstring_count_of_fast(const char* string, i32 length, char c);
 void vstring_set(char* string, char c, u32 length);
@@ -50,10 +51,16 @@ char* vstring_cut(const char* input, u32 begin, u32 end);
 char** vstring_split(char* input, char separator);
 
 char* vstring_join(const char** list, char joinCharacter);
+char* vstring_join_i32(const i32* list, char joinCharacter);
 
 void vstring_parse_i32(char* input, i32 number);
 void vstring_parse_i64(char* input, i64 number);
 void vstring_parse_f64(char* input, f64 number);
+
+void vstring_i32_to_string(char* input, i32 number);
+
+void vmemset(void* dest, char value, size_t bytesCount);
+void vmemcpy(void* dest, const void* src, size_t bytesCount);
 
 force_inline char
 vchar_to_upper(char character)

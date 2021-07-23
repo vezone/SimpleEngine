@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ../../..
+cd ../..
 
 files[0]="Makefile"
 files[1]="Engine.workspace"

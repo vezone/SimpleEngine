@@ -1,7 +1,6 @@
 #ifndef RENDERER2D_H
 #define RENDERER2D_H
 
-#include "cglm/cglm.h"
 #include "Graphics/Buffer.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Renderer2D/OrthographicCamera.h"
@@ -9,7 +8,7 @@
 #include "Utils/Types.h"
 #include "Utils/Array.h"
 #include "ECS/ECS.h"
-#include "Math/M4.h"
+#include "Math/Math.h"
 
 static void
 renderer_set_viewport(u32 width, u32 height)
@@ -20,7 +19,7 @@ renderer_set_viewport(u32 width, u32 height)
 
 //0.2f, 0.345f, 0.456f, 1.0f
 static void
-renderer_clear(vec4 color)
+renderer_clear(v4 color)
 {
     glClearColor(color[0], color[1], color[2], color[3]);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -97,14 +96,14 @@ void renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Textu
 
 /* Submit functions */
 
-void renderer_submit_rectangle(vec3 position, vec2 size, v4 color, vec2* coords, Texture2D* texture, EntityID entityId);
+void renderer_submit_rectangle(v3 position, v2 size, v4 color, v2* coords, Texture2D* texture, EntityID entityId);
 void renderer_submit_rotated_rectangle(v3 position, v2 size, v4 color, Texture2D* texture, f32 angle, EntityID entityId);
 void renderer_submit_rectanglet(m4 transform, v4 color, Texture2D* texture, EntityID entityId);
 //functions for texture atlas
-void renderer_submit_atlas(vec3 position, vec2 size, v4 color, TextureAtlas* atlas, i32 row, i32 col, EntityID entityId);
+void renderer_submit_atlas(v3 position, v2 size, v4 color, TextureAtlas* atlas, i32 row, i32 col, EntityID entityId);
 
 /*Dots*/
-void renderer_submit_dot(vec3 position, vec4 color);
+void renderer_submit_dot(v3 position, v4 color);
 
 /* Flush functions */
 void renderer_flush();

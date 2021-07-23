@@ -1,9 +1,9 @@
 #include "FileDialog.h"
 
 #include <cimgui.h>
-#include "Core.h"
-#include "Utils/Path.h"
-#include "Utils/IO.h"
+#include <UI/ui.h>
+#include <Utils/Path.h>
+#include <Utils/IO.h>
 
 static const char* g_SelectedFile;
 static const char* g_CurrentDirectory;

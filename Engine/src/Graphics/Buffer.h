@@ -64,22 +64,18 @@ typedef struct VertexBuffer
     BufferElement* Elements;
 } VertexBuffer;
 
-void
-vertex_buffer_create(VertexBuffer* buffer, f32* vertices, u32 size);
-void
-vertex_buffer_allocate(VertexBuffer* buffer, u32 size);
-static void
+force_inline void
 vertex_buffer_set_data(VertexBuffer* buffer, f32* data, u32 size)
 {
     buffer->Vertices = data;
     glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
 }
-void
-vertex_buffer_add_layout(VertexBuffer* buffer, i8 isNormalized, DataType type);
-void
-vertex_buffer_bind(VertexBuffer* buffer);
-void
-vertex_buffer_unbind();
+
+void vertex_buffer_create(VertexBuffer* buffer, f32* vertices, u32 size);
+void vertex_buffer_allocate(VertexBuffer* buffer, u32 size);
+void vertex_buffer_add_layout(VertexBuffer* buffer, i8 isNormalized, DataType type);
+void vertex_buffer_bind(VertexBuffer* buffer);
+void vertex_buffer_unbind();
 
 typedef struct IndexBuffer
 {
@@ -88,12 +84,9 @@ typedef struct IndexBuffer
     u32* Indices;
 } IndexBuffer;
 
-void
-index_buffer_create(IndexBuffer* buffer, u32* indices, u32 size);
-void
-index_buffer_bind(IndexBuffer* buffer);
-void
-index_buffer_unbind();
+void index_buffer_create(IndexBuffer* buffer, u32* indices, u32 size);
+void index_buffer_bind(IndexBuffer* buffer);
+void index_buffer_unbind();
 
 typedef struct VertexArray
 {
@@ -102,18 +95,13 @@ typedef struct VertexArray
     IndexBuffer Index;
 } VertexArray;
 
-void
-vertex_array_create(VertexArray* va);
-void
-vertex_array_add_vbo(VertexArray* va, VertexBuffer vbo);
-void
-vertex_array_add_ibo(VertexArray* va, IndexBuffer ibo);
-void
-vertex_array_bind(VertexArray* va);
-void
-vertex_array_unbind();
+void vertex_array_create(VertexArray* va);
+void vertex_array_add_vbo(VertexArray* va, VertexBuffer vbo);
+void vertex_array_add_ibo(VertexArray* va, IndexBuffer ibo);
+void vertex_array_bind(VertexArray* va);
+void vertex_array_unbind();
 
-static void
+force_inline void
 vertex_array_destroy(VertexArray* va)
 {
     glDeleteVertexArrays(1, &va->RendererID);

@@ -1,9 +1,7 @@
 #include "Renderer2D.h"
 
 #include <glad/glad.h>
-#include <Graphics/Shader.h>
 #include <Math/MathTypes.h>
-#include <Utils/MemoryAllocator.h>
 #include <Utils/Logger.h>
 #include <Utils/Array.h>
 #include <Math/V3.h>
@@ -12,7 +10,6 @@
 /*
   Batch renderer
 */
-#define vec2_ctr(vec, x, y) vec[0]=x;vec[1]=y
 
 static Shader* g_Shader;
 static OrthographicCamera* g_Camera;
@@ -61,7 +58,7 @@ fill_indices_array(u32* indices, u32 length)
 }
 
 force_inline void
-fill_data_array(f32* destination, u32 startIndex, vec3 position, vec2 size, vec4 color, vec2* coords, f32 textureId, EntityID entityId)
+fill_data_array(f32* destination, u32 startIndex, v3 position, v2 size, v4 color, v2* coords, f32 textureId, EntityID entityId)
 {
     i32 i = startIndex;
 
@@ -119,7 +116,7 @@ fill_data_array(f32* destination, u32 startIndex, vec3 position, vec2 size, vec4
 
 // we don't need isTextured here, because we have textureId that is 0 when we don't use a texture
 force_inline void
-fill_rotated_data_array(f32* destination, u32 startIndex, vec3 positionsArray[4], vec4 color, i32 textureId, EntityID entityId)
+fill_rotated_data_array(f32* destination, u32 startIndex, v3 positionsArray[4], v4 color, i32 textureId, EntityID entityId)
 {
     i32 i = startIndex;
 
@@ -311,10 +308,6 @@ renderer_submit_rotated_base(m4 transform, v4 color, Texture2D* texture, EntityI
 {
     v3 positions[4];
     v4 positionsFourDimensional[4];
-    // glm_mat4_mulv3(transform, g_BaseVectorPositions[0], 1.0f, positions[0]);
-    // glm_mat4_mulv3(transform, g_BaseVectorPositions[1], 1.0f, positions[1]);
-    // glm_mat4_mulv3(transform, g_BaseVectorPositions[2], 1.0f, positions[2]);
-    // glm_mat4_mulv3(transform, g_BaseVectorPositions[3], 1.0f, positions[3]);
 
     m4_mul_v4(transform, g_BaseVectorPositions[0], positionsFourDimensional[0]);
     m4_mul_v4(transform, g_BaseVectorPositions[1], positionsFourDimensional[1]);
@@ -333,7 +326,7 @@ renderer_submit_rotated_base(m4 transform, v4 color, Texture2D* texture, EntityI
 }
 
 void
-renderer_submit_rectangle(vec3 position, vec2 size, v4 color, vec2* coords, Texture2D* texture, EntityID entityId)
+renderer_submit_rectangle(v3 position, v2 size, v4 color, v2* coords, Texture2D* texture, EntityID entityId)
 {
     i32 textureId = texture_list_submit_texture_or_flush(&g_RendererData, texture);
     v2 textureAdds = v2_(textureId, 1);
@@ -360,26 +353,26 @@ renderer_submit_rectanglet(m4 transform, v4 color, Texture2D* texture, EntityID 
     renderer_submit_rotated_base(transform, color, texture, entityId);
 }
 
-//note(bm): use only 1 atlas at time
 void
-renderer_submit_atlas(vec3 position, vec2 size, v4 color, TextureAtlas* atlas, i32 row, i32 col, EntityID entityId)
+renderer_submit_atlas(v3 position, v2 size, v4 color, TextureAtlas* atlas, i32 row, i32 col, EntityID entityId)
 {
     f32 startX = (col * atlas->TextureWidth) / atlas->AtlasWidth;
     f32 endX = ((col + 1) * atlas->TextureWidth) / atlas->AtlasWidth;
     f32 startY = (row * atlas->TextureHeight) / atlas->AtlasHeight;
     f32 endY = ((row + 1) * atlas->TextureHeight) / atlas->AtlasHeight;
 
-    vec2 coords[4];
-    vec2_ctr(coords[0], startX, startY);
-    vec2_ctr(coords[1], startX, endY);
-    vec2_ctr(coords[2], endX, endY);
-    vec2_ctr(coords[3], endX, startY);
+    v2 coords[4] = {
+	v2_wo_convert(startX, startY),
+	v2_wo_convert(startX, endY),
+	v2_wo_convert(endX, endY),
+	v2_wo_convert(endX, startY)
+    };
 
-    renderer_submit_rectangle(position, size, color, coords, &atlas->Texture, entityId);
+    renderer_submit_rectangle(position, size, color, coords, atlas->Texture, entityId);
 }
 
 void
-renderer_submit_dot(vec3 position, vec4 color)
+renderer_submit_dot(v3 position, v4 color)
 {
 }
 
@@ -399,7 +392,7 @@ renderer_flush()
     size = g_RendererData.DataCount * sizeof(f32);
     vertex_buffer_set_data(g_RendererData.Vao.Vertex, g_RendererData.Data, size);
 
-    shader_set_mat4(g_Shader, "u_ViewProjection", 1, 0, g_Camera->ViewProjectionMatrix[0]);
+    shader_set_m4(g_Shader, "u_ViewProjection", 1, 0, g_Camera->ViewProjectionMatrix[0]);
     shader_set_int1(g_Shader, "u_Textures", g_RendererData.List.NextTextureIndex, g_TextureIndices);
 
     glDrawElements(GL_TRIANGLES, g_RendererData.IndexCount, GL_UNSIGNED_INT, NULL);

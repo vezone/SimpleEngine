@@ -49,43 +49,43 @@ vstring_copy_test()
 static void
 vstring_concat_test()
 {
-    String_IsEquals(vstring_concat("It's me, ", "Mario!"), "It's me, Mario!");
-    String_IsEquals(vstring_concat("\n\n\n", "\n\n"), "\n\n\n\n\n");
-    String_IsEquals(vstring_concat("123", " 456 "), "123 456 ");
+    String_Equal(vstring_concat("It's me, ", "Mario!"), "It's me, Mario!");
+    String_Equal(vstring_concat("\n\n\n", "\n\n"), "\n\n\n\n\n");
+    String_Equal(vstring_concat("123", " 456 "), "123 456 ");
 }
 
 static void
 vstring_concat3_test()
 {
-    String_IsEquals(vstring_concat3("It's me", ", ", "Mario!"), "It's me, Mario!");
-    String_IsEquals(vstring_concat3("left", " middle ", "right"), "left middle right");
+    String_Equal(vstring_concat3("It's me", ", ", "Mario!"), "It's me, Mario!");
+    String_Equal(vstring_concat3("left", " middle ", "right"), "left middle right");
 }
 
 static void
 vstring_compare_test()
 {
-    String_IsEquals("Constant string", "Constant string");
-    String_IsNotEquals("Constant string", " onstan string");
+    String_Equal("Constant string", "Constant string");
+    String_NotEqual("Constant string", " onstan string");
 }
 
 static void
 vstring_test()
 {
-    String_IsEquals(vstring("const char* string"), "const char* string");
+    String_Equal(vstring("const char* string"), "const char* string");
 }
 
 static void
 vstring_substring_test()
 {
-    String_IsEquals(vstring_substring("const char* input", 6), "char* input");
-    String_IsEquals(vstring_substring("0123456789", 3), "3456789");
+    String_Equal(vstring_substring("const char* input", 6), "char* input");
+    String_Equal(vstring_substring("0123456789", 3), "3456789");
 }
 
 static void
 vstring_substring_range_test()
 {
-    String_IsEquals(vstring_substring_range("const char* input", 6, 10), "char*");
-    String_IsEquals(vstring_substring_range("0123456789", 3, 7), "34567");
+    String_Equal(vstring_substring_range("const char* input", 6, 10), "char*");
+    String_Equal(vstring_substring_range("0123456789", 3, 7), "34567");
 }
 
 static void
@@ -109,7 +109,7 @@ vstring_join_test()
     array_push(list, "me");
 
     char* joinedValue = vstring_join(list, ' ');
-    String_IsEquals(joinedValue, "Hello it is me");
+    String_Equal(joinedValue, "Hello it is me");
     String_Value(joinedValue);
 }
 
@@ -122,6 +122,27 @@ istring_test()
     u32 length = istring_length(istr);
     Condition(istring_length(istr) == 16);
     Condition(length);
+}
+
+void
+vmemset_test()
+{
+    char* dest1 = vstring("00000");
+    vmemset(dest1, '1', 5);
+
+    String_Value(dest1);
+    String_Equal(dest1, "11111");
+}
+
+void
+vmemcpy_test()
+{
+    const char* src1 = "This is string i want to copy";
+    char* dest1 = vstring_allocate(vstring_length(src1));
+    vmemcpy(dest1, src1, vstring_length(src1));
+
+    String_Value(dest1);
+    String_Equal(dest1, src1);
 }
 
 void string_test()
@@ -142,4 +163,7 @@ void string_test()
     TEST(vstring_join_test());
 
     TEST(istring_test());
+
+    TEST(vmemset_test());
+    TEST(vmemcpy_test());
 }

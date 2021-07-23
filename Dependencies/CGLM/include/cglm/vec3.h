@@ -580,7 +580,7 @@ glm_vec3_rotate(vec3 v, float angle, vec3 axis) {
   glm_vec3_normalize_to(axis, k);
 
   /* Right Hand, Rodrigues' rotation formula:
-        v = v*cos(t) + (kxv)sin(t) + k*(k.v)(1 - cos(t))
+	v = v*cos(t) + (kxv)sin(t) + k*(k.v)(1 - cos(t))
    */
   glm_vec3_scale(v, c, v1);
 
@@ -660,8 +660,8 @@ CGLM_INLINE
 void
 glm_vec3_proj(vec3 a, vec3 b, vec3 dest) {
   glm_vec3_scale(b,
-                 glm_vec3_dot(a, b) / glm_vec3_norm2(b),
-                 dest);
+		 glm_vec3_dot(a, b) / glm_vec3_norm2(b),
+		 dest);
 }
 
 /**

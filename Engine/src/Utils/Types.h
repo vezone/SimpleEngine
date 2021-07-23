@@ -2,16 +2,9 @@
 #define TYPES_H
 
 #include <stdint.h>
+// for size_t
+#include <stddef.h>
 #include <assert.h>
-
-typedef int8_t int8;
-typedef int16_t int16;
-typedef int32_t int32;
-typedef int64_t int64;
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
 
 typedef int8_t i8;
 typedef int16_t i16;
@@ -35,6 +28,8 @@ typedef double f64;
 #define u64(x) ((u64)(x))
 #define f32(x) ((f32)(x))
 #define f64(x) ((f64)(x))
+
+#define TYPE_REVERSE(x) (x = !(x))
 
 #define I8_MAX 127
 #define I16_MAX 32767

@@ -31,6 +31,9 @@ pow2f(f32 x)
     return x * x;
 }
 
+/*
+  number_rank(1000) == 3;
+*/
 force_inline i32
 number_rank(i32 number)
 {

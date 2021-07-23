@@ -1,6 +1,4 @@
 #!/bin/bash
 
-../clean.sh
-./generate_project.sh
-./generate_codelite.sh
-./build_release.sh
+cd ../
+./rebuild_release.sh EngineEditor "premake5.lua"

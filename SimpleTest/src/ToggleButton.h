@@ -23,24 +23,24 @@ enum ToggleButton_State
 i32 g_State = ToggleButton_State_None;
 
 #define igToggleButton(name, size, state)				\
-    igPushIDInt(1);							\
+    igPushID_Int(1);							\
     if (g_State == ToggleButton_State_None)				\
     {									\
-	igPushStyleColorVec4(ImGuiCol_Button, DEFAULT_BLUE_BTN_COLOR);	\
-	igPushStyleColorVec4(ImGuiCol_ButtonHovered, HOVERED_BLUE_BTN_COLOR); \
-	igPushStyleColorVec4(ImGuiCol_ButtonActive, ACTIVE_BLUE_BTN_COLOR); \
-     } \
-    else if (g_State == ToggleButton_State_Error)     \
-    {					      \
-	igPushStyleColorVec4(ImGuiCol_Button, DEFAULT_RED_BTN_COLOR);	\
-	igPushStyleColorVec4(ImGuiCol_ButtonHovered, HOVERED_RED_BTN_COLOR); \
-	igPushStyleColorVec4(ImGuiCol_ButtonActive, ACTIVE_RED_BTN_COLOR); \
-    } \
-    else if (g_State == ToggleButton_State_Success)	\
+	igPushStyleColor_Vec4(ImGuiCol_Button, DEFAULT_BLUE_BTN_COLOR);	\
+	igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, HOVERED_BLUE_BTN_COLOR); \
+	igPushStyleColor_Vec4(ImGuiCol_ButtonActive, ACTIVE_BLUE_BTN_COLOR); \
+    }									\
+    else if (g_State == ToggleButton_State_Error)			\
+    {									\
+	igPushStyleColor_Vec4(ImGuiCol_Button, DEFAULT_RED_BTN_COLOR);	\
+	igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, HOVERED_RED_BTN_COLOR); \
+	igPushStyleColor_Vec4(ImGuiCol_ButtonActive, ACTIVE_RED_BTN_COLOR); \
+    }									\
+    else if (g_State == ToggleButton_State_Success)			\
     { \
-	igPushStyleColorVec4(ImGuiCol_Button, DEFAULT_GREEN_BTN_COLOR); \
-	igPushStyleColorVec4(ImGuiCol_ButtonHovered, HOVERED_GREEN_BTN_COLOR); \
-	igPushStyleColorVec4(ImGuiCol_ButtonActive, ACTIVE_GREEN_BTN_COLOR); \
+	igPushStyleColor_Vec4(ImGuiCol_Button, DEFAULT_GREEN_BTN_COLOR); \
+	igPushStyleColor_Vec4(ImGuiCol_ButtonHovered, HOVERED_GREEN_BTN_COLOR); \
+	igPushStyleColor_Vec4(ImGuiCol_ButtonActive, ACTIVE_GREEN_BTN_COLOR); \
     } \
     if (igButton(name, size))				\
     {							\

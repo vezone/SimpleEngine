@@ -12,23 +12,23 @@ path_get_current_directory_test()
 static void
 path_get_home_directory_test()
 {
-    String_IsEquals(path_get_home_directory(), "/home/bies");
+    String_Equal(path_get_home_directory(), "/home/bies");
     String_Value(path_get_home_directory());
 }
 
 static void
 path_get_extension_test()
 {
-    String_IsEquals(path_get_extension("/path/to/file.json"), ".json");
-    String_IsEquals(path_get_extension("file.lua"), ".lua");
-    String_IsEquals(path_get_extension("/path/file."), ".");
+    String_Equal(path_get_extension("/path/to/file.json"), ".json");
+    String_Equal(path_get_extension("file.lua"), ".lua");
+    String_Equal(path_get_extension("/path/file."), ".");
 }
 
 static void
 path_get_prev_directory_test()
 {
     const char* prev = (const char*) path_get_prev_directory( "/path/to/current/directory");
-    String_IsEquals(prev, "/path/to/current");
+    String_Equal(prev, "/path/to/current");
 
     prev = (const char*) path_get_prev_directory("/path/to/current/directory");
     String_Value(prev);
@@ -45,14 +45,14 @@ path_get_prev_directory_test()
 static void
 path_combine_test()
 {
-    String_IsEquals((const char*) path_combine_interning("path/to", "file"), "path/to/file");
+    String_Equal((const char*) path_combine_interning("path/to", "file"), "path/to/file");
 }
 
 static void
 path_absolute_test()
 {
     char* currentDirectory = path_get_current_directory();
-    String_IsEquals(path_get_absolute("file"), path_combine(currentDirectory, "file"));
+    String_Equal(path_get_absolute("file"), path_combine(currentDirectory, "file"));
 
     String_Value(path_get_absolute("file"));
 }

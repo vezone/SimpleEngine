@@ -1,3 +1,4 @@
 #!/bin/bash
 
-../clean_all.sh
+cd ..
+./clean_all.sh

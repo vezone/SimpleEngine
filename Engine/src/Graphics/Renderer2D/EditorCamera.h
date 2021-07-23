@@ -14,10 +14,6 @@ typedef struct EditorCameraSettings
     f32 ZoomLevel;
     f32 AspectRatio;
     f32 Speed;
-    f32 Left;
-    f32 Right;
-    f32 Bot;
-    f32 Top;
 } EditorCameraSettings;
 
 typedef struct EditorCamera
@@ -25,13 +21,11 @@ typedef struct EditorCamera
     f32 ZoomLevel;
     f32 AspectRatio;
     f32 Speed;
-    f32 Rotation;
     OrthographicCamera Orthographic;
 } EditorCamera;
 
-EditorCamera editor_camera_create(EditorCameraSettings settings);
-void editor_camera_on_update(EditorCamera* editorCamera, NativeWindow* window, f32 timestep);
-void editor_camera_on_event(EditorCamera* editorCamera, Event* event);
+EditorCamera editor_camera_create(f32 left, f32 right, f32 bot, f32 top, v3 position, EditorCameraSettings settings);
+void editor_camera_on_update(EditorCamera* editorCamera);
 
 force_inline void
 editor_camera_resize(EditorCamera* camera, f32 width, f32 height)

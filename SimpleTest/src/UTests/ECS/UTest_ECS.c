@@ -129,7 +129,7 @@ ecs_entity_add_real_component_test()
 	Condition(array_count(world->Archetypes));
     }
 
-    ECSQueryResult queryResult = ECS_ARCHETYPE_GET(world, "TransformComponent,SpriteComponent");
+    ECSQueryResult queryResult = ECS_ARCHETYPE_GET(world, TransformComponent,SpriteComponent);
     Int_Value(queryResult.Count);
 
     while (ECS_QUERY_RESULT_NEXT(queryResult))
@@ -156,10 +156,10 @@ ecs_get_component_name_test()
     const char* scName = ECS_GET_COMPONENT_NAME(world, 1);
 
     String_Value(tcName);
-    String_IsEquals(tcName, "TransformComponent");
+    String_Equal(tcName, "TransformComponent");
 
     String_Value(scName);
-    String_IsEquals(scName, "SpriteComponent");
+    String_Equal(scName, "SpriteComponent");
 }
 
 void
@@ -304,7 +304,7 @@ ecs_archetype_get_test()
       TODO: remove all 32 from string
       ECS_ARCHETYPE_GET(world, A, B) > ECS_ARCHETYPE_GET(world, "A,B")
     */
-    ECSQueryResult queryResult = ECS_ARCHETYPE_GET(world, "A,B");
+    ECSQueryResult queryResult = ECS_ARCHETYPE_GET(world, A,B);
 
     Condition(queryResult.Data != NULL);
     Condition(queryResult.Components != NULL);

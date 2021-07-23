@@ -4,7 +4,7 @@
 
 #include "MemoryAllocator.h"
 #include "Array.h"
-#include "Math/BaseMath.h"
+#include "Math/Math.h"
 
 #define PRIME_1 117
 #define PRIME_2 119

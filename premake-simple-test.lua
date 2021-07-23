@@ -51,8 +51,8 @@ project "Engine"
       "%{prj.name}/src",
       "%{IncludeDirs.GLFW}",
       "%{IncludeDirs.GLAD}",
-      "%{IncludeDirs.CGLM}",
-      "%{IncludeDirs.CIMGUI}"
+      "%{IncludeDirs.CIMGUI}",
+      "%{IncludeDirs.CGLM}"
     }
 
     filter "system:linux"

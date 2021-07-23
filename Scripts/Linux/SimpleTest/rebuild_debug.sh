@@ -1,5 +1,4 @@
 #!/bin/bash
 
-./call_clean.sh
-./generate_project.sh
-./build_debug.sh
+cd ../
+./rebuild_debug.sh SimpleTest "premake-simple-test.lua"

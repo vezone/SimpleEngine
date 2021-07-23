@@ -1,9 +1,9 @@
 #ifndef SPRITE_COMPONENT_H
 #define SPRITE_COMPONENT_H
 
-#include <cglm/cglm.h>
 #include <Graphics/Texture2D.h>
 #include <Utils/Types.h>
+#include <Math/MathTypes.h>
 #include <Math/V2.h>
 #include <Math/V4.h>
 

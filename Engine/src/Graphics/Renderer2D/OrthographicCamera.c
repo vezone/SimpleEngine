@@ -9,10 +9,10 @@ orthographic_camera_create(f32 left, f32 right, f32 bot, f32 top)
     camera.Right = right;
     camera.Bot = bot;
     camera.Top = top;
-    glm_vec3_zero(camera.Position);
-    glm_ortho(left, right, bot, top, -1.0f, 1.0f, camera.ProjectionMatrix);
-    glm_mat4_identity(camera.ViewMatrix);
-    glm_mat4_mul(camera.ProjectionMatrix, camera.ViewMatrix, camera.ViewProjectionMatrix);
+    v3_assign(camera.Position, v3_(0, 0, 0));
+    orthographic(left, right, bot, top, -1.0f, 1.0f, camera.ProjectionMatrix);
+    m4_set_identity(camera.ViewMatrix);
+    m4_mul(camera.ProjectionMatrix, camera.ViewMatrix, camera.ViewProjectionMatrix);
 
     return camera;
 }
@@ -25,21 +25,21 @@ orthographic_camera_set_projection(OrthographicCamera* camera, f32 left, f32 rig
     camera->Bot = bot;
     camera->Top = top;
 
-    glm_ortho(left, right, bot, top, -1.0f, 1.0f, camera->ProjectionMatrix);
-    glm_mat4_mul(camera->ProjectionMatrix, camera->ViewMatrix, camera->ViewProjectionMatrix);
+    orthographic(left, right, bot, top, -1.0f, 1.0f, camera->ProjectionMatrix);
+    m4_mul(camera->ProjectionMatrix, camera->ViewMatrix, camera->ViewProjectionMatrix);
 }
 
 void
 orthographic_camera_recalculate_view_matrix(OrthographicCamera* camera, f32 rotation)
 {
-    mat4 identityTranslate = GLM_MAT4_IDENTITY_INIT;
-    mat4 identityRotate    = GLM_MAT4_IDENTITY_INIT;
-    mat4 transform = {};
-    vec3 rotate_vec = { 0.0f, 0.0f, 1.0f };
+    m4 identityTranslate = M4_IDENTITY;
+    m4 identityRotate = M4_IDENTITY;
+    m4 transform = M4_IDENTITY;
+    v3 rotateVec = v3_(0.0f, 0.0f, 1.0f);
 
-    glm_translate(identityTranslate, camera->Position);
-    glm_rotate(identityRotate, rotation, rotate_vec);
-    glm_mat4_mul(identityTranslate, identityRotate, transform);
-    glm_mat4_inv(transform, camera->ViewMatrix);
-    glm_mat4_mul(camera->ProjectionMatrix, camera->ViewMatrix, camera->ViewProjectionMatrix);
+    m4_translate(identityTranslate, camera->Position);
+    m4_rotate(identityRotate, rotateVec, rotation);
+    m4_mul(identityTranslate, identityRotate, transform);
+    m4_inverse(transform, camera->ViewMatrix);
+    m4_mul(camera->ProjectionMatrix, camera->ViewMatrix, camera->ViewProjectionMatrix);
 }
