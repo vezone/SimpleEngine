@@ -6,7 +6,7 @@
 
 typedef struct Texture2D
 {
-    u32 RendererID;
+    u32 ID;
     u32 Width;
     u32 Height;
     u32 Channels;

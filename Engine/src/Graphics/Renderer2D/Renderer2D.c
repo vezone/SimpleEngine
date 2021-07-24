@@ -193,8 +193,8 @@ texture_list_contains(TextureList* list, Texture2D* texture)
 
     for (i = 1; i < list->NextTextureIndex; i++)
     {
-	id = list->Textures[i].RendererID;
-	if (id == texture->RendererID)
+	id = list->Textures[i].ID;
+	if (id == texture->ID)
 	{
 	    return i;
 	}

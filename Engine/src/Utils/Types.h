@@ -79,4 +79,10 @@ typedef double f64;
 
 #define vassert(condition) assert(condition)
 
+#define vassert_message(message, condition) \
+    {					    \
+	GERROR(message);		    \
+	assert(condition);		    \
+    }
+
 #endif

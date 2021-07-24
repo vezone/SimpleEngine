@@ -1,10 +1,13 @@
-#pragma once
+#ifndef WINDOW_H
+#define WINDOW_H
 
 #include <GLFW/glfw3.h>
 
 #include "Event/Event.h"
-#include <Utils/Types.h>
-#include <Utils/Logger.h>
+#include "Utils/Types.h"
+#include "Utils/Logger.h"
+#include "Utils/Path.h"
+#include "Utils/stb_image.h"
 
 //#define window_get_frequency() glfwGetTimerFrequency()
 //#define window_get_cursor_position(window, xPos, yPos) glfwGetCursorPos((window)->GlfwWindow, xPos, yPos);
@@ -117,4 +120,33 @@ window_maximize(NativeWindow* window)
     glfwMaximizeWindow(window->GlfwWindow);
 }
 
+force_inline GLFWimage
+window_load_icon(const char* path)
+{
+    GLFWimage image;
+
+    i32 width, height, channels;
+    stbi_uc* data = stbi_load(path, &width, &height, &channels, 0);
+
+    image.width = width;
+    image.height = height;
+    image.pixels = data;
+
+    return image;
+}
+
+force_inline void
+window_set_icon(NativeWindow* window, const char* path)
+{
+    i32 isIconPathExist = path_is_file_exist(path);
+    if (!isIconPathExist)
+    {
+	vassert_message("File does not exist!\n", isIconPathExist);
+    }
+    GLFWimage image = window_load_icon(path);
+    glfwSetWindowIcon(window->GlfwWindow, 1, &image);
+}
+
 void window_set_fullscreen(NativeWindow* window);
+
+#endif

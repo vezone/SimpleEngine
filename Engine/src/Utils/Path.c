@@ -2,7 +2,24 @@
 
 #include "String.h"
 
-char g_CurrentDirectory[4096] = "\0";
+static char g_CurrentDirectory[4096] = "\0";
+
+i32
+path_is_file_exist(const char* path)
+{
+    struct stat buf;
+    i32 result = stat(path, &buf);
+    if (result == -1)
+	return 0;
+    else
+	return 1;
+}
+
+i32
+path_is_directory_exist(const char* path)
+{
+
+}
 
 char*
 path_get_filename(const char* path)

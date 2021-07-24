@@ -1,6 +1,6 @@
 workspace "Engine"
 architecture "x64"
-startproject "EngineEditor"
+startproject "SimpleEditor"
 
 configurations
 {
@@ -68,8 +68,8 @@ project "Engine"
       optimize "On"
       buildoptions { "-O3" }
 
-project "EngineEditor"
-    location "EngineEditor"
+project "SimpleEditor"
+    location "SimpleEditor"
     kind "ConsoleApp"
     language "C"
     staticruntime "on"

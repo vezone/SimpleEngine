@@ -44,13 +44,13 @@ sprite_component_panel(Scene* scene, Entity entity)
 	static ImVec2 uv0 = ImVec2_(0, 1);
 	static ImVec2 uv1 = ImVec2_(1, 0);
 	static bool shouldFileDialogBeenOpened = 0;
-	if (igImageButton((ImTextureID)texture->RendererID, ImVec2_(iconWidth, iconHeight), uv0, uv1, 0, backgroundColor, ImVec4_(1.0f, 1.0f, 1.0f, 1.0f)))
+	if (igImageButton((ImTextureID)texture->ID, ImVec2_(iconWidth, iconHeight), uv0, uv1, 0, backgroundColor, ImVec4_(1.0f, 1.0f, 1.0f, 1.0f)))
 	{
 	    shouldFileDialogBeenOpened = 1;
 	}
 
 	const char* selectedFile;
-	if (igFileDialog(selectedFile, &shouldFileDialogBeenOpened, FilterFlag_PNG))
+	if (igFileDialog(selectedFile, &shouldFileDialogBeenOpened, FilterFlag_IMAGE))
 	{
 	    GWARNING("Selected File: %s\n", selectedFile);
 	    texture2d_delete(spriteComponent->Texture);

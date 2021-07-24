@@ -35,6 +35,8 @@ enum Path
 
 #endif
 
+i32 path_is_file_exist(const char* path);
+i32 path_is_directory_exist(const char* path);
 //should we intern all the stuff here?
 char* path_get_filename(const char* path);
 const char* path_get_filename_interning(const char* path);
@@ -54,7 +56,6 @@ path(const char* path)
 
     if (stat(path, &fileInfo) != 0)
     {
-	GERROR("Path incorrect: %s!\n", path);
 	return PATH_IS_SOMETHING;
     }
 

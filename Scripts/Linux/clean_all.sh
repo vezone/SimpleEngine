@@ -7,7 +7,7 @@ files[1]="Engine.workspace"
 files[2]="tags"
 
 projectsDirs[0]="Engine"
-projectsDirs[1]="EngineEditor"
+projectsDirs[1]="SimpleEditor"
 projectsDirs[2]="SimpleTest"
 projectsDirs[3]="SandboxApp"
 
@@ -43,6 +43,7 @@ do
     #	rm -rf "${projectDir}/"
     #fi
     dir_delete_if_exist "${projectDir}/assets"
+    dir_delete_if_exist "${projectDir}/resources"
 
     file_delete_if_exist "${projectDir}/${projectDir}.mk"
     file_delete_if_exist "${projectDir}/${projectDir}.project"

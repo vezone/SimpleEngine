@@ -1,4 +1,4 @@
-#include "EngineEditor.h"
+#include "SimpleEditor.h"
 
 #include <unistd.h>
 #include <stdarg.h>
@@ -6,8 +6,6 @@
 #include "EngineControls/FileDialog.h"
 #include "EngineControls/ViewportControl.h"
 #include "EngineControls/WorldOutliner.h"
-
-#define APP_NAME "Engine Editor"
 
 static NativeWindow g_Window;
 static char WindowTitle[32];
@@ -18,7 +16,7 @@ static Renderer2DStatistics g_RendererStatistics;
 static Shader g_Shader;
 
 void
-engine_editor_on_attach(NativeWindow window)
+simple_editor_on_attach(NativeWindow window)
 {
     f32 aspectRatio = window.Width / window.Height;
 
@@ -26,7 +24,8 @@ engine_editor_on_attach(NativeWindow window)
 
     EditorCameraSettings settings = (EditorCameraSettings) { .ZoomLevel = 5.0f, .AspectRatio = aspectRatio, .Speed = 5.0f };
     g_Camera = editor_camera_create(5.0f * aspectRatio, 5.0f * aspectRatio, 5.0f, -5.0f, v3_(0, 0, 0), settings);
-    window_set_vsync(0);
+    window_set_vsync(3);
+    window_set_icon(&g_Window, "resources/Logo1.png");
 
     char cwd[1024];
     if (getcwd(cwd, sizeof(cwd)) != NULL)
@@ -82,10 +81,12 @@ engine_editor_on_attach(NativeWindow window)
     ECS_ENTITY_ADD_COMPONENT(g_Scene.World, chibi.ID, SpriteComponent);
     ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, TransformComponent, TransformComponent_Position(3.0f, 1.5f, 0.0f));
     ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, SpriteComponent, SpriteComponent_Texture(chibiTexture));
+
+    file_dialog_create();
 }
 
 void
-engine_editor_on_update(f32 timestep)
+simple_editor_on_update(f32 timestep)
 {
     framebuffer_bind(&g_Framebuffer);
 
@@ -212,7 +213,7 @@ renderer_statistic_panel()
 }
 
 void
-engine_editor_on_ui_render()
+simple_editor_on_ui_render()
 {
     framebuffer_bind(&g_Framebuffer);
 
@@ -287,7 +288,7 @@ engine_editor_on_ui_render()
     framebuffer_unbind();
 }
 
-void engine_editor_on_event(Event* event)
+void simple_editor_on_event(Event* event)
 {
     switch (event->Category)
     {
