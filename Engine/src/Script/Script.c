@@ -1,4 +1,6 @@
 #include "Script.h"
+
+#if LINUX_PLATFORM
 #include <dlfcn.h>
 #include <stdio.h>
 
@@ -33,3 +35,4 @@ script_test()
 
     dlclose(sharedLib);
 }
+#endif

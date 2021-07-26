@@ -105,12 +105,7 @@ project "SimpleEditor"
       "Engine",
       "glad",
       "GLFW",
-      "cimgui",
-      "stdc++",
-      "GL", "GLU",
-      "X11","dl",
-      "Xinerama", "Xcursor", "m",
-      "Xxf86vm", "Xrandr", "pthread", "Xi"
+      "cimgui"
     }
 
     filter "configurations:Debug"
@@ -128,6 +123,14 @@ project "SimpleEditor"
 
     filter "system:linux"
       defines { "LINUX_PLATFORM" }
+      links
+      {
+        "GL", "GLU",
+        "X11","dl",
+        "Xinerama", "Xcursor", "m",
+        "Xxf86vm", "Xrandr", "pthread", "Xi",
+      	"stdc++"
+      }
 
     filter "system:windows"
       defines { "WINDOWS_PLATFORM" }

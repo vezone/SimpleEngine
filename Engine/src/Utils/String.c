@@ -349,6 +349,53 @@ vstring_last_index_of(const char* input, char character)
     return -1;
 }
 
+i32
+vstring_last_index_of_string(const char* input, const char* string)
+{
+    i32 i;
+    i32 j;
+    i32 flag;
+    i32 inputLength;
+    i32 stringLength;
+
+    vassert(input != NULL);
+    vassert(string != NULL);
+
+    inputLength = vstring_length(input);
+    stringLength = vstring_length(string);
+
+    if (inputLength <= 0 || stringLength <= 0)
+    {
+        return -1;
+    }
+
+    flag = -1;
+    i32 temp = 0;
+    for (i = inputLength; i >= 0; i--)
+    {
+        for (j = stringLength; j >= 0; j--)
+        {
+            if (input[i - temp] == string[j])
+            {
+                flag = 1;
+            }
+            else
+            {
+                flag = -1;
+                break;
+            }
+            ++temp;
+        }
+
+        if (flag == 1)
+        {
+            return temp;
+        }
+    }
+
+    return -1;
+}
+
 char*
 vstring_substring(const char* input, i32 startIndex)
 {

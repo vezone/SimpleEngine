@@ -1,8 +1,11 @@
 #ifndef PERSPECTIVE_H
 #define PERSPECTIVE_H
 
+#include "MathTypes.h"
 #include "Utils/Types.h"
 
+
+#if LINUX_PLATFORM
 force_inline void
 perspective(f32 near, f32 far, f32 aspect, f32 fov, m4 r)
 {
@@ -29,5 +32,7 @@ perspective(f32 near, f32 far, f32 aspect, f32 fov, m4 r)
     r[3][2] = 1.0f;
     r[3][3] = 0.0f;
 }
-
+#elif WINDOWS_PLATFORM
+void perspective(f32 nearVal, f32 farVal, f32 aspect, f32 fov, m4 r);
+#endif
 #endif

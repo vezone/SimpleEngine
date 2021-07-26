@@ -29,8 +29,6 @@ application_init(u32 width, u32 height, const char* name)
     g_Application.IsRunning = 1;
     g_Application.Layers = NULL;
 
-    linux_set_current_stack_size(MB(500), MB(528));
-
     event_init_table(g_Application.EventTypeToString, 32);
 
     isWindowCreated = window_create(&g_Application.Window, width, height, name, application_on_event);

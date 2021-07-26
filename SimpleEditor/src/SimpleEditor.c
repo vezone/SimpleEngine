@@ -1,6 +1,5 @@
 #include "SimpleEditor.h"
 
-#include <unistd.h>
 #include <stdarg.h>
 #include "EngineControls/FileDialog.h"
 #include "EngineControls/FileDialog.h"
@@ -28,14 +27,10 @@ simple_editor_on_attach(NativeWindow window)
     window_set_icon(&g_Window, "resources/Logo1.png");
 
     char cwd[1024];
-    if (getcwd(cwd, sizeof(cwd)) != NULL)
+	char* currentDirectory = path_get_current_directory();
+    if (currentDirectory != NULL)
     {
-	GLOG(GREEN("Current working dir: %s")"\n", cwd);
-    }
-    else
-    {
-	GERROR("getcwd() error");
-	return;
+	GLOG(GREEN("Current working dir: %s")"\n", currentDirectory);
     }
 
     /*
@@ -89,7 +84,6 @@ void
 simple_editor_on_update(f32 timestep)
 {
     framebuffer_bind(&g_Framebuffer);
-
     renderer_reset_statistics(&g_RendererStatistics, timestep);
     renderer_clear(v4_(0.2f, 0.245f, 0.356f, 1.0f));
     renderer_clear(v4_(0.1f, 0.1f, 0.1f, 1.0f));

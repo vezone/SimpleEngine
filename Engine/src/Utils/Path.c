@@ -1,5 +1,9 @@
 #include "Path.h"
 
+#if WINDOWS_PLATFORM
+#include <shlwapi.h>
+#endif
+
 #include "String.h"
 
 static char g_CurrentDirectory[4096] = "\0";
@@ -7,12 +11,17 @@ static char g_CurrentDirectory[4096] = "\0";
 i32
 path_is_file_exist(const char* path)
 {
+#if LINUX_PLATFORM
     struct stat buf;
     i32 result = stat(path, &buf);
     if (result == -1)
 	return 0;
     else
 	return 1;
+#elif WINDOW_PLATFORM
+    BOOL isExist = PathFileExistsA(path);
+    return (i32) isExist;
+#endif
 }
 
 i32
@@ -46,20 +55,28 @@ path_get_filename_interning(const char* path)
 char*
 path_get_current_directory()
 {
+#ifdef LINUX_PLATFORM
     if (g_CurrentDirectory[0] == '\0')
     {
 	getcwd(g_CurrentDirectory, 4096);
     }
-
     return g_CurrentDirectory;
+#elif WINDOWS_PLATFORM
+    GetCurrentDirectoryA(4096, g_CurrentDirectory);
+    return g_CurrentDirectory;
+#endif
 }
 
 char*
 path_get_prev_directory(const char* currentDirectory)
 {
-    if (!vstring_compare(currentDirectory, "/"))
+    if (!vstring_compare(currentDirectory, ROOT_DIRECTORY))
     {
+#ifdef LINUX_PLATFORM
 	i32 index = vstring_last_index_of(currentDirectory, '/');
+#elif WINDOWS_PLATFORM
+    i32 index = vstring_last_index_of_string(currentDirectory, PATH_SEPARATOR);
+#endif
 	if (index != 0)
 	{
 	    --index;
@@ -81,6 +98,7 @@ path_get_prev_directory_interning(const char* currentDirectory)
     return iPrevDirectory;
 }
 
+#if LINUX_PLATFORM
 i32
 string_comparer(const struct dirent **a, const struct dirent **b)
 {
@@ -194,3 +212,56 @@ directory_get_directories_absolute(const char* directory)
     const char** dirs = _directory_get_absolute(directory, PATH_IS_DIRECTORY);
     return dirs;
 }
+#elif WINDOWS_PLATFORM
+const char**
+directory_get_files(const char* directory)
+{
+    WIN32_FIND_DATA foundFileData;
+    HANDLE hFind;
+    const char** files = NULL;
+
+    hFind = FindFirstFileA(directory, &foundFileData);
+    do
+    {
+        if (foundFileData.dwFileAttributes & FILE_ATTRIBUTE_NORMAL)
+        {
+            array_push(files, foundFileData.cFileName);
+        }
+    } while (FindNextFile(hFind, &foundFileData) != 0);
+
+    return files;
+}
+
+const char**
+directory_get_directories(const char* directory)
+{
+    WIN32_FIND_DATA foundFileData;
+    HANDLE hFind;
+    const char** dirs = NULL;
+
+    hFind = FindFirstFileA(directory, &foundFileData);
+    do
+    {
+        if (foundFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        {
+            array_push(dirs, foundFileData.cFileName);
+        }
+    } while (FindNextFile(hFind, &foundFileData) != 0);
+
+    return dirs;
+}
+
+const char**
+directory_get_files_absolute(const char* directory)
+{
+    const char** files = directory_get_files(directory);
+    return files;
+}
+
+const char**
+directory_get_directories_absolute(const char* directory)
+{
+    const char** dirs = directory_get_directories(directory);
+    return dirs;
+}
+#endif

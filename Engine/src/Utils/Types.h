@@ -64,7 +64,7 @@ typedef double f64;
 #endif
 
 #if defined(_MSC_VER)
-#define force_inline __forceinline
+#define force_inline static
 #else
 #define force_inline static inline __attribute((always_inline))
 #endif
