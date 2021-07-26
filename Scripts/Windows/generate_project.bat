@@ -1,2 +1,2 @@
 cd ../..
-premake5 gmake2
+premake5 --cc=clang vs2019

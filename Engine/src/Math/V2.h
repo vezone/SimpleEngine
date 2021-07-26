@@ -1,7 +1,7 @@
 #ifndef V2_H
 #define V2_H
 
-#include "math.h"
+#include "Math.h"
 #include "BaseMath.h"
 #include "MathTypes.h"
 

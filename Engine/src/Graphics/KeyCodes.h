@@ -1,4 +1,5 @@
-#pragma once
+#ifndef KEY_CODES_H
+#define KEY_CODES_H
 
 #define RELEASE                0
 #define PRESS                  1
@@ -203,3 +204,5 @@
 #define GAMEPAD_AXIS_LEFT_TRIGGER  4
 #define GAMEPAD_AXIS_RIGHT_TRIGGER 5
 #define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
+
+#endif

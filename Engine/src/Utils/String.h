@@ -44,6 +44,7 @@ char* vstring_to_lower(const char* input);
 i32 vstring_index_of(const char* input, char character);
 i32 vstring_index_of_string(const char* input, const char* string);
 i32 vstring_last_index_of(const char* input, char character);
+i32 vstring_last_index_of_string(const char* input, const char* string);
 char* vstring_substring(const char* input, i32 beginIndex);
 char* vstring_substring_range(const char* input, i32 beginIndex, i32 endIndex);
 char* vstring_cut(const char* input, u32 begin, u32 end);

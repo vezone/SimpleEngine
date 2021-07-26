@@ -3,7 +3,9 @@
 
 void create_user_application()
 {
+#if LINUX_PLATFORM
     linux_set_current_stack_size(MB(500), MB(528));
+#endif
 
     application_init(1600, 900, "Simple Editor");
 

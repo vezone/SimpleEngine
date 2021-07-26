@@ -1,7 +1,7 @@
 #ifndef V3_H
 #define V3_H
 
-#include "math.h"
+#include "Math.h"
 #include "BaseMath.h"
 #include "MathTypes.h"
 
