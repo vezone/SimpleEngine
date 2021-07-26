@@ -1,12 +1,13 @@
 #ifndef PATH_H
 #define PATH_H
 
+#include <stdlib.h>
 #include "Types.h"
 #include "String.h"
 #include "Array.h"
 #include "MemoryAllocator.h"
 #include "Environment.h"
-#include <shlwapi.h>
+#include "Logger.h"
 
 enum Path
 {
@@ -17,19 +18,18 @@ enum Path
 
 #ifdef LINUX_PLATFORM
 
-#include <stdlib.h>
 #include <assert.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "String.h"
-#include "Logger.h"
-#include "Array.h"
 
 #elif WINDOWS_PLATFORM
+
 #include "Windows.h"
+#include <shlwapi.h>
+
 #else
 #error "Platform unsupported"
 #endif
@@ -71,11 +71,11 @@ path(const char* path)
 #elif WINDOWS_PLATFORM
     if (PathIsDirectoryA(path))
     {
-        return PATH_IS_DIRECTORY;
+	return PATH_IS_DIRECTORY;
     }
     else
     {
-        return PATH_IS_FILE;
+	return PATH_IS_FILE;
     }
 #endif
 }
@@ -121,7 +121,7 @@ path_get_name(const char* path)
 force_inline char*
 path_combine(const char* left, const char* right)
 {
-    char* str = vstring_concat3(left, PATH_SEPARATOR, right);
+    char* str = vstring_concat3(left, PATH_SEPARATOR_STRING, right);
     return str;
 }
 
@@ -138,7 +138,7 @@ force_inline char*
 path_get_absolute(char* path)
 {
     char* currentDirectory = path_get_current_directory();
-    char* absolutePath = vstring_concat3(currentDirectory, PATH_SEPARATOR, path);
+    char* absolutePath = vstring_concat3(currentDirectory, PATH_SEPARATOR_STRING, path);
     return absolutePath;
 }
 

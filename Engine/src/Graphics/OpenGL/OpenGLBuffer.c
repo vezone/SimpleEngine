@@ -3,6 +3,7 @@
 
 #include "OpenGLBuffer.h"
 
+#if 0
 void
 vertex_buffer_set_data(VertexBuffer* buffer, f32* data, u32 size)
 {
@@ -101,6 +102,6 @@ index_buffer_unbind()
 {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
-
+#endif
 
 #endif

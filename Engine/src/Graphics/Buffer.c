@@ -58,7 +58,7 @@ void
 vertex_buffer_add_layout(VertexBuffer* buffer, i8 isNormalized, DataType type)
 {
     BufferElement element = {
-	.IsNormilized = isNormalized,
+	.IsNormalized = isNormalized,
 	.Type = type,
 	.Size = data_type_get_size(type),
 	.Count = data_type_get_count(type)
@@ -122,7 +122,7 @@ void vertex_array_add_vbo(VertexArray* va, VertexBuffer vbo)
 
 	buffer_element_print(element);
 	glEnableVertexAttribArray(i);
-	glVertexAttribPointer(i, element.Count, GL_FLOAT, element.IsNormilized, vbo.Stride, (const void*)element.Offset);
+	glVertexAttribPointer(i, element.Count, GL_FLOAT, element.IsNormalized, vbo.Stride, (const void*)element.Offset);
     }
 }
 

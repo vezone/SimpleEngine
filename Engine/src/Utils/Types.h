@@ -65,10 +65,10 @@ typedef double f64;
 #define NULL ((void*)0)
 #endif
 
-#if defined(_MSC_VER)
-#define force_inline static
-#else
+#if LINUX_PLATFORM
 #define force_inline static inline __attribute((always_inline))
+#elif WINDOWS_PLATFORM
+#define force_inline static
 #endif
 
 #define PRINT_ONES(func, msg) { static i8 flag = 1; if (flag) { flag = 0; func(msg); } }

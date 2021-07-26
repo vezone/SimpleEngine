@@ -10,7 +10,43 @@ typedef enum DataType
     Int1, Int2, Int3, Int4
 } DataType;
 
-force_Inline u32
+//typedef struct BufferLayout {
+//    BufferElement* Elements;
+//    i32 Stride;
+//} BufferLayout;
+
+typedef struct BufferElement
+{
+    i8 IsNormalized;
+    DataType Type;
+    i32 Size;
+    i32 Count;
+    i32 Offset;
+} BufferElement;
+
+typedef struct VertexBuffer
+{
+    u32 RendererID;
+    i32 Stride;
+    f32* Vertices;
+    BufferElement* Elements;
+} VertexBuffer;
+
+typedef struct IndexBuffer
+{
+    u32 RendererID;
+    u32 Count;
+    u32* Indices;
+} IndexBuffer;
+
+typedef struct VertexArray
+{
+    u32 RendererID;
+    VertexBuffer* Vertex;
+    IndexBuffer Index;
+} VertexArray;
+
+force_inline u32
 data_type_get_size(DataType type)
 {
     switch (type)
@@ -27,7 +63,7 @@ data_type_get_size(DataType type)
     return 0;
 }
 
-force_Inline u32
+force_inline u32
 data_type_get_count(DataType type)
 {
     switch (type)
@@ -50,42 +86,15 @@ vertex_buffer_set_data(VertexBuffer* buffer, f32* data, u32 size)
     glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
 }
 
-//typedef struct BufferLayout {
-//    BufferElement* Elements;
-//    i32 Stride;
-//} BufferLayout;
-
-typedef struct VertexBuffer
-{
-    u32 RendererID;
-    i32 Stride;
-    f32* Vertices;
-    BufferElement* Elements;
-} VertexBuffer;
-
 void vertex_buffer_create(VertexBuffer* buffer, f32* vertices, u32 size);
 void vertex_buffer_allocate(VertexBuffer* buffer, u32 size);
 void vertex_buffer_add_layout(VertexBuffer* buffer, i8 isNormalized, DataType type);
 void vertex_buffer_bind(VertexBuffer* buffer);
 void vertex_buffer_unbind();
 
-typedef struct IndexBuffer
-{
-    u32 RendererID;
-    u32 Count;
-    u32* Indices;
-} IndexBuffer;
-
 void index_buffer_create(IndexBuffer* buffer, u32* indices, u32 size);
 void index_buffer_bind(IndexBuffer* buffer);
 void index_buffer_unbind();
-
-typedef struct VertexArray
-{
-    u32 RendererID;
-    VertexBuffer* Vertex;
-    IndexBuffer Index;
-} VertexArray;
 
 void vertex_array_create(VertexArray* va);
 void vertex_array_add_vbo(VertexArray* va, VertexBuffer vbo);
