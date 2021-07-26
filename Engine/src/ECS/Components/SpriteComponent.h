@@ -16,6 +16,7 @@ typedef struct SpriteComponent
 
 #define SpriteComponent(color, texture) _sprite_component(color, texture)
 #define SpriteComponent_Color(color) _sprite_component_color(color)
+#define SpriteComponent_ColorXYZW(x, y, z, w) _sprite_component_color(v4_(x, y, z, w))
 #define SpriteComponent_Texture(texture) _sprite_component_texture(texture)
 
 force_inline SpriteComponent

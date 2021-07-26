@@ -117,9 +117,8 @@ _ig_file_dialog(const char* selectedFile, bool* shouldOpen, FilterFlag filter)
 	}
 	igSameLine(75, 0);
 	igText(g_CurrentDirectory);
-
-	igEnd();
     }
+    igEnd();
 
     if (igBegin("Open File Dialog", shouldOpen, ImGuiWindowFlags_NoTitleBar & ImGuiWindowFlags_NoResize & ImGuiWindowFlags_MenuBar))
     {
@@ -133,8 +132,8 @@ _ig_file_dialog(const char* selectedFile, bool* shouldOpen, FilterFlag filter)
 	    entry_point_button("Videos");
 	    entry_point_button("Music");
 
-	    igEnd();
 	}
+	igEnd();
 
 	if (igBeginTable("Table", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders, ImVec2_(0,0), 10))
 	{
@@ -211,8 +210,8 @@ _ig_file_dialog(const char* selectedFile, bool* shouldOpen, FilterFlag filter)
 		}
 	    }
 
-	    igEndTable();
 	}
+	igEndTable();
 
 	if (igButton("Cancel", ImVec2_(150.0f, 50.0f)))
 	{
@@ -226,6 +225,7 @@ _ig_file_dialog(const char* selectedFile, bool* shouldOpen, FilterFlag filter)
 	    selectedFile = g_SelectedFile;
 	}
     }
+
     igEnd();
 
     return selectedFile;

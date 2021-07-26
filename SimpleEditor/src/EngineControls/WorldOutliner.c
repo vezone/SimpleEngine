@@ -78,13 +78,35 @@ properties_panel(Scene* scene)
 	    //
 	}
 
-	transform_component_panel(scene, entity);
-	sprite_component_panel(scene, entity);
+	if (ECS_ENTITY_HAS_COMPONENT(scene->World, entity.ID, TransformComponent))
+	    transform_component_panel(scene, entity);
+	if (ECS_ENTITY_HAS_COMPONENT(scene->World, entity.ID, SpriteComponent))
+	    sprite_component_panel(scene, entity);
 
-	igEnd();
     }
+    igEnd();
 }
 
+force_inline f32
+f32_rand_range(f32 min, f32 max)
+{
+    /*
+	  0.1 = 10
+	  0.1 / 0.01
+
+	  0.2 = 0.04
+	  20.  / 4 = 5
+    */
+    f32 randNumber = max / ((f32) (rand() % i32(min / (min * min))));
+    return MIN(MAX(randNumber, min), max);
+}
+
+force_inline f32
+f32_rand()
+{
+    f32 randNumber = f32_rand_range(0.1f, 1.0f);
+    return randNumber;
+}
 
 void
 world_outliner(Scene* scene)
@@ -107,12 +129,15 @@ world_outliner(Scene* scene)
 	{
 	    if (igButton("Add Entity", ImVec2_(0, 0)))
 	    {
+		Entity emptyEntity = entity_create_with_random_name(scene);
+		ECS_ENTITY_ADD_COMPONENT(scene->World, emptyEntity.ID, SpriteComponent);
+		ECS_ENTITY_SET_COMPONENT(scene->World, emptyEntity.ID, SpriteComponent, SpriteComponent_ColorXYZW(f32_rand(), f32_rand(), f32_rand(), 1.0));
+		ECS_ENTITY_SET_COMPONENT(scene->World, emptyEntity.ID, TransformComponent, TransformComponent_Position(f32_rand_range(0.1, 15), f32_rand_range(0.1, 15), 1.0));
 	    }
 	    igEndPopup();
 	}
-
-	igEnd();
     }
+    igEnd();
 
     properties_panel(scene);
 }

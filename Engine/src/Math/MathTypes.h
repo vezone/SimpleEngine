@@ -77,6 +77,7 @@ typedef v4 m4[4];
 #define v3_wo_convert(x, y, z) {x, y, z}
 #define v4_(x, y, z, w) ((v4) { x, y, z, w })
 #define v4_wo_convert(x, y, z, w) {x, y, z, w}
+#define v4_imvec4(imvec) { imvec.x, imvec.y, imvec.z, imvec.w }
 
 #define M4_IDENTITY				\
     {						\

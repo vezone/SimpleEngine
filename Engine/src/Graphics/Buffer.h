@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BUFFER_H
+#define BUFFER_H
 
 #include "Utils/Types.h"
 #include "OpenGLBase.h"
@@ -9,7 +10,7 @@ typedef enum DataType
     Int1, Int2, Int3, Int4
 } DataType;
 
-static u32
+force_Inline u32
 data_type_get_size(DataType type)
 {
     switch (type)
@@ -26,7 +27,7 @@ data_type_get_size(DataType type)
     return 0;
 }
 
-static u32
+force_Inline u32
 data_type_get_count(DataType type)
 {
     switch (type)
@@ -42,14 +43,12 @@ data_type_get_count(DataType type)
     }
 }
 
-typedef struct BufferElement
+force_inline void
+vertex_buffer_set_data(VertexBuffer* buffer, f32* data, u32 size)
 {
-    i8 IsNormilized;
-    DataType Type;
-    i32 Size;
-    i32 Count;
-    i32 Offset;
-} BufferElement;
+    buffer->Vertices = data;
+    glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+}
 
 //typedef struct BufferLayout {
 //    BufferElement* Elements;
@@ -63,13 +62,6 @@ typedef struct VertexBuffer
     f32* Vertices;
     BufferElement* Elements;
 } VertexBuffer;
-
-force_inline void
-vertex_buffer_set_data(VertexBuffer* buffer, f32* data, u32 size)
-{
-    buffer->Vertices = data;
-    glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
-}
 
 void vertex_buffer_create(VertexBuffer* buffer, f32* vertices, u32 size);
 void vertex_buffer_allocate(VertexBuffer* buffer, u32 size);
@@ -106,3 +98,5 @@ vertex_array_destroy(VertexArray* va)
 {
     glDeleteVertexArrays(1, &va->RendererID);
 }
+
+#endif

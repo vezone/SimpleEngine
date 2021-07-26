@@ -40,17 +40,19 @@ viewport(EditorCamera* camera, FrameBuffer* framebuffer)
 
 	igImage((ImTextureID)framebuffer->ColorAttachment, ImVec2_(g_ViewportSize.x, g_ViewportSize.y), ImVec2_(0, 1), ImVec2_(1, 0), ImVec4_(1, 1, 1, 1), ImVec4_(1, 1, 1, 0));
 
-	igPopStyleVar(1);
-
-	if (igBegin("Camera Settings", &g_IsCameraSettingsOpen, ImGuiWindowFlags_None))
-	{
-	    igSliderFloat("ZoomLevel", &g_Camera->ZoomLevel, 0.1f, 10.0f, "%0.1f", ImGuiSliderFlags_None);
-	    igSliderFloat("Speed", &g_Camera->Speed, 0.1f, 10.0f, "%0.1f", ImGuiSliderFlags_None);
-	    igEnd();
-	}
-
-	igEnd();
     }
+
+    if (igBegin("Camera Settings", &g_IsCameraSettingsOpen, ImGuiWindowFlags_None))
+    {
+	igSliderFloat("ZoomLevel", &g_Camera->ZoomLevel, 0.1f, 10.0f, "%0.1f", ImGuiSliderFlags_None);
+	igSliderFloat("Speed", &g_Camera->Speed, 0.1f, 10.0f, "%0.1f", ImGuiSliderFlags_None);
+    }
+
+    igEnd();
+
+    igPopStyleVar(1);
+
+    igEnd();
 }
 
 void
@@ -137,6 +139,8 @@ viewport_on_event(Event* event)
 	break;
     }
 
+    default:
+	break;
     }
 }
 
@@ -165,10 +169,8 @@ viewport_menu_item()
 	    {
 		g_Settings.MatrixType = EditorMatrixType_Orthographic;
 	    }
-
 	    igEndMenu();
 	}
-
 	igEndMenu();
     }
 }

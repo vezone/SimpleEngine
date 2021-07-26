@@ -10,6 +10,7 @@
 #include "Graphics/Shader.h"
 #include "Graphics/Texture2D.h"
 #include "Graphics/Window.h"
+#include "Graphics/Camera.h"
 //Graphics -> Renderer
 #include "Graphics/Renderer2D/OrthographicCamera.h"
 #include "Graphics/Renderer2D/EditorCamera.h"
@@ -26,6 +27,7 @@
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/SpriteComponent.h"
 #include "ECS/Components/NativeScriptComponent.h"
+#include "ECS/Components/CameraComponent.h"
 
 //Math
 #include "Math/Math.h"

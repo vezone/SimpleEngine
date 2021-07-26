@@ -1,13 +1,13 @@
-#include "Buffer.h"
+#ifndef OPENGL_BUFFER_H
+#define OPENGL_BUFFER_H
 
-#include <stdlib.h>
-#include "Utils/Array.h"
-#include "Utils/Logger.h"
+#include "OpenGLBuffer.h"
 
-static void
-buffer_element_print(BufferElement element)
+void
+vertex_buffer_set_data(VertexBuffer* buffer, f32* data, u32 size)
 {
-    BUFFERDEBUG("Size: %d, Count: %d, Offset: %d\n", element.Size, element.Count, element.Offset);
+    buffer->Vertices = data;
+    glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
 }
 
 void
@@ -102,43 +102,5 @@ index_buffer_unbind()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void vertex_array_create(VertexArray* va)
-{
-    glCreateVertexArrays(1, &(va->RendererID));
-}
 
-void vertex_array_add_vbo(VertexArray* va, VertexBuffer vbo)
-{
-    va->Vertex = &vbo;
-
-    glBindVertexArray(va->RendererID);
-    glBindBuffer(GL_ARRAY_BUFFER, va->Vertex->RendererID);
-    BUFFERDEBUG("Stride: %d\n", vbo.Stride);
-
-    BufferElement* layout = vbo.Elements;
-    for (i32 i = 0; i < array_len(layout); i++)
-    {
-	BufferElement element = layout[i];
-
-	buffer_element_print(element);
-	glEnableVertexAttribArray(i);
-	glVertexAttribPointer(i, element.Count, GL_FLOAT, element.IsNormilized, vbo.Stride, (const void*)element.Offset);
-    }
-}
-
-void vertex_array_add_ibo(VertexArray* va, IndexBuffer ibo)
-{
-    va->Index = ibo;
-    glBindVertexArray(va->RendererID);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo.RendererID);
-}
-
-void vertex_array_bind(VertexArray* va)
-{
-    glBindVertexArray(va->RendererID);
-}
-
-void vertex_array_unbind()
-{
-    glBindVertexArray(0);
-}
+#endif

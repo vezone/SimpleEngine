@@ -509,6 +509,8 @@ vstring_join(const char** list, char joinCharacter)
 char*
 vstring_join_i32(const i32* list, char joinCharacter)
 {
+    vassert(0 && "Not tested yet, let's write some Unit Test's!");
+
     char* result = NULL;
     char stringValue[32];
 
@@ -516,9 +518,9 @@ vstring_join_i32(const i32* list, char joinCharacter)
     {
 	i32 el = list[i];
 	vstring_i32_to_string(stringValue, el);
-
     }
 
+    return NULL;
 }
 
 void
@@ -576,6 +578,7 @@ vstring_i32_to_string(char* input, i32 number)
 	number /= 10;
 	--temp;
     }
+    //vmemset(input + rank*sizeof(char), '\0', vstirng_length(input) - rank - 1);
 }
 
 

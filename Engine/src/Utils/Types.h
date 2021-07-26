@@ -57,6 +57,8 @@ typedef double f64;
 #define TOMB(x) (((f64) TOKB(x)) / 1024)
 #define TOGB(x) (((f64) TOMB(x)) / 1024)
 
+#define ABS(x) ((x > 0) ? x : -x)
+
 #define DEFAULT(type) ((type) { })
 
 #ifndef NULL
@@ -64,7 +66,7 @@ typedef double f64;
 #endif
 
 #if defined(_MSC_VER)
-#define force_inline __forceinline
+#define force_inline static
 #else
 #define force_inline static inline __attribute((always_inline))
 #endif

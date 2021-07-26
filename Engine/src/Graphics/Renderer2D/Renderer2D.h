@@ -107,7 +107,10 @@ void renderer_submit_dot(v3 position, v4 color);
 
 /* Flush functions */
 void renderer_flush();
+
 void renderer_destroy();
+
+/*Additional*/
 
 Renderer2DStatistics renderer_get_statistics();
 

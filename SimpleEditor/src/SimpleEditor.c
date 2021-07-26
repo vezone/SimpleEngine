@@ -82,6 +82,12 @@ simple_editor_on_attach(NativeWindow window)
     ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, TransformComponent, TransformComponent_Position(3.0f, 1.5f, 0.0f));
     ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, SpriteComponent, SpriteComponent_Texture(chibiTexture));
 
+    Entity camera = entity_create(&g_Scene, "Camera");
+    m4 ortho;
+    orthographic(-16, 16, -9, 9, -1.f, 1.f, ortho);
+    ECS_ENTITY_ADD_COMPONENT(g_Scene.World, camera.ID, CameraComponent);
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, camera.ID, CameraComponent, CameraComponent_(1, ortho));
+
     file_dialog_create();
 }
 
@@ -104,7 +110,8 @@ simple_editor_on_update(f32 timestep)
 }
 
 bool g_IsRendererStatisticPanelVisible = 0;
-bool is_docspace_open = 1;
+bool g_IsStyleWindowVisible = 0;
+bool g_IsDockSpaceOpen = 1;
 ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
 force_inline void
@@ -130,7 +137,7 @@ menu_bar()
 
 	    if (igMenuItem_Bool("Close", NULL, 0, 1))
 	    {
-		is_docspace_open = 0;
+		g_IsDockSpaceOpen = 0;
 	    }
 
 	    igEndMenu();
@@ -142,6 +149,11 @@ menu_bar()
 	    if (igMenuItem_Bool("Info", NULL, g_IsRendererStatisticPanelVisible, 1))
 	    {
 		TYPE_REVERSE(g_IsRendererStatisticPanelVisible);
+	    }
+
+	    if (igMenuItem_Bool("Style", NULL, g_IsRendererStatisticPanelVisible, 1))
+	    {
+		TYPE_REVERSE(g_IsStyleWindowVisible);
 	    }
 
 	    igEndMenu();
@@ -199,16 +211,111 @@ igSimplePopup()
 force_inline void
 renderer_statistic_panel()
 {
-    if (g_IsRendererStatisticPanelVisible && igBegin("Renderer statistic", &g_IsRendererStatisticPanelVisible, ImGuiWindowFlags_None))
+    if (g_IsRendererStatisticPanelVisible)
     {
-	Renderer2DStatistics rendererStatistics = g_RendererStatistics;
-	igText("Frametime: %f ms", 1000 * rendererStatistics.Frametime);
-	igText("Draw Calls: %d", rendererStatistics.DrawCalls);
-	igText("Rectangles Count: %d", rendererStatistics.RectanglesCount);
-	igText("Max object to draw: %d", rendererStatistics.MaximumObjectToDraw);
-	igText("Max texture slots: %d", rendererStatistics.MaximumTextureSlots);
+	if (igBegin("Renderer statistic", &g_IsRendererStatisticPanelVisible, ImGuiWindowFlags_None))
+	{
+	    Renderer2DStatistics rendererStatistics = g_RendererStatistics;
+	    igText("Frametime: %f ms", 1000 * rendererStatistics.Frametime);
+	    igText("Draw Calls: %d", rendererStatistics.DrawCalls);
+	    igText("Rectangles Count: %d", rendererStatistics.RectanglesCount);
+	    igText("Max object to draw: %d", rendererStatistics.MaximumObjectToDraw);
+	    igText("Max texture slots: %d", rendererStatistics.MaximumTextureSlots);
+	}
 
 	igEnd();
+    }
+}
+
+force_inline void
+style_panel()
+{
+    if (g_IsStyleWindowVisible)
+    {
+	if (igBegin("Style", &g_IsStyleWindowVisible, ImGuiWindowFlags_None))
+	{
+	    ImGuiStyle* style = igGetStyle();
+
+	    v4 windowBgColor = v4_imvec4(style->Colors[ImGuiCol_WindowBg]);
+
+	    v4 headerColor = v4_imvec4(style->Colors[ImGuiCol_Header]);
+	    v4 headerHoveredColor = v4_imvec4(style->Colors[ImGuiCol_HeaderHovered]);
+	    v4 headerActiveColor = v4_imvec4(style->Colors[ImGuiCol_HeaderActive]);
+
+	    v4 buttonColor = v4_imvec4(style->Colors[ImGuiCol_Button]);
+	    v4 buttonHoveredColor = v4_imvec4(style->Colors[ImGuiCol_ButtonHovered]);
+	    v4 buttonActiveColor = v4_imvec4(style->Colors[ImGuiCol_ButtonActive]);
+
+	    v4 frameBgColor = v4_imvec4(style->Colors[ImGuiCol_FrameBg]);
+	    v4 frameBgHoveredColor = v4_imvec4(style->Colors[ImGuiCol_FrameBgHovered]);
+	    v4 frameBgActiveColor = v4_imvec4(style->Colors[ImGuiCol_FrameBgActive]);
+
+	    v4 tabColor = v4_imvec4(style->Colors[ImGuiCol_Tab]);
+	    v4 tabHoveredColor = v4_imvec4(style->Colors[ImGuiCol_TabHovered]);
+	    v4 tabActiveColor = v4_imvec4(style->Colors[ImGuiCol_TabActive]);
+	    v4 tabUnfocusedColor = v4_imvec4(style->Colors[ImGuiCol_TabUnfocused]);
+	    v4 tabUnfocusedActiveColor = v4_imvec4(style->Colors[ImGuiCol_TabUnfocusedActive]);
+
+	    v4 titleBGColor = v4_imvec4(style->Colors[ImGuiCol_TitleBg]);
+	    v4 titleBGActiveColor = v4_imvec4(style->Colors[ImGuiCol_TitleBgActive]);
+	    v4 titleBGCollapsedColor = v4_imvec4(style->Colors[ImGuiCol_TitleBgCollapsed]);
+
+	    igColorEdit4("Window Background", windowBgColor, ImGuiColorEditFlags_None);
+
+	    igColorEdit4("Header", headerColor, ImGuiColorEditFlags_None);
+	    igColorEdit4("Header Hovered", headerHoveredColor, ImGuiColorEditFlags_None);
+	    igColorEdit4("Header Active", headerActiveColor, ImGuiColorEditFlags_None);
+
+	    igColorEdit4("Button", buttonColor, ImGuiColorEditFlags_None);
+	    igColorEdit4("Button Hovered", buttonHoveredColor, ImGuiColorEditFlags_None);
+	    igColorEdit4("Button Active", buttonActiveColor, ImGuiColorEditFlags_None);
+
+	    igColorEdit4("Frame Background", frameBgColor, ImGuiColorEditFlags_None);
+	    igColorEdit4("Frame Background Hovered", frameBgHoveredColor, ImGuiColorEditFlags_None);
+	    igColorEdit4("Frame Background Active", frameBgActiveColor, ImGuiColorEditFlags_None);
+
+	    igColorEdit4("Tab", tabColor, ImGuiColorEditFlags_None);
+	    igColorEdit4("Tab Hovered", tabHoveredColor, ImGuiColorEditFlags_None);
+	    igColorEdit4("Tab Active", tabActiveColor, ImGuiColorEditFlags_None);
+	    igColorEdit4("Tab Unfocused", tabUnfocusedColor, ImGuiColorEditFlags_None);
+	    igColorEdit4("Tab Unfocused Active", tabUnfocusedActiveColor, ImGuiColorEditFlags_None);
+
+	    igColorEdit4("Title Background", titleBGColor, ImGuiColorEditFlags_None);
+	    igColorEdit4("Title Background Active", titleBGActiveColor, ImGuiColorEditFlags_None);
+	    igColorEdit4("Title Background Collapsed", titleBGCollapsedColor, ImGuiColorEditFlags_None);
+
+	    style->Colors[ImGuiCol_WindowBg] = ImVec4_Array(windowBgColor);
+
+	    style->Colors[ImGuiCol_Header] = ImVec4_Array(headerColor);
+	    style->Colors[ImGuiCol_HeaderHovered] = ImVec4_Array(headerHoveredColor);
+	    style->Colors[ImGuiCol_HeaderActive] = ImVec4_Array(headerActiveColor);
+
+	    style->Colors[ImGuiCol_Button] = ImVec4_Array(buttonColor);
+	    style->Colors[ImGuiCol_ButtonHovered] = ImVec4_Array(buttonHoveredColor);
+	    style->Colors[ImGuiCol_ButtonActive] = ImVec4_Array(buttonActiveColor);
+
+	    style->Colors[ImGuiCol_FrameBg] = ImVec4_Array(frameBgColor);
+	    style->Colors[ImGuiCol_FrameBgHovered] = ImVec4_Array(frameBgHoveredColor);
+	    style->Colors[ImGuiCol_FrameBgActive] = ImVec4_Array(frameBgActiveColor);
+
+	    style->Colors[ImGuiCol_Tab] = ImVec4_Array(tabColor);
+	    style->Colors[ImGuiCol_TabHovered] = ImVec4_Array(tabHoveredColor);
+	    style->Colors[ImGuiCol_TabActive] = ImVec4_Array(tabActiveColor);
+	    style->Colors[ImGuiCol_TabUnfocused] = ImVec4_Array(tabUnfocusedColor);
+	    style->Colors[ImGuiCol_TabUnfocusedActive] = ImVec4_Array(tabUnfocusedActiveColor);
+
+	    style->Colors[ImGuiCol_TitleBg] = ImVec4_Array(titleBGColor);
+	    style->Colors[ImGuiCol_TitleBgActive] = ImVec4_Array(titleBGActiveColor);
+	    style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4_Array(titleBGCollapsedColor);
+
+	}
+
+	igEnd();
+#if 0
+	colors[ImGuiCol_TitleBg] = ImVec4_(.15, .1505, .151, 1.0);
+	colors[ImGuiCol_TitleBgActive] = ImVec4_(.15, .1505, .151, 1.0);
+	colors[ImGuiCol_TitleBgCollapsed] = ImVec4_(.95, .1505, .951, 1.0);
+#endif
     }
 }
 
@@ -217,10 +324,10 @@ simple_editor_on_ui_render()
 {
     framebuffer_bind(&g_Framebuffer);
 
-    static i8 opt_padding = 0;
+    static i8 noPadding = 1;
     static i8 opt_fullscreen = 1;
 
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar;
     ImGuiWindowClass class;
     if (opt_fullscreen)
     {
@@ -230,8 +337,8 @@ simple_editor_on_ui_render()
 	igSetNextWindowViewport(viewport->ID);
 	igPushStyleVar_Float(ImGuiStyleVar_WindowRounding, 0.0f);
 	igPushStyleVar_Float(ImGuiStyleVar_WindowBorderSize, 0.0f);
-	window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-	window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+	windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+	windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
     }
     else
     {
@@ -239,51 +346,52 @@ simple_editor_on_ui_render()
     }
 
     if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-	window_flags |= ImGuiWindowFlags_NoBackground;
+	windowFlags |= ImGuiWindowFlags_NoBackground;
 
-    if (!opt_padding)
+    if (noPadding)
     {
 	igPushStyleVar_Vec2(ImGuiStyleVar_WindowPadding, ImVec2_(0, 0));
     }
 
-    if (igBegin("DockSpace Demo", &is_docspace_open, window_flags))
+    igBegin("DockSpace Demo", &g_IsDockSpaceOpen, windowFlags);
+
+    // DockSpace
+    ImGuiIO* io = igGetIO();
+    if (io->ConfigFlags & ImGuiConfigFlags_DockingEnable)
     {
-	if (!opt_padding)
-	    igPopStyleVar(1);
-
-	if (opt_fullscreen)
-	    igPopStyleVar(2);
-
-	// DockSpace
-	ImGuiIO* io = igGetIO();
-	if (io->ConfigFlags & ImGuiConfigFlags_DockingEnable)
-	{
-	    ImGuiID dockspace_id = igGetID_Str("MyDockSpace");
-	    igDockSpace(dockspace_id, ImVec2_(0.0f, 0.0f), dockspace_flags, &class);
-	}
-
-	menu_bar();
-	world_outliner(&g_Scene);
-	viewport(&g_Camera, &g_Framebuffer);
-	renderer_statistic_panel();
-
-	if (g_IsPopupShowsUp)
-	{
-	    if (g_PopupDontAsk)
-	    {
-		application_close();
-	    }
-
-	    igOpenPopup_Str("Delete?", ImGuiPopupFlags_None);
-	}
-
-	igSimplePopup();
-
-	//igShowDemoWindow(NULL);
-
-	// for dockspace
-	igEnd();
+	ImGuiID dockspace_id = igGetID_Str("MyDockSpace");
+	igDockSpace(dockspace_id, ImVec2_(0.0f, 0.0f), dockspace_flags, &class);
     }
+
+    menu_bar();
+    world_outliner(&g_Scene);
+    viewport(&g_Camera, &g_Framebuffer);
+    renderer_statistic_panel();
+    style_panel();
+
+    if (g_IsPopupShowsUp)
+    {
+	if (g_PopupDontAsk)
+	{
+	    application_close();
+	}
+
+	igOpenPopup_Str("Delete?", ImGuiPopupFlags_None);
+    }
+
+    igSimplePopup();
+
+    //igShowDemoWindow(NULL);
+
+    if (opt_fullscreen)
+	igPopStyleVar(2);
+
+    if (noPadding)
+	igPopStyleVar(1);
+
+
+    // for dockspace
+    igEnd();
 
     framebuffer_unbind();
 }
@@ -315,6 +423,8 @@ void simple_editor_on_event(Event* event)
 	break;
     }
 
+    default:
+	break;
     }
 
     viewport_on_event(event);

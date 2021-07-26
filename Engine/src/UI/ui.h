@@ -10,6 +10,7 @@
 #define ImVec2_(x, y) ((ImVec2) {x, y})
 #define ImVec3_(x, y, z) ((ImVec3) {x, y, z})
 #define ImVec4_(x, y, z, w) ((ImVec4) {x, y, z, w})
+#define ImVec4_Array(xyzw) (ImVec4_(xyzw[0], xyzw[1], xyzw[2], xyzw[3]))
 
 #define ImVec2_Assign(v1, v2) v1.x=v2.x; v1.y=v2.y
 #define ImVec2_Equals(v1, v2) ((v1.x == v2.x && v1.y == v2.y) ? 1 : 0)

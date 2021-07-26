@@ -19,6 +19,7 @@ typedef struct Entity
 
 //#define entity_add_component(world, entity, component, value) ecs_set(world, entity, component, value);
 Entity entity_create(Scene* scene, const char* name);
+Entity entity_create_with_random_name(Scene* scene);
 void scene_create(Scene* scene, EditorCamera* camera);
 void scene_on_update(Scene* scene);
 void scene_destroy(Scene* scene);
