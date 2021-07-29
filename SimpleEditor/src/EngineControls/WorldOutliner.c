@@ -8,7 +8,7 @@
 #include <ECS/Components/TransformComponent.h>
 #include <Graphics/Texture2D.h>
 
-i32 g_SelectedEntity;
+Entity g_SelectedEntity;
 
 force_inline void
 transform_component_panel(Scene* scene, Entity entity)
@@ -20,7 +20,7 @@ transform_component_panel(Scene* scene, Entity entity)
     m4_transform_decompose(transformComponent->Transform, translation, rotation, scale);
 
     igSliderFloat3("Translation", translation, -10.0f, 10.0f, "%0.2f", ImGuiSliderFlags_None);
-    igSliderFloat3("Rotation", rotation, 0.0f, 90.0f, "%0.2f", ImGuiSliderFlags_None);
+    igSliderFloat3("Rotation", rotation, 0.0f, 180.0f, "%0.2f", ImGuiSliderFlags_None);
     igSliderFloat3("Scale", scale, 0.0f, 10.0f, "%0.2f", ImGuiSliderFlags_None);
 
     m4_transform(translation, scale, rotation, transformComponent->Transform);
@@ -32,7 +32,6 @@ sprite_component_panel(Scene* scene, Entity entity)
     igText("Selected entity: %d", entity.ID);
     SpriteComponent* spriteComponent = ECS_ENTITY_GET_COMPONENT(scene->World, entity.ID, SpriteComponent);
 
-    //igCheckbox("IsTextured", &spriteComponent->IsTextured);
     igColorEdit4("Color", spriteComponent->Color, ImGuiColorEditFlags_None);
 
     if (spriteComponent->IsTextured)
@@ -65,17 +64,13 @@ sprite_component_panel(Scene* scene, Entity entity)
 }
 
 force_inline void
-properties_panel(Scene* scene)
+properties_panel(Scene* scene, Entity entity)
 {
     bool propertiesPanelOpen;
     if (igBegin("Properties Panel", &propertiesPanelOpen, ImGuiWindowFlags_None))
     {
-	Entity* entities = scene_get_entities();
-	Entity entity = entities[g_SelectedEntity];
-
 	if (igButton("Add Component", ImVec2_(0, 0)))
 	{
-	    //
 	}
 
 	if (ECS_ENTITY_HAS_COMPONENT(scene->World, entity.ID, TransformComponent))
@@ -109,7 +104,7 @@ f32_rand()
 }
 
 void
-world_outliner(Scene* scene)
+world_outliner(Scene* scene, EditorCamera* camera)
 {
     bool worldOutlinerOpen;
     if (igBegin("World Outliner", &worldOutlinerOpen, ImGuiWindowFlags_None))
@@ -121,7 +116,7 @@ world_outliner(Scene* scene)
 	    Entity entity = entities[e];
 	    if (igButton(entity.Name, ImVec2_(0, 0)))
 	    {
-		g_SelectedEntity = e;
+		g_SelectedEntity = entity;
 	    }
 	}
 
@@ -139,5 +134,14 @@ world_outliner(Scene* scene)
     }
     igEnd();
 
-    properties_panel(scene);
+    if (g_SelectedEntity.Name)
+    {
+	properties_panel(scene, g_SelectedEntity);
+    }
+}
+
+Entity
+world_outliner_get_selected_entity()
+{
+    return g_SelectedEntity;
 }

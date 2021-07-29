@@ -36,12 +36,12 @@ _key_callback(GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods)
     event.Base.IsHandled = 0;
     event.Base.Category = KeyCategory;
     event.KeyCode = key;
+    event.Modificator = mods;
 
     if (action == GLFW_PRESS)
     {
 	event.Base.Type = KeyPressed;
 	event.RepeatCount = 0;
-	event.Modificator = mods;
     }
     else if (action == GLFW_REPEAT)
     {

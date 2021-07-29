@@ -26,8 +26,9 @@ simple_editor_on_attach(NativeWindow window)
     window_set_vsync(3);
     window_set_icon(&g_Window, "resources/Logo1.png");
 
-    char cwd[1024];
-	char* currentDirectory = path_get_current_directory();
+    GERROR("Just error message test!\n");
+
+    char* currentDirectory = path_get_current_directory();
     if (currentDirectory != NULL)
     {
 	GLOG(GREEN("Current working dir: %s")"\n", currentDirectory);
@@ -56,9 +57,7 @@ simple_editor_on_attach(NativeWindow window)
     scene_create(&g_Scene, &g_Camera);
 
     v4 blueColor   = v4_(0.1f, 0.1f, 0.8f, 1.0f);
-    // TODO(bies): подобрать цвета
     v4 yellowColor = v4_(1.f, 1.f, 0.0f, 1.0f);
-    // v4 greenColor  = v4_(0.2f, 0.7f, 0.2f, 0.3f);
     Texture2D* chibiTexture = texture2d_create(asset_texture("other/anime_chibi.png"));
 
     Entity rectangleEntity = entity_create(&g_Scene, "Blue Rectangle");
@@ -84,6 +83,7 @@ simple_editor_on_attach(NativeWindow window)
     ECS_ENTITY_SET_COMPONENT(g_Scene.World, camera.ID, CameraComponent, CameraComponent_(1, ortho));
 
     file_dialog_create();
+    viewport_create(g_Window, &g_Camera, &g_Framebuffer);
 }
 
 void
@@ -93,8 +93,9 @@ simple_editor_on_update(f32 timestep)
     renderer_reset_statistics(&g_RendererStatistics, timestep);
     renderer_clear(v4_(0.2f, 0.245f, 0.356f, 1.0f));
     renderer_clear(v4_(0.1f, 0.1f, 0.1f, 1.0f));
+    renderer_clear(v4_(0.111f, 0.1f, 0.1f, 1.0f));
 
-    viewport_on_update(&g_Camera, &g_Window, timestep);
+    viewport_on_update(timestep);
 
     scene_on_update(&g_Scene);
 
@@ -358,8 +359,8 @@ simple_editor_on_ui_render()
     }
 
     menu_bar();
-    world_outliner(&g_Scene);
-    viewport(&g_Camera, &g_Framebuffer);
+    world_outliner(&g_Scene, &g_Camera);
+    viewport(&g_Scene, &g_Camera, &g_Framebuffer);
     renderer_statistic_panel();
     style_panel();
 
@@ -394,7 +395,6 @@ void simple_editor_on_event(Event* event)
 {
     switch (event->Category)
     {
-
     case KeyCategory:
     {
 	KeyPressedEvent* keyEvent = (KeyPressedEvent*) event;
@@ -405,6 +405,7 @@ void simple_editor_on_event(Event* event)
 	    event->IsHandled = 1;
 	    break;
 	}
+
 	break;
     }
 

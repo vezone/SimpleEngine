@@ -6,6 +6,7 @@
 #include "Graphics/Window.h"
 
 #include <cimgui.h>
+#include <cimguizmo.h>
 
 #define ImVec2_(x, y) ((ImVec2) {x, y})
 #define ImVec3_(x, y, z) ((ImVec3) {x, y, z})
@@ -23,6 +24,7 @@ void ui_on_attach(NativeWindow window);
 void ui_on_event(Event* event);
 void ui_on_destoy();
 
+//#define ui_block_event(block) GERROR("Block: %d, File: %s, Line: %d\n", block, __FILE__, __LINE__)
 void ui_block_event(i8 block);
 
 //NOTE(vez): we need write ui code between this two

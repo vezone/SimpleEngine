@@ -27,7 +27,7 @@ path_is_file_exist(const char* path)
 i32
 path_is_directory_exist(const char* path)
 {
-
+    return 0;
 }
 
 char*
@@ -223,10 +223,10 @@ directory_get_files(const char* directory)
     hFind = FindFirstFileA(directory, &foundFileData);
     do
     {
-        if (foundFileData.dwFileAttributes & FILE_ATTRIBUTE_NORMAL)
-        {
-            array_push(files, foundFileData.cFileName);
-        }
+	if (foundFileData.dwFileAttributes & FILE_ATTRIBUTE_NORMAL)
+	{
+	    array_push(files, foundFileData.cFileName);
+	}
     } while (FindNextFile(hFind, &foundFileData) != 0);
 
     return files;
@@ -242,10 +242,10 @@ directory_get_directories(const char* directory)
     hFind = FindFirstFileA(directory, &foundFileData);
     do
     {
-        if (foundFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-        {
-            array_push(dirs, foundFileData.cFileName);
-        }
+	if (foundFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+	{
+	    array_push(dirs, foundFileData.cFileName);
+	}
     } while (FindNextFile(hFind, &foundFileData) != 0);
 
     return dirs;

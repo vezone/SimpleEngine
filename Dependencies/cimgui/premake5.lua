@@ -14,6 +14,8 @@ project "cimgui"
     {
        "%{prj.name}/src/cimgui.h",
        "%{prj.name}/src/cimgui.cpp",
+       "%{prj.name}/src/cimguizmo.h",
+       "%{prj.name}/src/cimguizmo.cpp",
 
        "%{prj.name}/src/imgui/imgui.h",
        "%{prj.name}/src/imgui/imgui.cpp",
@@ -24,8 +26,9 @@ project "cimgui"
        "%{prj.name}/src/imgui/imgui_internal.h",
        "%{prj.name}/src/imgui/imgui_draw.cpp",
        "%{prj.name}/src/imgui/imgui_widgets.cpp",
-       "%{prj.name}/src/imgui/imgui_demo.cpp",
-       "%{prj.name}/src/imgui/imgui_tables.cpp"
+       "%{prj.name}/src/imgui/imgui_tables.cpp",
+       "%{prj.name}/src/imgui/ImGuizmo.h",
+       "%{prj.name}/src/imgui/ImGuizmo.cpp"
     }
 
     filter "system:linux"
@@ -38,6 +41,10 @@ project "cimgui"
     staticruntime "On"
 
     filter "configurations:Debug"
+    files
+    {
+       "%{prj.name}/src/imgui/imgui_demo.cpp"
+    }
     runtime "Debug"
     symbols "on"
 

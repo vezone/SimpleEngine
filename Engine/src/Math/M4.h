@@ -316,7 +316,6 @@ force_inline i32
 m4_transform_decompose(m4 transform, v4 translation, v3 rotation, v3 scale)
 {
     f32 zero = 0.0f;
-    f32 one = 1.0f;
     m4 localMatrix;
     m4_copy(transform, localMatrix);
 
@@ -353,12 +352,11 @@ m4_transform_decompose(m4 transform, v4 translation, v3 rotation, v3 scale)
     // TODO(bies): fix it
     // Compute X scale factor and normalize first row.
     scale[0] = v3_length(row[0]);
-    //row[0] = detail::scale(row[0], one);
+    v4_scale(row[0], 1.0f, row[0]);
     scale[1] = v3_length(row[1]);
-    // row[1] = detail::scale(row[1], one);
+    v4_scale(row[1], 1.0f, row[1]);
     scale[2] = v3_length(row[2]);
-    // row[2] = detail::scale(row[2], one);
-    // TODO(bies): fix it
+    v4_scale(row[2], 1.0f, row[2]);
 
 
     // At this point, the matrix (in rows[]) is orthonormal.
@@ -387,7 +385,6 @@ m4_transform_decompose(m4 transform, v4 translation, v3 rotation, v3 scale)
 	rotation[0] = atan2(-row[2][0], row[1][1]);
 	rotation[2] = 0;
     }
-    rotation[2] = atan2(row[0][1], row[0][0]);
 
     return 1;
 }

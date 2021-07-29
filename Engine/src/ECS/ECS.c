@@ -327,7 +327,7 @@ void*
 _ecs_entity_get_component(World* world, EntityID entityId, const char* componentName)
 {
     vassert(world->ArchetypesStorage != NULL);
-    vassert(hash_geti(world->ArchetypesStorage, entityId) != -1);
+    vassert(hash_geti(world->ArchetypesStorage, entityId) != -1 && "Entity does not contain requested component");
 
     ComponentID componentId = shash_get(world->Storage.NameToId, componentName);
     void* result = _ecs_entity_get_component_by_id(world, entityId, componentId);

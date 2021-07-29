@@ -18,9 +18,9 @@ IncludeDirs["GLAD"] = "Dependencies/glad/include"
 IncludeDirs["CIMGUI"] = "Dependencies/cimgui/cimgui/src"
 
 group "Dependencies"
-include "Dependencies/GLFW"
-include "Dependencies/glad"
-include "Dependencies/cimgui"
+    include "Dependencies/GLFW"
+    include "Dependencies/glad"
+    include "Dependencies/cimgui"
 
 project "Engine"
     location "Engine"
@@ -125,11 +125,11 @@ project "SimpleEditor"
       defines { "LINUX_PLATFORM" }
       links
       {
-        "GL", "GLU",
-        "X11","dl",
-        "Xinerama", "Xcursor", "m",
-        "Xxf86vm", "Xrandr", "pthread", "Xi",
-      	"stdc++"
+	"GL", "GLU",
+	"X11","dl",
+	"Xinerama", "Xcursor", "m",
+	"Xxf86vm", "Xrandr", "pthread", "Xi",
+	"stdc++"
       }
 
     filter "system:windows"

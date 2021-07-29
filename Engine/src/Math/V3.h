@@ -21,6 +21,14 @@ v3_assign(v3 a, v3 b)
     a[2] = b[2];
 }
 
+force_inline void
+v3_set(v3 a, f32 value)
+{
+    a[0] = value;
+    a[1] = value;
+    a[2] = value;
+}
+
 force_inline f32
 v3_length(v3 v)
 {

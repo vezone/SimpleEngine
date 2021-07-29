@@ -1,9 +1,11 @@
 #ifndef WORLD_OUTLINER_H
 #define WORLD_OUTLINER_H
 
-#include "ECS/Scene.h"
-#include "Utils/Types.h"
+#include <ECS/Scene.h>
+#include <Utils/Types.h>
+#include <Graphics/Renderer2D/EditorCamera.h>
 
-void world_outliner(Scene* scene);
+void world_outliner(Scene* scene, EditorCamera* camera);
+Entity world_outliner_get_selected_entity();
 
 #endif

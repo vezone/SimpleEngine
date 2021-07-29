@@ -140,6 +140,7 @@ ui_begin()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     igNewFrame();
+    ImGuizmo_BeginFrame();
 }
 
 void

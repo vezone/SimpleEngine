@@ -5,16 +5,13 @@
 #include <Utils/Types.h>
 #include <Graphics/Renderer2D/EditorCamera.h>
 #include <Graphics/FrameBuffer.h>
+#include <Graphics/Window.h>
+#include <ECS/Scene.h>
 
-typedef struct ViewportSettings
-{
-    EditorMatrixType MatrixType;
-} ViewportSettings;
-
+void viewport_create(NativeWindow window, EditorCamera* camera, FrameBuffer* framebuffer);
 void viewport();
-void viewport_on_update(EditorCamera* camera, NativeWindow* window, f32 timestep);
+void viewport_on_update(f32 timestep);
 void viewport_on_event(Event* event);
 void viewport_menu_item();
-ViewportSettings viewport_get_settings();
 
 #endif
