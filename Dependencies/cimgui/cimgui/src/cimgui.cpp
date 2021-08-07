@@ -76,13 +76,14 @@ CIMGUI_API ImDrawData* igGetDrawData()
 {
     return ImGui::GetDrawData();
 }
-CIMGUI_API void igShowDemoWindow(bool* p_open)
-{
-    return ImGui::ShowDemoWindow(p_open);
-}
 CIMGUI_API void igShowMetricsWindow(bool* p_open)
 {
     return ImGui::ShowMetricsWindow(p_open);
+}
+#ifdef ENGINE_DEBUG
+CIMGUI_API void igShowDemoWindow(bool* p_open)
+{
+    return ImGui::ShowDemoWindow(p_open);
 }
 CIMGUI_API void igShowAboutWindow(bool* p_open)
 {
@@ -104,6 +105,7 @@ CIMGUI_API void igShowUserGuide()
 {
     return ImGui::ShowUserGuide();
 }
+#endif
 CIMGUI_API const char* igGetVersion()
 {
     return ImGui::GetVersion();
@@ -4902,7 +4904,7 @@ CimguiStorage& GetCimguiStorage()
     ImGuiIO& io = ImGui::GetIO();
     if (io.BackendLanguageUserData == NULL)
     {
-        io.BackendLanguageUserData = new CimguiStorage();
+	io.BackendLanguageUserData = new CimguiStorage();
     }
 
     return *(CimguiStorage*)io.BackendLanguageUserData;

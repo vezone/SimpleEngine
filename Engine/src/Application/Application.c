@@ -1,6 +1,7 @@
 #include "Application.h"
 #include "Graphics/Renderer2D/Renderer2D.h"
 #include "Graphics/OpenGLBase.h"
+#include "Utils/Profiler.h"
 
 Application g_Application;
 
@@ -16,7 +17,11 @@ application_push_layer(Layer layer)
     array_push(g_Application.Layers, layer);
     if (layer.OnAttach != NULL)
     {
+	profiler_start();
 	layer.OnAttach(g_Application.Window);
+	profiler_end();
+	GSUCCESS("%s took %s\n", layer.Name, profiler_get_string());
+	//profiler_print_counted_time();
     }
 }
 

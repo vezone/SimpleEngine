@@ -5,6 +5,7 @@
 #include <Utils/StringBuilder.h>
 #include <Utils/Path.h>
 #include <Utils/Types.h>
+#include <Utils/Profiler.h>
 #include <Math/Math.h>
 
 typedef struct FunctionResult
@@ -27,12 +28,38 @@ typedef struct TestTable
     FileInfo** Infos;
 } TestTable;
 
+typedef struct ProfilingFunctionResult
+{
+    // function naem
+    const char* Key;
+    // time
+    const char* Value;
+} ProfilingFunctionResult;
+
+typedef struct ProfilingFileInfo
+{
+    // file name
+    const char* Key;
+    // profiling time
+    ProfilingFunctionResult* Value;
+} ProfilingFileInfo;
+
+typedef struct ProfilingTest
+{
+    ProfilingFileInfo* FileInfoTable;
+} ProfilingTest;
+
 // TODO(bies): change _is_equal to equal
 
 FunctionResult* file_info_get_function_result(FileInfo* fileInfo, const char* functionName);
 FileInfo* test_table_get_file_info(TestTable* testTable, const char* filename);
 void test_set_function(const char* function);
 void test(i8 testResult, const char* filename, const char* message);
+
+void profiling_test_init(ProfilingTest* profilingTest);
+ProfilingTest* profiling_test_get();
+void profiling_test(ProfilingTest* profilingTest, const char* file, const char* profilingResult);
+
 FileInfo* file_get_info(const char* filename);
 const char** test_get_filenames();
 
@@ -127,6 +154,16 @@ const char** test_get_filenames();
     {							\
 	test_set_function(#function);			\
 	function;					\
+	test(1, __FILE__, "");				\
+    }
+
+#define PROFILING_TEST(function)					\
+    {									\
+	test_set_function(#function);					\
+	profiler_start();						\
+	function;							\
+	profiler_end();							\
+	profiling_test(profiling_test_get(), __FILE__, profiler_get_string_as_float()); \
     }
 
 typedef struct TestInfo

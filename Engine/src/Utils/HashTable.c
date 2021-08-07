@@ -5,9 +5,15 @@
 #include "MemoryAllocator.h"
 #include "Array.h"
 #include "Math/Math.h"
+#include "Logger.h"
 
+#if 1
 #define PRIME_1 117
 #define PRIME_2 119
+#else
+#define PRIME_1 3145739
+#define PRIME_2 6291469
+#endif
 
 typedef struct InternalStringElement
 {
@@ -21,42 +27,70 @@ typedef struct InternalIntElement
     void* Data;
 } InternalIntElement;
 
-force_inline i32
-internal_is_prime(i32 x)
-{
-    if (x < 2 || (x % 2) == 0)
-    {
-	return 0;
-    }
-    else if (x == 3)
-    {
-	return 1;
-    }
-
-    for (i32 i = 3; i <= floor(sqrt(x)); i += 2)
-    {
-	if ((x % i) == 0)
-	{
-	    return 0;
-	}
-    }
-
-    return 1;
-}
+static i32 g_Primes[] = {
+    97, 193, 389,
+    769, 1543, 3079, 6151,
+    12289, 24593, 49157, 98317,
+    196613, 393241, 786433, 1572869,
+    3145739, 6291469, 12582917, 25165843,
+    50331653, 100663319, 201326611, 402653189,
+    805306457, 1610612741
+};
+static i32 g_NextPrimeIndex = 0;
+static i32 g_PrimesCount = ARRAY_COUNT(g_Primes);
 
 i32
-internal_get_prime(i32 prevPrime)
+_get_prime(TableHeader* header)
 {
-    prevPrime = 1.5 * prevPrime;
-    while (internal_is_prime(prevPrime) != 1)
-    {
-	++prevPrime;
-    }
-    return prevPrime;
+    i32 prime = g_Primes[header->NextPrime];
+    ++header->NextPrime;
+    return prime;
 }
 
 void*
-internal_table_reserve(void* array, i32 elementsCount, i32 elementSize)
+_table_grow(void* table, i32 elemSize, i32 isInt)
+{
+    TableHeader* newHeader;
+    i32 capacity;
+    i32 count;
+
+    if (table == NULL)
+    {
+	count = 53;
+	capacity = count * elemSize;
+
+	newHeader = (TableHeader*) memory_allocate(capacity + sizeof(*newHeader));
+    }
+    else
+    {
+	TableHeader* prevHeader = table_header(table);
+	count = _get_prime(prevHeader);
+	capacity = count * elemSize;
+
+	newHeader = (TableHeader*) memory_allocate(capacity + sizeof(*newHeader));
+	newHeader->NextPrime = prevHeader->NextPrime;
+    }
+
+    newHeader->Count = 0;
+    newHeader->Capacity = count;
+    newHeader->ElementSize = elemSize;
+
+    GWARNING("REALLOC: prevCount=%d newCapacity=%d!\n", table_count(table), newHeader->Capacity);
+
+    if (isInt)
+    {
+	memset(newHeader->Buffer, -1, capacity);
+    }
+    else
+    {
+	memset(newHeader->Buffer, 0, capacity);
+    }
+
+    return newHeader->Buffer;
+}
+
+void*
+_table_reserve(i32 elementsCount, i32 elementSize, i32 nextPrime)
 {
     i32 capacity = elementsCount * elementSize;
     TableHeader* newHeader;
@@ -64,6 +98,7 @@ internal_table_reserve(void* array, i32 elementsCount, i32 elementSize)
     newHeader->Count = 0;
     newHeader->Capacity = elementsCount;
     newHeader->ElementSize = elementSize;
+    newHeader->NextPrime = nextPrime;
 
     return newHeader->Buffer;
 }
@@ -91,17 +126,143 @@ get_shash(const char* key, i32 bucketNumber, i32 attempt)
     return (hashA + (attempt * (hashB + 1))) % bucketNumber;
 }
 
-#include "Utils/Logger.h"
 void*
-internal_shash_put(void* table, const char* key)
+_shash_get(void* table, const char* key)
 {
-    vassert(table_capacity(table) != 0);
+    if (table == NULL)
+    {
+	return NULL;
+    }
+
+    TableHeader* header = table_header(table);
+
+    i32 i = 0;
+    i32 capacity = header->Capacity;
+    i32 elementSize = header->ElementSize;
+    i32 length = vstring_length(key);
+    i32 index = get_shash(key, capacity, i);
+    InternalStringElement* elem = (InternalStringElement*) (table + index * elementSize);
+    ++i;
+
+    while (elem != NULL && elem->Key != NULL)
+    {
+	if (vstring_compare_length(elem->Key, key, length))
+	{
+	    header->Index = index;
+	    return table;
+	}
+
+	++i;
+	index = get_shash(elem->Key, capacity, i);
+	elem = (InternalStringElement*) (table + (index) * elementSize);
+    }
+
+    header->Index = -1;
+
+    return table;
+}
+
+/*
+  Int Hash Table (int Key)
+*/
+
+force_inline i32
+get_hash_old(i32 key, i32 bucketNumber)
+{
+    u32 ukey = (u32) key;
+    ukey = ((ukey >> 16) ^ ukey) * 0x45d9f3b;
+    ukey = ((ukey >> 16) ^ ukey) * 0x45d9f3b;
+    ukey = (ukey >> 16) ^ ukey;
+    return i32(key);
+}
+
+force_inline i32
+get_hash(i32 key)
+{
+    u32 ukey = (u32) key;
+
+    ukey += ~(key << 9);
+    ukey ^= ((key >> 14) | (key << 18));
+    ukey += (key << 4);
+    ukey ^= ((key >> 10) | (key << 22));
+
+    return i32(key);
+}
+
+void*
+_base_hash_put(void* table, i32 key, i32 count, i32 capacity, i32 elementSize)
+{
+    vassert(table);
+    vassert(capacity != 0);
+
+    TableHeader* header = table_header(table);
+    i32 i = 1;
+    i32 index = get_hash(key) % capacity;
+    i32 itemsKey = *((i32*)(table + index * elementSize));
+
+    if (itemsKey == key)
+    {
+	goto return_label;
+    }
+
+    while (itemsKey != -1)
+    {
+	index = (get_hash(itemsKey) + i * get_hash(itemsKey + 1) + 1) % capacity;
+	itemsKey = *((i32*)(table + index * elementSize));
+	if (itemsKey == key)
+	{
+	    goto return_label;
+	}
+	++i;
+    }
+
+return_label:
+    header->Index = index;
+    ++header->Count;
+    return table;
+}
+
+void*
+_base_hash_get(void* table, i32 key, i32 count, i32 capacity, i32 elementSize)
+{
+    if (table == NULL)
+    {
+	return NULL;
+    }
+
+    i32 i = 1;
+    i32 index = get_hash(key) % capacity;
+    TableHeader* header = table_header(table);
+    InternalIntElement* elem = (InternalIntElement*) (table + index * elementSize);
+
+    while (elem != NULL && elem->Key != -1)
+    {
+	if (elem->Key == key)
+	{
+	    header->Index = index;
+	    return table;
+	}
+
+	++i;
+	index = (get_hash(elem->Key) + i * get_hash(elem->Key + 1) + 1) % capacity;
+	elem = (InternalIntElement*) (table + (index) * elementSize);
+    }
+
+    header->Index = -1;
+
+    return table;
+}
+
+void*
+_base_shash_put(void* table, const char* key, i32 count, i32 capacity, i32 elementSize)
+{
+    vassert(table);
+    vassert(capacity != 0);
+
+    TableHeader* header = table_header(table);
 
     i32 i = 1;
     i32 index = -1;
-    i32 count = table_count(table);
-    i32 capacity = table_capacity(table);
-    i32 elementSize = table_element_size(table);
     i32 keyLength = vstring_length(key);
 
     const char* itemsKey = key;
@@ -115,21 +276,24 @@ internal_shash_put(void* table, const char* key)
 	++i;
     }
 
-    table_header(table)->Index = index;
+    GERROR("Index: %d\n", index);
+    header->Index = index;
+    ++header->Count;
+
     return table;
 }
 
 void*
-internal_shash_get(void* table, const char* key)
+_base_shash_get(void* table, const char* key, i32 count, i32 capacity, i32 elementSize)
 {
     if (table == NULL)
     {
 	return NULL;
     }
 
+    TableHeader* header = table_header(table);
+
     i32 i = 0;
-    i32 capacity = table_capacity(table);
-    i32 elementSize = table_element_size(table);
     i32 length = vstring_length(key);
     i32 index = get_shash(key, capacity, i);
     InternalStringElement* elem = (InternalStringElement*) (table + index * elementSize);
@@ -139,7 +303,7 @@ internal_shash_get(void* table, const char* key)
     {
 	if (vstring_compare_length(elem->Key, key, length))
 	{
-	    table_header(table)->Index = index;
+	    header->Index = index;
 	    return table;
 	}
 
@@ -148,93 +312,102 @@ internal_shash_get(void* table, const char* key)
 	elem = (InternalStringElement*) (table + (index) * elementSize);
     }
 
-    table_header(table)->Index = -1;
+    header->Index = -1;
 
     return table;
 }
 
-/*
-  Int Hash Table (int Key)
-*/
+/* Extended Hash Table */
 
-force_inline i32
-get_hash(i32 key, i32 bucketNumber)
+i32
+_extended_get_prime(ExtendedTableHeader* header)
 {
-    u32 ukey = (u32) key;
-    ukey = ((ukey >> 16) ^ ukey) * 0x45d9f3b;
-    ukey = ((ukey >> 16) ^ ukey) * 0x45d9f3b;
-    ukey = (ukey >> 16) ^ ukey;
-    key = (i32) (ukey % bucketNumber);
-    return key;
+    i32 prime = g_Primes[header->NextPrime];
+    ++header->NextPrime;
+    return prime;
 }
 
 void*
-internal_hash_put(void* table, i32 key)
+_extended_table_grow(void* table, i32 elemSize, i32 isInt)
 {
-    vassert(table_capacity(table) != 0);
+    ExtendedTableHeader* newHeader;
+    i32 capacity;
+    i32 count;
 
-    i32 i = 1;
-    i32 index = -1;
-    i32 count = table_count(table);
-    i32 capacity = table_capacity(table);
-    i32 elementSize = table_element_size(table);
-
-    index = get_hash(key, capacity);
-    i32 itemsKey = *((i32*)(table + index * elementSize));
-    if (itemsKey == key)
-    {
-	goto return_label;
-    }
-
-    while (itemsKey != -1)
-    {
-	index = (get_hash(itemsKey, capacity) + i * get_hash(itemsKey + 1, capacity) + 1) % capacity;
-	itemsKey = *((i32*)(table + index * elementSize));
-	if (itemsKey == key)
-	{
-	    goto return_label;
-	}
-	++i;
-    }
-
-return_label:
-    table_header(table)->Index = index;
-    return table;
-}
-
-void*
-internal_hash_get(void* table, i32 key)
-{
     if (table == NULL)
     {
-	return NULL;
+	count = 53;
+	capacity = count * elemSize;
+
+	newHeader = (ExtendedTableHeader*) memory_allocate(capacity + sizeof(*newHeader));
+	newHeader->IntKeys = NULL;
+	newHeader->StringKeys = NULL;
     }
-
-    i32 i = 1;
-    i32 capacity = table_capacity(table);
-    i32 elementSize = table_element_size(table);
-    i32 index = get_hash(key, capacity);
-    InternalIntElement* elem = (InternalIntElement*) (table + index * elementSize);
-
-    while (elem != NULL && elem->Key != -1)
+    else
     {
-	if (elem->Key == key)
-	{
-	    table_header(table)->Index = index;
-	    return table;
-	}
+	ExtendedTableHeader* prevHeader = extended_table_header(table);
+	count = _extended_get_prime(prevHeader);
+	capacity = count * elemSize;
+	newHeader = (ExtendedTableHeader*) memory_allocate(capacity + sizeof(*newHeader));
+	newHeader->NextPrime = prevHeader->NextPrime;
 
-	++i;
-	index = get_hash(elem->Key, capacity);
-	elem = (InternalIntElement*) (table + (index) * elementSize);
+	GERROR("REALLOC: count=%d capacity=%d!\n", newHeader->Count, newHeader->Capacity);
+
+	if (isInt)
+	{
+	    newHeader->IntKeys = array_copy(prevHeader->IntKeys);
+	    newHeader->StringKeys = NULL;
+	}
+	else
+	{
+	    newHeader->IntKeys = NULL;
+	    newHeader->StringKeys = array_copy(prevHeader->StringKeys);
+	}
     }
 
-    table_header(table)->Index = -1;
+    newHeader->Count = 0;
+    newHeader->Capacity = count;
+    newHeader->ElementSize = elemSize;
 
-    return table;
+    if (isInt)
+    {
+	memset(newHeader->Buffer, -1, capacity);
+    }
+    else
+    {
+	memset(newHeader->Buffer, NULL, capacity);
+    }
+
+    return newHeader->Buffer;
 }
 
-void
-shash_free(void* table)
+void*
+_extended_table_reserve(const void* table, i32 elementsCount, i32 elementSize, i32 nextPrime, i32 isInt)
 {
+    ExtendedTableHeader* newHeader;
+    i32 capacity = elementsCount * elementSize;
+
+    newHeader = (ExtendedTableHeader*) memory_allocate(capacity + sizeof(*newHeader));
+    newHeader->Count = elementsCount;
+    newHeader->Capacity = capacity;
+    newHeader->ElementSize = elementSize;
+    newHeader->NextPrime = nextPrime;
+    newHeader->Capacity = capacity;
+    newHeader->IntKeys = NULL;
+    newHeader->StringKeys = NULL;
+
+    if (table != NULL)
+    {
+	ExtendedTableHeader* prevHeader = extended_table_header(table);
+	if (isInt)
+	{
+	    newHeader->IntKeys = array_copy(prevHeader->IntKeys);
+	}
+	else
+	{
+	    newHeader->StringKeys = array_copy(prevHeader->StringKeys);
+	}
+    }
+
+    return newHeader->Buffer;
 }

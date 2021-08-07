@@ -1,5 +1,4 @@
 #!/bin/bash
 
 cd ../
-./generate_codelite.sh "premake-simple-test.lua"
-./debug.sh
+./debug.sh SimpleTest "premake-simple-test.lua"

@@ -2,7 +2,7 @@
 #define SCENE_H
 
 #include "ECS.h"
-#include <Graphics/Renderer2D/EditorCamera.h>
+#include <Graphics/Camera/EditorCamera.h>
 #include <Utils/Types.h>
 
 typedef struct Scene

@@ -2,12 +2,17 @@
 #include <UI/ui.h>
 #include <ECS/Components/SpriteComponent.h>
 #include <ECS/Components/TransformComponent.h>
+#include <Graphics/KeyCodes.h>
+#include <Math/Math.h>
 #include "WorldOutliner.h"
 
 ImVec2 g_ViewportSize;
 static NativeWindow g_Window;
 static EditorCamera* g_Camera;
 static FrameBuffer* g_Framebuffer;
+
+static v2 g_Bounds[2];
+static ImVec2 g_Pos;
 
 static bool g_IsViewportFocused = false;
 static bool g_IsViewportHovered = false;
@@ -18,6 +23,9 @@ static i32 g_GizmoRotationKeyBinding = KEY_R;
 static i32 g_GizmoTranslationKeyBinding = KEY_T;
 static i32 g_GizmoScaleKeyBinding = KEY_S;
 static i32 g_SnapKeyBinding = KEY_LEFT_CONTROL;
+
+static v4 g_ColorPicker = v4_(0, 0, 0, 1);
+static i32 g_CurrentFramebuffer = 0;
 
 force_inline void
 guizmo(Scene* scene, Entity selectedEntity, EditorCamera* camera)
@@ -61,7 +69,7 @@ guizmo(Scene* scene, Entity selectedEntity, EditorCamera* camera)
 	}
     }
 
-    ImGuizmo_Manipulate(camera->Orthographic.ViewMatrix, camera->Orthographic.ProjectionMatrix, g_OperationType, LOCAL, transformComponent->Transform, NULL, useSnap ? snap : NULL, NULL, NULL);
+    ImGuizmo_Manipulate(camera->InternalCamera.View, camera->InternalCamera.Projection, g_OperationType, LOCAL, transformComponent->Transform, NULL, useSnap ? snap : NULL, NULL, NULL);
 }
 
 void
@@ -79,6 +87,17 @@ viewport(Scene* scene)
     static bool viewportOpen = true;
     if (igBegin("Viewport", &viewportOpen, ImGuiWindowFlags_None))
     {
+	ImVec2 minBounds;
+	ImVec2 maxBounds;
+	ImVec2 windowPos;
+	igGetWindowContentRegionMin(&minBounds);
+	igGetWindowContentRegionMax(&maxBounds);
+	igGetWindowPos(&windowPos);
+	igGetWindowPos(&g_Pos);
+
+	v2_assign(g_Bounds[0], minBounds.x + windowPos.x, minBounds.y + windowPos.y);
+	v2_assign(g_Bounds[1], maxBounds.x + windowPos.x, maxBounds.y + windowPos.y);
+
 	igSetItemDefaultFocus();
 
 	g_IsViewportFocused = igIsWindowFocused(ImGuiWindowFlags_None);
@@ -92,7 +111,7 @@ viewport(Scene* scene)
 	    framebuffer_invalidate(g_Framebuffer, g_ViewportSize.x, g_ViewportSize.y);
 	}
 
-	igImage((ImTextureID)g_Framebuffer->ColorAttachment, ImVec2_(g_ViewportSize.x, g_ViewportSize.y), ImVec2_(0, 1), ImVec2_(1, 0), ImVec4_(1, 1, 1, 1), ImVec4_(1, 1, 1, 0));
+	igImage((ImTextureID)g_Framebuffer->ColorAttachments[g_CurrentFramebuffer], ImVec2_(g_ViewportSize.x, g_ViewportSize.y), ImVec2_(0, 1), ImVec2_(1, 0), ImVec4_(1, 1, 1, 1), ImVec4_(1, 1, 1, 0));
 
 	Entity entity = world_outliner_get_selected_entity();
 	if (entity.Name)
@@ -103,13 +122,28 @@ viewport(Scene* scene)
     {
 	igSliderFloat("ZoomLevel", &g_Camera->ZoomLevel, 0.1f, 10.0f, "%0.1f", ImGuiSliderFlags_None);
 	igSliderFloat("Speed", &g_Camera->Speed, 0.1f, 10.0f, "%0.1f", ImGuiSliderFlags_None);
+	igSliderFloat3("Position", &g_Camera->Position, -10.f, 10.f, "%0.1f", ImGuiSliderFlags_None);
     }
+
+    igColorButton("MyColor##3c", *(ImVec4*)&g_ColorPicker, ImGuiColorEditFlags_NoBorder, ImVec2_(80, 80));
 
     igEnd();
 
     igPopStyleVar(1);
 
     igEnd();
+}
+
+v2*
+viewport_get_bounds()
+{
+    return &g_Bounds[0];
+}
+
+ImVec2
+viewport_get_pos()
+{
+    return g_Pos;
 }
 
 void
@@ -124,21 +158,47 @@ viewport_on_update(f32 timestep)
 	{
 	    if (window_is_key_pressed(window, KEY_W))
 	    {
-		camera->Orthographic.Position[1] += camera->Speed * timestep;
+		camera->Position[1] += camera->Speed * timestep;
 	    }
 	    if (window_is_key_pressed(window, KEY_S))
 	    {
-		camera->Orthographic.Position[1] -= camera->Speed * timestep;
+		camera->Position[1] -= camera->Speed * timestep;
 	    }
 	    if (window_is_key_pressed(window, KEY_A))
 	    {
-		camera->Orthographic.Position[0] -= camera->Speed * timestep;
+		camera->Position[0] -= camera->Speed * timestep;
 	    }
 	    if (window_is_key_pressed(window, KEY_D))
 	    {
-		camera->Orthographic.Position[0] += camera->Speed * timestep;
+		camera->Position[0] += camera->Speed * timestep;
 	    }
 	}
+    }
+
+    v2* bounds = viewport_get_bounds();
+    ImVec2 mousePos;
+    igGetMousePos(&mousePos);
+    ImVec2 viewportPos = viewport_get_pos();
+    v2 res;
+    res[0] = mousePos.x - viewportPos.x;
+    res[1] = mousePos.y - viewportPos.y;
+    mousePos.x -= bounds[0][0];
+    mousePos.y -= bounds[0][1];
+    v2 viewportSize;
+    v2_sub(bounds[1], bounds[0], viewportSize);
+    mousePos.y = viewportSize[1] - mousePos.y;
+    i32 mx = (i32)mousePos.x;
+    i32 my = (i32)mousePos.y;
+
+    if (mx >= 0 && my >= 0 && mx < i32(viewportSize[0]) && my < i32(viewportSize[1]))
+    {
+	//i32 id = framebuffer_read_pixel(&g_Framebuffer, 1, mx, my);
+	//GWARNING("[%d %d] %d\n", mx, my, id);
+	// GWARNING("[%f]\n", timestep);
+
+	// for debug purposes
+	framebuffer_read_pixel_color(g_Framebuffer, g_CurrentFramebuffer, mx, my, g_ColorPicker);
+	// GWARNING("[%f %f %f %f]\n", g_ColorPicker[0], g_ColorPicker[1], g_ColorPicker[2], g_ColorPicker[3]);
     }
 
     editor_camera_on_update(camera);
@@ -159,9 +219,9 @@ viewport_on_event(Event* event)
 	switch (keyEvent->KeyCode)
 	{
 	case KEY_SPACE:
-	    g_Camera->Orthographic.Position[0] = 3.0f;
-	    g_Camera->Orthographic.Position[1] = 1.5f;
-	    g_Camera->Orthographic.Position[2] = 0.0f;
+	    g_Camera->Position[0] = 3.0f;
+	    g_Camera->Position[1] = 1.5f;
+	    g_Camera->Position[2] = 0.0f;
 	    event->IsHandled = 1;
 	    break;
 	case KEY_F11:

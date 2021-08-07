@@ -44,6 +44,7 @@ typedef double f64;
 #define OffsetOf(Type, Field) ( (u64) (&(((Type*)0)->Field)) )
 #define AlignmentOf(Type) ((u64)&(((struct{char c; Type i;}*)0)->i))
 #define ARRAY_LENGTH(x) (sizeof(x) / sizeof(x[0]))
+#define ARRAY_COUNT(x) (sizeof(x) / sizeof(x[0]))
 #define TO_STRING(x) #x
 #define FMOD(x, v) (f32) (((i32)(x)) % v + ((x) - (i32)(x)))
 #define KB(x) ((i64)1024 * (i64)x)
@@ -81,10 +82,10 @@ typedef double f64;
 
 #define vassert(condition) assert(condition)
 
-#define vassert_message(message, condition) \
-    {					    \
-	GERROR(message);		    \
-	assert(condition);		    \
+#define vassert_message(condition, message, ...)	\
+    {							\
+	GERROR((message), (__VA_ARGS__));		\
+	assert((condition));				\
     }
 
 #endif

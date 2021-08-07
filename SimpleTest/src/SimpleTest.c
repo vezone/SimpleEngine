@@ -19,10 +19,17 @@
 static NativeWindow g_Window;
 static ImFont** g_Fonts = NULL;
 
-void simple_test_on_attach(NativeWindow window)
+void
+simple_test_on_attach(NativeWindow window)
 {
     g_Window = window;
 
+    window_set_vsync(5);
+
+    ProfilingTest profilingTest;
+    profiling_test_init(&profilingTest);
+
+#if 0
     //memory_allocator_test();
     base_math_test();
     v2_test();
@@ -34,6 +41,8 @@ void simple_test_on_attach(NativeWindow window)
     hash_test();
     ecs_test();
     string_builder_test();
+#endif
+    json_parser_test();
 
     GSUCCESS("Ran all test's!\n");
 
@@ -151,11 +160,10 @@ void simple_test_on_ui()
 
     static bool isDemoOpen = 1;
     static bool isTestPanelOpen = 1;
-
+    static char* testText = "No text";
     const char** fileNames = test_get_filenames();
     i32 length = array_len(fileNames);
 
-    static char* testText = "No text";
     if (igBegin("Test's", &isTestPanelOpen, ImGuiWindowFlags_None))
     {
 	i32 state = 0;
@@ -246,7 +254,10 @@ void simple_test_on_ui()
     if (igBegin("Test Results", NULL, ImGuiWindowFlags_None))
     {
 	igPushFont(g_Fonts[1]);
-	igText(testText);
+
+	if (testText)
+	    igText(testText);
+
 	igPopFont();
 	igEnd();
     }

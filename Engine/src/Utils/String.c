@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include <assert.h>
 
 #include "Math/Math.h"
@@ -74,8 +75,9 @@ vstring(const char* string)
 char*
 vstring_allocate(i32 length)
 {
-    char* newString = (char*) internal_memory_allocate((length + 1) * sizeof(char));
-    vmemset(newString, '\0', length*sizeof(char));
+    i32 size = (length + 1) * sizeof(char);
+    char* newString = (char*) internal_memory_allocate(size);
+    vmemset(newString, '\0', size);
 
     return newString;
 }
@@ -366,31 +368,31 @@ vstring_last_index_of_string(const char* input, const char* string)
 
     if (inputLength <= 0 || stringLength <= 0)
     {
-        return -1;
+	return -1;
     }
 
     flag = -1;
     i32 temp = 0;
     for (i = inputLength; i >= 0; i--)
     {
-        for (j = stringLength; j >= 0; j--)
-        {
-            if (input[i - temp] == string[j])
-            {
-                flag = 1;
-            }
-            else
-            {
-                flag = -1;
-                break;
-            }
-            ++temp;
-        }
+	for (j = stringLength; j >= 0; j--)
+	{
+	    if (input[i - temp] == string[j])
+	    {
+		flag = 1;
+	    }
+	    else
+	    {
+		flag = -1;
+		break;
+	    }
+	    ++temp;
+	}
 
-        if (flag == 1)
-        {
-            return temp;
-        }
+	if (flag == 1)
+	{
+	    return temp;
+	}
     }
 
     return -1;
@@ -630,7 +632,7 @@ vstring_i32_to_string(char* input, i32 number)
 
 
 void
-vmemset(void* dest, char value, size_t bytesCount)
+vmemset(void* restrict dest, char value, size_t bytesCount)
 {
     i32 i;
     i8* destPtr = (i8*)dest;
@@ -643,7 +645,22 @@ vmemset(void* dest, char value, size_t bytesCount)
 }
 
 void
-vmemcpy(void* dest, const void* src, size_t bytesCount)
+vmemcpy(void* restrict dest, const void* restrict src, size_t bytesCount)
+{
+    i32 i;
+    u8* destPtr = (u8*)dest;
+    u8* srcPtr = (u8*)src;
+
+    for (i = 0; i < bytesCount; i++)
+    {
+	*destPtr = *srcPtr;
+	destPtr = destPtr + 1;
+	srcPtr = srcPtr + 1;
+    }
+}
+
+void
+vmemcpy_wo_restrict(void* dest, const void* src, size_t bytesCount)
 {
     i32 i;
     u8* destPtr = (u8*)dest;

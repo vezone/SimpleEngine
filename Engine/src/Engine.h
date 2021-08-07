@@ -10,10 +10,8 @@
 #include "Graphics/Shader.h"
 #include "Graphics/Texture2D.h"
 #include "Graphics/Window.h"
-#include "Graphics/Camera.h"
-//Graphics -> Renderer
-#include "Graphics/Renderer2D/OrthographicCamera.h"
-#include "Graphics/Renderer2D/EditorCamera.h"
+#include "Graphics/Camera/Camera.h"
+#include "Graphics/Camera/EditorCamera.h"
 #include "Graphics/Renderer2D/Renderer2D.h"
 
 //Simple ui
@@ -42,7 +40,9 @@
 #include "Utils/MemoryAllocator.h"
 #include "Utils/Path.h"
 #include "Utils/Asset.h"
-#include "Utils/JSONParser.h"
+#include "Utils/Profiler.h"
+
+#include "Utils/JsonParser.h"
 
 //Platform
 #include "Platform/Linux/Linux.h"

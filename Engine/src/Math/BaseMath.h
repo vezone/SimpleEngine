@@ -114,4 +114,16 @@ deg(f32 radians)
     return (180 / MATH_PI) * radians;
 }
 
+force_inline i32
+ROUND_MAX(f32 value)
+{
+    return (i32)(value + 1);
+}
+
+force_inline i32
+ROUND_MIN(f32 value)
+{
+    return (i32)(value - 1);
+}
+
 #endif

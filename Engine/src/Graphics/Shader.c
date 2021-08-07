@@ -61,12 +61,13 @@ shader_error_check(u32 shaderID)
     glGetShaderiv(shaderID, GL_COMPILE_STATUS, &isCompiled);
     if (isCompiled == GL_FALSE)
     {
+	GERROR("\n\nShader compilation ERROR!!!\n\n");
 	i32 logLength = 0;
 	char errorMessage[1024];
 	glGetShaderInfoLog(shaderID, 1024, &logLength, errorMessage);
-	if (logLength > 0)
+	//if (logLength > 0)
 	{
-	    GERROR("shader_error_check[is_compiled: %d, log_length:%d]: %s\n", isCompiled, logLength, errorMessage);
+	    GERROR("shader_error_check[is_compiled: %d, log_length:%d]:\n        %s\n", isCompiled, logLength, errorMessage);
 	}
     }
 }

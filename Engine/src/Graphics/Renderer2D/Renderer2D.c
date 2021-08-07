@@ -12,7 +12,7 @@
 */
 
 static Shader* g_Shader;
-static OrthographicCamera* g_Camera;
+static Camera* g_Camera;
 static BatchRenderer2DData g_RendererData =
 {
     .DataCount = 0,
@@ -262,7 +262,7 @@ texture_list_submit_texture_or_flush(BatchRenderer2DData* rendererData, Texture2
 }
 
 void
-renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Texture2D* whiteTexture, OrthographicCamera* camera)
+renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Texture2D* whiteTexture, Camera* camera)
 {
     VertexBuffer vbo = {};
     IndexBuffer ibo = {};
@@ -392,7 +392,7 @@ renderer_flush()
     size = g_RendererData.DataCount * sizeof(f32);
     vertex_buffer_set_data(g_RendererData.Vao.Vertex, g_RendererData.Data, size);
 
-    shader_set_m4(g_Shader, "u_ViewProjection", 1, 0, g_Camera->ViewProjectionMatrix[0]);
+    shader_set_m4(g_Shader, "u_ViewProjection", 1, 0, &g_Camera->ViewProjection[0]);
     shader_set_int1(g_Shader, "u_Textures", g_RendererData.List.NextTextureIndex, g_TextureIndices);
 
     glDrawElements(GL_TRIANGLES, g_RendererData.IndexCount, GL_UNSIGNED_INT, NULL);

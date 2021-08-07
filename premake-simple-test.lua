@@ -88,7 +88,8 @@ project "SimpleTest"
     defines
     {
       "GLFW_INCLUDE_NONE",
-      "CIMGUI_DEFINE_ENUMS_AND_STRUCTS"
+      "CIMGUI_DEFINE_ENUMS_AND_STRUCTS",
+      "_GNU_SOURCE"
     }
 
     includedirs
@@ -107,12 +108,7 @@ project "SimpleTest"
       "Engine",
       "glad",
       "GLFW",
-      "cimgui",
-      "stdc++",
-      "GL", "GLU",
-      "X11","dl",
-      "Xinerama", "Xcursor", "m",
-      "Xxf86vm", "Xrandr", "pthread", "Xi"
+      "cimgui"
     }
 
     filter "configurations:Debug"
@@ -141,9 +137,14 @@ project "SimpleTest"
       optimize "On"
 
     filter "system:linux"
-      defines
+      defines { "LINUX_PLATFORM" }
+      links
       {
-	 "LINUX_PLATFORM"
+	 "GL", "GLU",
+	 "X11","dl",
+	 "Xinerama", "Xcursor", "m",
+	 "Xxf86vm", "Xrandr", "pthread", "Xi",
+	 "stdc++"
       }
 
     filter "system:windows"

@@ -1,14 +1,14 @@
 #ifndef RENDERER2D_H
 #define RENDERER2D_H
 
-#include "Graphics/Buffer.h"
-#include "Graphics/Shader.h"
-#include "Graphics/Renderer2D/OrthographicCamera.h"
-#include "Graphics/Texture2D.h"
-#include "Utils/Types.h"
-#include "Utils/Array.h"
-#include "ECS/ECS.h"
-#include "Math/Math.h"
+#include <Graphics/Buffer.h>
+#include <Graphics/Shader.h>
+#include <Graphics/Texture2D.h>
+#include <Graphics/Camera/Camera.h>
+#include <Utils/Types.h>
+#include <Utils/Array.h>
+#include <ECS/ECS.h>
+#include <Math/Math.h>
 
 static void
 renderer_set_viewport(u32 width, u32 height)
@@ -92,7 +92,7 @@ typedef struct BatchRenderer2DData
     u32 Indices[IndicesCount];
 } BatchRenderer2DData;
 
-void renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Texture2D* whiteTexture, OrthographicCamera* camera);
+void renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Texture2D* whiteTexture, Camera* camera);
 
 /* Submit functions */
 

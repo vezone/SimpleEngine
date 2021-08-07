@@ -3,6 +3,8 @@
 
 #include "Types.h"
 
+#define VSTRING_EMPTY ""
+
 typedef struct IStringHeader
 {
     i32 Length;
@@ -17,6 +19,8 @@ typedef struct IStringHeader
 	const char* istr = istring_get_buffer(str);			\
 	(istr != NULL) ? istr : internal_istring(str);			\
     })
+
+#define vstring_format(out, format, ...) sprintf(out, format, __VA_ARGS__)
 
 const char* internal_istring(const char* src);
 const char* istring_get_buffer(const char* src);
@@ -60,8 +64,9 @@ void vstring_parse_f64(char* input, f64 number);
 
 void vstring_i32_to_string(char* input, i32 number);
 
-void vmemset(void* dest, char value, size_t bytesCount);
-void vmemcpy(void* dest, const void* src, size_t bytesCount);
+void vmemset(void* restrict dest, char value, size_t bytesCount);
+void vmemcpy(void* restrict dest, const void* restrict src, size_t bytesCount);
+void vmemcpy_wo_restrict(void* dest, const void* src, size_t bytesCount);
 
 force_inline char
 vchar_to_upper(char character)

@@ -137,12 +137,42 @@ vmemset_test()
 void
 vmemcpy_test()
 {
-    const char* src1 = "This is string i want to copy";
-    char* dest1 = vstring_allocate(vstring_length(src1));
-    vmemcpy(dest1, src1, vstring_length(src1));
+    const char* src1 = "This is string i want to copy!!!";
+    i32 length = vstring_length(src1);
+    char* dest1 = vstring_allocate(length);
+    vmemcpy(dest1, src1, length);
 
     String_Value(dest1);
     String_Equal(dest1, src1);
+}
+
+static char* g_MemcpyTestString = "This is string i want to copy!!!";
+
+void
+vmemcpy_profiling_test()
+{
+    const char* src1 = g_MemcpyTestString;
+    i32 length = vstring_length(src1);
+    char* dest1 = vstring_allocate(length);
+    vmemcpy(dest1, src1, length);
+}
+
+void
+vmemcpy_wo_restrict_profiling_test()
+{
+    const char* src1 = g_MemcpyTestString;
+    i32 length = vstring_length(src1);
+    char* dest1 = vstring_allocate(length);
+    vmemcpy_wo_restrict(dest1, src1, length);
+}
+
+void
+vmemcpy_standart_profiling_test()
+{
+    const char* src2 = g_MemcpyTestString;
+    i32 length = vstring_length(src2);
+    char* dest2 = vstring_allocate(length);
+    memcpy(dest2, src2, length);
 }
 
 void string_test()

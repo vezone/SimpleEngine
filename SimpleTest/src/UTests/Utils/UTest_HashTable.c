@@ -1,8 +1,8 @@
 #include "UTest_HashTable.h"
 
 #include "UTests/Test.h"
-#include "Utils/HashTable.h"
-#include "Utils/Logger.h"
+#include <Utils/HashTable.h>
+#include <Utils/Logger.h>
 
 /*
   String Hash Table (const char* Key)
@@ -112,27 +112,27 @@ shash_put_and_get_for_base_type_value_struct()
 void
 shash_realloc_test()
 {
+    i32 count = 52;
     TypeC* table = NULL;
     char str[10];
     memset(str, '\0', 10 * sizeof(char));
-    for (i32 i = 0; i < 60; i++)
+    for (i32 i = 0; i < count; i++)
     {
 	sprintf(str, "%s%d", "Key", i);
 	shash_put(table, str, i);
     }
 
-    Condition(table_capacity(table) == 79);
+    Int_Value(table_next_prime(table));
+    Condition(table_capacity(table) == 97);
+    Int_Value(table_count(table));
+    Int_Value(table_capacity(table));
 
-    for (i32 i = 0; i < 60; i++)
+    for (i32 i = 0; i < count; i++)
     {
 	sprintf(str, "%s%d", "Key", i);
 	i32 value = shash_get(table, str);
-	//TODO(bies): fix bug with StringBuilder and write utest for it
-	//Condition(value == i);
+	Int_Value(value);
     }
-
-    Int_Value(table_count(table));
-    Int_Value(table_capacity(table));
 }
 
 void
@@ -245,17 +245,13 @@ hash_realloc_test()
     TypeI* table = NULL;
     char str[10];
     memset(str, '\0', 10 * sizeof(char));
-    for (i32 i = 0; i < 60; i++)
+    for (i32 i = 0; i < 100; i++)
     {
 	sprintf(str, "%s%d", "Val", i);
-	if (i == 11)
-	{
-
-	}
 	hash_put(table, i, str);
     }
 
-    Condition(table_capacity(table) == 79);
+    Condition(table_capacity(table) == 193);
     Int_Value(table_count(table));
     Int_Value(table_capacity(table));
 }
@@ -272,6 +268,55 @@ hash_same_key_test()
 }
 
 void
+hash_crash_test()
+{
+    i32 count = 1000;
+    TypeI* table = NULL;
+
+    for (i32 i = 0; i < count; i++)
+    {
+	GERROR("i : %d\n", i);
+	char value[256];
+	vstring_format(value, "%s%d", "Val", i);
+	hash_put(table, i, (const char*)istring(value));
+    }
+
+    const char* val = hash_get(table, 0);
+    vassert(val);
+    String_Equal(val, "Val0");
+
+    for (i32 i = count - 1; i >= 0; --i)
+    {
+	const char* val0 = hash_get(table, i);
+	String_Value(val0);
+    }
+}
+
+void
+extended_hash_test()
+{
+    TypeI* table = NULL;
+    extended_hash_put(table, 1, "Val0");
+    extended_hash_put(table, 1, "Val1");
+    extended_hash_put(table, 2, "Val2");
+    extended_hash_put(table, 3, "Val3");
+    extended_hash_put(table, 4, "Val4");
+
+    const char* val0 = extended_hash_get(table, 1);
+    vassert(val0);
+    String_Equal(val0, "Val1");
+
+    i32* keys = extended_hash_get_keys(table);
+
+    i32 count = array_count(keys);
+    for (i32 i = 0; i < count; i++)
+    {
+	Int_Value(keys[i]);
+    }
+}
+
+
+void
 hash_test()
 {
     TEST(shash_put_and_get_for_strings());
@@ -284,4 +329,8 @@ hash_test()
     TEST(hash_put_and_get_for_value_struct_test());
     TEST(hash_realloc_test());
     TEST(hash_same_key_test());
+
+    TEST(hash_crash_test());
+
+    //TEST(extended_hash_test());
 }

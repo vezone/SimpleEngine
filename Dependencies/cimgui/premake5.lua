@@ -41,13 +41,17 @@ project "cimgui"
     staticruntime "On"
 
     filter "configurations:Debug"
-    files
-    {
-       "%{prj.name}/src/imgui/imgui_demo.cpp"
-    }
-    runtime "Debug"
-    symbols "on"
+      defines { "ENGINE_DEBUG" }
+      files
+      {
+	 "%{prj.name}/src/imgui/imgui_demo.cpp"
+      }
+      runtime "Debug"
+      symbols "On"
 
     filter "configurations:Release"
-    runtime "Release"
-    optimize "on"
+      defines { "ENGINE_RELEASE" }
+      optimize "On"
+      buildoptions { "-O3" }
+      runtime "Release"
+      optimize "on"

@@ -22,7 +22,6 @@ void
 cglm_get_transform(vec3 position, vec2 size, f32 angle, mat4 transform)
 {
     vec3 scaleVec = { size[0], size[1], 1.0f };
-    vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
     mat4 translation = GLM_MAT4_IDENTITY_INIT;
     mat4 rotation = GLM_MAT4_IDENTITY_INIT;
     mat4 scale = GLM_MAT4_IDENTITY_INIT;
@@ -116,6 +115,32 @@ m4_get_transform_test()
 }
 
 void
+m4_get_transform_profiling()
+{
+    v3 position = v3_(1.0f, 1.0f, 1.0f);
+    v2 size = v2_(1.0f, 1.0f);
+    f32 angle = 0.0f;
+    v3 rotation = v3_(0.0f, 0.0f, angle);
+    m4 transform = M4_IDENTITY;
+
+    m4_transform(position, size, rotation, transform);
+    M4_Value(transform);
+}
+
+void
+cglm_get_transform_profiling()
+{
+    v3 position = v3_(1.0f, 1.0f, 1.0f);
+    v2 size = v2_(1.0f, 1.0f);
+    f32 angle = 0.0f;
+    v3 rotation = v3_(0.0f, 0.0f, angle);
+    mat4 cglmTransform = GLM_MAT4_IDENTITY_INIT;
+
+    cglm_get_transform(position, size, angle, cglmTransform);
+    M4_Value(cglmTransform);
+}
+
+void
 m4_apply_transform_test()
 {
     v3 xyz = v3_(1.0f, 1.0f, 1.0f);
@@ -167,4 +192,7 @@ m4_test()
     TEST(m4_get_transform_test());
     TEST(m4_apply_transform_test());
     TEST(m4_check_transform_component());
+
+    TEST(m4_get_transform_profiling());
+    TEST(cglm_get_transform_profiling());
 }

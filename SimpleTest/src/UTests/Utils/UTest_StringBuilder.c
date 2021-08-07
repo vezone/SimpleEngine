@@ -49,6 +49,27 @@ string_builder_appends_test()
 }
 
 void
+string_builder_appends_big_string_test()
+{
+    char* sb = NULL;
+
+    string_builder_appends(sb, "first\n");
+
+    for (i32 i = 0; i < 100000; i++)
+    {
+	string_builder_appends(sb, "01234567890123456789012345678901234567890123456789\n");
+    }
+
+    string_builder_appends(sb, "last\n");
+
+    Int_Value(string_builder_count(sb));
+    Int_Value(string_builder_capacity(sb));
+    //GERROR("%s\n", sb);
+    String_Value(string_builder_buffer(sb));
+
+}
+
+void
 string_builder_appendf_test()
 {
     char* sb = NULL;
@@ -65,4 +86,5 @@ string_builder_test()
     TEST(string_builder_appendc_test());
     TEST(string_builder_appends_test());
     TEST(string_builder_appendf_test());
+    TEST(string_builder_appends_big_string_test());
 }

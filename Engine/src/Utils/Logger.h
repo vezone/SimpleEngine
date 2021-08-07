@@ -108,4 +108,6 @@
 #define TEXTUREDEBUG(format, ...)
 #endif
 
+#define I32P(x) GSUCCESS("%s: %d\n", #x, x)
+
 #endif

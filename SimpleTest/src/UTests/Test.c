@@ -1,11 +1,16 @@
 #include "Test.h"
-#include <Utils/stb_ds.h>
 #include <Utils/Logger.h>
 #include <Utils/Array.h>
+#include <Utils/HashTable.h>
+#include <Utils/Profiler.h>
 #include <assert.h>
 
 static i8 g_IsInitialized = 0;
+static i8 g_IsProfilingInitialized = 0;
+
 static TestTable g_TestTable;
+static ProfilingTest* g_ProfilingTest;
+
 const char* g_CurrentFunction;
 static TestInfo g_TestInfo;
 
@@ -36,9 +41,8 @@ file_info_get_function_result(FileInfo* fileInfo, const char* functionName)
 }
 
 void
-file_info_add_function_result(FileInfo* fileInfo, const char* functionName, i32 code, const char* message)
+file_info_add_function_result(FileInfo* fileInfo, FunctionResult* functionResult, i32 code, const char* message)
 {
-    FunctionResult* functionResult = file_info_get_function_result(fileInfo, functionName);
     if (functionResult != NULL)
     {
 	if (!code)
@@ -46,18 +50,19 @@ file_info_add_function_result(FileInfo* fileInfo, const char* functionName, i32 
 	    functionResult->IsSuccess = code;
 	}
 
-	array_push(functionResult->Codes, code);
 	string_builder_appendf(functionResult->Builder, "%s [Result: %d]\n", message, code);
+
+	array_push(functionResult->Codes, code);
     }
     else
     {
 	functionResult = malloc(sizeof(*functionResult));
 	functionResult->Codes = NULL;
 	functionResult->Builder = NULL;
-	string_builder_appendf(functionResult->Builder, "%s [Result: %d]\n", message, code);
 	array_push(functionResult->Codes, code);
 	functionResult->IsSuccess = code;
 
+	string_builder_appendf(functionResult->Builder, "%s [Result: %d]\n", message, code);
 	if (code)
 	{
 	    g_TestInfo.SuccessCount++;
@@ -104,7 +109,8 @@ test_table_add_file_info(TestTable* testTable, const char* filename, i8 code, co
 	array_push(testTable->Infos, fileInfo);
     }
 
-    file_info_add_function_result(fileInfo, g_CurrentFunction, code, message);
+    FunctionResult* functionResult = file_info_get_function_result(fileInfo, g_CurrentFunction);
+    file_info_add_function_result(fileInfo, functionResult, code, message);
 }
 
 void test_set_function(const char* function)
@@ -113,15 +119,22 @@ void test_set_function(const char* function)
 }
 
 void
-test(i8 code, const char* filename, const char* message)
+test_base(i8 code, const char* filename, const char* message)
 {
     vassert(g_CurrentFunction);
     vassert(filename);
-    vassert(message);
 
     const char* ifilename = path_get_filename_interning(filename);
     vassert(ifilename);
     vassert(ifilename != NULL);
+
+    test_table_add_file_info(&g_TestTable, ifilename, code, message);
+}
+
+void
+test(i8 code, const char* filename, const char* message)
+{
+    vassert(message);
 
     if (!g_IsInitialized)
     {
@@ -133,7 +146,54 @@ test(i8 code, const char* filename, const char* message)
 	g_TestInfo.ErrorsCount = 0;
     }
 
-    test_table_add_file_info(&g_TestTable, ifilename, code, message);
+    test_base(code, filename, message);
+}
+
+force_inline void
+profiling_test_table_add(ProfilingTest* profilingTest, const char* file, const char* function, const char* profilingResult)
+{
+    ProfilingFunctionResult* profilingFunctionResult = shash_get(profilingTest->FileInfoTable, file);
+    shash_put(profilingFunctionResult, function, profilingResult);
+    //  if (!profilingFunctionResult)
+    {
+//	shash_put(profilingTest->FileInfoTable, file, profilingFunctionResult);
+    }
+}
+
+void
+profiling_test_init(ProfilingTest* profilingTest)
+{
+    profilingTest->FileInfoTable = NULL;
+
+    g_ProfilingTest = profilingTest;
+}
+
+ProfilingTest*
+profiling_test_get()
+{
+    return g_ProfilingTest;
+}
+
+void
+profiling_test(ProfilingTest* profilingTest, const char* filename, const char* profilingResult)
+{
+    vassert(profilingTest);
+    vassert(g_CurrentFunction);
+    vassert(filename);
+
+    const char* ifilename = path_get_filename_interning(filename);
+    vassert(ifilename);
+    vassert(ifilename != NULL);
+
+    const char* iProfilingResult = NULL;
+    if (profilingResult)
+    {
+	iProfilingResult = istring(profilingResult);
+	vassert(iProfilingResult);
+	vassert(iProfilingResult != NULL);
+    }
+
+    profiling_test_table_add(profilingTest, ifilename, g_CurrentFunction, iProfilingResult);
 }
 
 FileInfo*

@@ -141,7 +141,7 @@ window_set_icon(NativeWindow* window, const char* path)
     i32 isIconPathExist = path_is_file_exist(path);
     if (!isIconPathExist)
     {
-	vassert_message("File does not exist!\n", isIconPathExist);
+	vassert(isIconPathExist && "Window: Icon path does not exist!");
     }
     GLFWimage image = window_load_icon(path);
     glfwSetWindowIcon(window->GlfwWindow, 1, &image);

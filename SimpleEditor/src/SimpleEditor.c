@@ -5,6 +5,7 @@
 #include "EngineControls/FileDialog.h"
 #include "EngineControls/ViewportControl.h"
 #include "EngineControls/WorldOutliner.h"
+#include "EngineControls/PhysicsPanel.h"
 
 static NativeWindow g_Window;
 static char WindowTitle[32];
@@ -13,6 +14,9 @@ static Scene g_Scene;
 static FrameBuffer g_Framebuffer;
 static Renderer2DStatistics g_RendererStatistics;
 static Shader g_Shader;
+static i32 g_IsPhysicsEnabled;
+
+
 
 void
 simple_editor_on_attach(NativeWindow window)
@@ -20,9 +24,24 @@ simple_editor_on_attach(NativeWindow window)
     f32 aspectRatio = window.Width / window.Height;
 
     g_Window = window;
+    f32 ZoomLevel;
+    f32 AspectRatio;
+    f32 Speed;
+    f32 Rotation;
+    v3 Position;
+    v3 Axis;
 
-    EditorCameraSettings settings = (EditorCameraSettings) { .ZoomLevel = 5.0f, .AspectRatio = aspectRatio, .Speed = 5.0f };
-    g_Camera = editor_camera_create(5.0f * aspectRatio, 5.0f * aspectRatio, 5.0f, -5.0f, v3_(0, 0, 0), settings);
+    EditorCameraSettings settings = (EditorCameraSettings)
+	{
+	    .ZoomLevel = 5.0f,
+	    .AspectRatio = aspectRatio,
+	    .Speed = 5.0f,
+	    .Rotation = 0,
+	    .Position = v3_wo_convert(0, 0, 0),
+	    .Axis = v3_wo_convert(0, 0, 1)
+	};
+
+    g_Camera = editor_camera_create(5.0f * aspectRatio, 5.0f * aspectRatio, 5.0f, -5.0f, settings);
     window_set_vsync(3);
     window_set_icon(&g_Window, "resources/Logo1.png");
 
@@ -49,10 +68,15 @@ simple_editor_on_attach(NativeWindow window)
 	    return;
 	}
 	Texture2D* whiteTexture = texture2d_create(asset_texture("default/white_texture.png"));
-	renderer_batch_init(&g_RendererStatistics, &g_Shader, whiteTexture, &g_Camera.Orthographic);
+
+	renderer_batch_init(&g_RendererStatistics, &g_Shader, whiteTexture, &g_Camera.InternalCamera);
     }
 
-    framebuffer_invalidate(&g_Framebuffer, window.Width, window.Height);
+    FrameBufferType* types = NULL;
+    array_push(types, FRAMEBUFFER_TYPE_RGBA8);
+    // array_push(types, FRAMEBUFFER_TYPE_RGBA8);
+    array_push(types, FRAMEBUFFER_TYPE_DEPTH24_STENCIL8);
+    framebuffer_create(&g_Framebuffer, window.Width, window.Height, types);
 
     scene_create(&g_Scene, &g_Camera);
 
@@ -63,11 +87,12 @@ simple_editor_on_attach(NativeWindow window)
     Entity rectangleEntity = entity_create(&g_Scene, "Blue Rectangle");
     ECS_ENTITY_ADD_COMPONENT(g_Scene.World, rectangleEntity.ID, SpriteComponent);
     ECS_ENTITY_SET_COMPONENT(g_Scene.World, rectangleEntity.ID, SpriteComponent, SpriteComponent_Color(blueColor));
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, rectangleEntity.ID, TransformComponent, TransformComponent_(v3_(-2.47f, -1.43f, 1.0f), v3_(3.29f, 1.91f, 1.0f), v3_(0.0f, 0.0f, .0f)));
 
     Entity yellowRectangle = entity_create(&g_Scene, "Yellow Rectangle");
     ECS_ENTITY_ADD_COMPONENT(g_Scene.World, yellowRectangle.ID, SpriteComponent);
     // TransformComponent_(position, scale, rotation)
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, yellowRectangle.ID, TransformComponent, TransformComponent_(v3_(-4.5f, -2.5f, 1.0f), v3_(3.0f, 3.0f, 1.0f), v3_(0.0f, 0.0f, 25.0f)));
+    ECS_ENTITY_SET_COMPONENT(g_Scene.World, yellowRectangle.ID, TransformComponent, TransformComponent_(v3_(2.11f, -1.58f, 1.0f), v3_(3.64f, 2.96f, 1.0f), v3_(0.0f, 0.0f, .0f)));
     ECS_ENTITY_SET_COMPONENT(g_Scene.World, yellowRectangle.ID, SpriteComponent, SpriteComponent_Color(yellowColor));
 
     Entity chibi = entity_create(&g_Scene, "Chibi Rectangle");
@@ -91,11 +116,17 @@ simple_editor_on_update(f32 timestep)
 {
     framebuffer_bind(&g_Framebuffer);
     renderer_reset_statistics(&g_RendererStatistics, timestep);
-    renderer_clear(v4_(0.2f, 0.245f, 0.356f, 1.0f));
+    //renderer_clear(v4_(0.2f, 0.245f, 0.356f, 1.0f));
+    //renderer_clear(v4_(0.1f, 0.1f, 0.1f, 1.0f));
+    //renderer_clear(v4_(0.111f, 0.1f, 0.1f, 1.0f));
     renderer_clear(v4_(0.1f, 0.1f, 0.1f, 1.0f));
-    renderer_clear(v4_(0.111f, 0.1f, 0.1f, 1.0f));
 
     viewport_on_update(timestep);
+
+    if (g_IsPhysicsEnabled)
+    {
+
+    }
 
     scene_on_update(&g_Scene);
 
@@ -306,11 +337,6 @@ style_panel()
 	}
 
 	igEnd();
-#if 0
-	colors[ImGuiCol_TitleBg] = ImVec4_(.15, .1505, .151, 1.0);
-	colors[ImGuiCol_TitleBgActive] = ImVec4_(.15, .1505, .151, 1.0);
-	colors[ImGuiCol_TitleBgCollapsed] = ImVec4_(.95, .1505, .951, 1.0);
-#endif
     }
 }
 
@@ -363,6 +389,7 @@ simple_editor_on_ui_render()
     viewport(&g_Scene, &g_Camera, &g_Framebuffer);
     renderer_statistic_panel();
     style_panel();
+    physics2d_panel(&g_IsPhysicsEnabled);
 
     if (g_IsPopupShowsUp)
     {
@@ -376,7 +403,7 @@ simple_editor_on_ui_render()
 
     igSimplePopup();
 
-    //igShowDemoWindow(NULL);
+    // igShowDemoWindow(NULL);
 
     if (opt_fullscreen)
 	igPopStyleVar(2);

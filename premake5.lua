@@ -73,7 +73,6 @@ project "SimpleEditor"
     kind "ConsoleApp"
     language "C"
     staticruntime "on"
-
     buildoptions { "-std=c99" }
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin/Intermidiates/" .. outputdir .. "/%{prj.name}")

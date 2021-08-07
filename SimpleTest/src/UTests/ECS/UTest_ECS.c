@@ -328,6 +328,40 @@ ecs_archetype_get_test()
     }
 }
 
+void
+ecs_crash_test()
+{
+    World* world = world_create();
+
+    ECS_REGISTER_COMPONENT(world, A);
+    ECS_REGISTER_COMPONENT(world, B);
+    ECS_REGISTER_COMPONENT(world, C);
+
+    i32 count = 50000;
+    for (i32 i = 0; i < count; i++)
+    {
+	EntityID playerId;
+	playerId = ECS_ENTITY_CREATE(world);
+	ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
+	ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
+	ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 1, .AAge = 2 }));
+	ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = 3, .BAge = 4 }));
+    }
+
+    ECSQueryResult queryResult = ECS_ARCHETYPE_GET(world, A,B);
+
+    Condition(queryResult.Count == count);
+    Int_Value(queryResult.Count);
+
+    while (ECS_QUERY_RESULT_NEXT(queryResult))
+    {
+	A* a = ECS_QUERY_RESULT_GET(queryResult, A);
+	B* b = ECS_QUERY_RESULT_GET(queryResult, B);
+
+	Int_Value(queryResult.Current);
+    }
+}
+
 #define CHECK_MEMORY() GWARNING("Allocated memory: %d\n", memory_helper_get_allocated_size())
 
 void ecs_test()
@@ -351,5 +385,8 @@ void ecs_test()
 
     //NOTE(bies): here we got an error
     TEST(ecs_archetype_get_test());
+    CHECK_MEMORY();
+
+    TEST(ecs_crash_test());
     CHECK_MEMORY();
 }

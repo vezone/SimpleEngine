@@ -12,7 +12,7 @@ internal_string_builder_grow(char* builder, i32 newCount)
 {
     i32 headerSize = sizeof(StringBuilderHeader);
     i32 bufferSize = newCount * sizeof(*builder);
-    i32 newSize = bufferSize * sizeof(*builder) + headerSize;
+    i32 newSize = bufferSize + headerSize;
     char* buffer =  NULL;
 
     if (builder == NULL)
@@ -21,7 +21,7 @@ internal_string_builder_grow(char* builder, i32 newCount)
 	header->Count = 0;
 	header->Capacity = newCount;
 	header->Buffer = (char*) (((char*)header) + headerSize);
-	memset(header->Buffer, '\0', bufferSize);
+	vmemset(header->Buffer, '\0', bufferSize);
 
 	buffer = header->Buffer;
     }
@@ -29,11 +29,12 @@ internal_string_builder_grow(char* builder, i32 newCount)
     {
 	StringBuilderHeader* header = string_builder_header(builder);
 	StringBuilderHeader* newHeader = (StringBuilderHeader*) internal_memory_allocate(newSize);
+	size_t prevSize = header->Count * sizeof(*builder);
 	newHeader->Count = header->Count;
 	newHeader->Capacity = newCount;
 	newHeader->Buffer = (char*) (((char*)newHeader) + headerSize);
-	memset(newHeader->Buffer, '\0', bufferSize);
-	memcpy(newHeader->Buffer, header->Buffer, bufferSize);
+	vmemset(newHeader->Buffer, '\0', bufferSize);
+	vmemcpy(newHeader->Buffer, header->Buffer, prevSize);
 
 	memory_free(header);
 

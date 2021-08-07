@@ -8,15 +8,15 @@
 #include <stdint.h>
 #if defined _WIN32 || defined __CYGWIN__
     #ifdef CIMGUI_NO_EXPORT
-        #define API
+	#define API
     #else
-        #define API __declspec(dllexport)
+	#define API __declspec(dllexport)
     #endif
 #else
     #ifdef __GNUC__
-        #define API  __attribute__((__visibility__("default")))
+	#define API  __attribute__((__visibility__("default")))
     #else
-        #define API
+	#define API
     #endif
 #endif
 
@@ -1037,8 +1037,8 @@ struct ImGuiOnceUponAFrame
 };
 struct ImGuiTextRange
 {
-        const char* b;
-        const char* e;
+	const char* b;
+	const char* e;
 };
 struct ImGuiTextFilter
 {
@@ -1052,8 +1052,8 @@ struct ImGuiTextBuffer
 };
 struct ImGuiStoragePair
 {
-        ImGuiID key;
-        union { int val_i; float val_f; void* val_p; };
+	ImGuiID key;
+	union { int val_i; float val_f; void* val_p; };
 };
 struct ImGuiStorage
 {
@@ -2640,13 +2640,15 @@ CIMGUI_API void igNewFrame(void);
 CIMGUI_API void igEndFrame(void);
 CIMGUI_API void igRender(void);
 CIMGUI_API ImDrawData* igGetDrawData(void);
-CIMGUI_API void igShowDemoWindow(bool* p_open);
 CIMGUI_API void igShowMetricsWindow(bool* p_open);
+#ifdef ENGINE_DEBUG
+CIMGUI_API void igShowDemoWindow(bool* p_open);
 CIMGUI_API void igShowAboutWindow(bool* p_open);
 CIMGUI_API void igShowStyleEditor(ImGuiStyle* ref);
 CIMGUI_API bool igShowStyleSelector(const char* label);
-CIMGUI_API void igShowFontSelector(const char* label);
 CIMGUI_API void igShowUserGuide(void);
+CIMGUI_API void igShowFontSelector(const char* label);
+#endif
 CIMGUI_API const char* igGetVersion(void);
 CIMGUI_API void igStyleColorsDark(ImGuiStyle* dst);
 CIMGUI_API void igStyleColorsLight(ImGuiStyle* dst);
@@ -3838,7 +3840,3 @@ CIMGUI_API void ImVector_ImWchar_UnInit(ImVector_ImWchar* p);
 
 
 #endif //CIMGUI_INCLUDED
-
-
-
-
