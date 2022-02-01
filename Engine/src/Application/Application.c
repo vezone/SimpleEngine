@@ -1,7 +1,6 @@
 #include "Application.h"
 #include "Graphics/Renderer2D/Renderer2D.h"
 #include "Graphics/OpenGLBase.h"
-#include "Utils/Profiler.h"
 
 Application g_Application;
 
@@ -14,15 +13,17 @@ application_get()
 void
 application_push_layer(Layer layer)
 {
+    TimeState timeState;
+    profiler_start(&timeState);
+
     array_push(g_Application.Layers, layer);
     if (layer.OnAttach != NULL)
     {
-	profiler_start();
 	layer.OnAttach(g_Application.Window);
-	profiler_end();
-	GSUCCESS("%s took %s\n", layer.Name, profiler_get_string());
-	//profiler_print_counted_time();
     }
+
+    profiler_end(&timeState);
+    GSUCCESS("PushLayer %s took %s\n", layer.Name, profiler_get_string(&timeState));
 }
 
 void
@@ -33,6 +34,8 @@ application_init(u32 width, u32 height, const char* name)
     g_Application.IsMinimized = 0;
     g_Application.IsRunning = 1;
     g_Application.Layers = NULL;
+
+    //array_init(memory_allocate);
 
     event_init_table(g_Application.EventTypeToString, 32);
 
@@ -74,21 +77,28 @@ application_start()
 
 	if (!g_Application.IsMinimized)
 	{
+	    i32 l;
+	    Layer layer;
+
 	    for (i32 l = 0; l < layersCount; l++)
 	    {
-		if (g_Application.Layers[l].Name == NULL)
+		Layer layer = g_Application.Layers[l];
+
+		if (layer.Name == NULL)
 		    continue;
-		if (g_Application.Layers[l].OnUpdate != NULL)
-		    g_Application.Layers[l].OnUpdate(timeStep);
+		if (layer.OnUpdate != NULL)
+		    layer.OnUpdate(timeStep);
 	    }
 
 	    ui_begin();
 	    for (i32 l = 0; l < layersCount; l++)
 	    {
-		if (g_Application.Layers[l].Name == NULL)
+		Layer layer = g_Application.Layers[l];
+
+		if (layer.Name == NULL)
 		    continue;
-		if (g_Application.Layers[l].OnUIRender != NULL)
-		    g_Application.Layers[l].OnUIRender();
+		if (layer.OnUIRender != NULL)
+		    layer.OnUIRender();
 	    }
 	    ui_end();
 	}
@@ -144,10 +154,11 @@ application_close()
 void
 application_end()
 {
-    i32 layersCount = array_count(g_Application.Layers);
-    for (i32 l = 0; l < layersCount; l++)
+    Layer layer;
+    i32 l, layersCount = array_count(g_Application.Layers);
+    for (l = 0; l < layersCount; l++)
     {
-	Layer layer = g_Application.Layers[l];
+	layer = g_Application.Layers[l];
 	if (layer.OnDestoy != NULL)
 	{
 	    if (layer.Name != NULL)

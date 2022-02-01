@@ -1,7 +1,10 @@
 #include "SimpleEditor.h"
+#include "EditorPanels/ProfilerPanel.h"
 #include <EntryPoint.h>
+#include <Engine.h>
 
-void create_user_application()
+void
+create_user_application()
 {
 #if LINUX_PLATFORM
     linux_set_current_stack_size(MB(500), MB(528));

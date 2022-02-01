@@ -1,7 +1,7 @@
 #ifndef ECS_TYPES_H
 #define ECS_TYPES_H
 
-#include <Utils/Types.h>
+#include "Utils/SimpleStandardLibrary.h"
 
 /*
   FROM 0 .. 255 internal id's

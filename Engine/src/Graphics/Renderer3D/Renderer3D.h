@@ -4,8 +4,7 @@
 #include "Graphics/Shader.h"
 #include "Graphics/Renderer3D/PerspectiveCamera.h"
 #include "Graphics/Texture2D.h"
-#include "Utils/Types.h"
-#include "Utils/Array.h"
+#include "Utils/SimpleStandardLibrary.h"
 #include "Math/Math.h"
 
 #if 0

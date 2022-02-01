@@ -14,19 +14,19 @@ typedef struct Camera
 force_inline void
 camera_set_view(Camera* camera, m4 view)
 {
-    m4_copy(view, camera->View);
+    m4_copy(camera->View, view);
 }
 
 force_inline void
 camera_set_projection(Camera* camera, m4 projection)
 {
-    m4_copy(projection, camera->Projection);
+    m4_copy(camera->Projection, projection);
 }
 
 force_inline void
 camera_set_view_projection(Camera* camera, m4 viewProjection)
 {
-    m4_copy(viewProjection, camera->ViewProjection);
+    m4_copy(camera->ViewProjection, viewProjection);
 }
 
 force_inline Camera

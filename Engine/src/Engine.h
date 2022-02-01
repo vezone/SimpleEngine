@@ -21,28 +21,19 @@
 #include "ECS/ECS.h"
 #include "ECS/ECSTypes.h"
 #include "ECS/Scene.h"
-#include "ECS/Components/TagComponent.h"
-#include "ECS/Components/TransformComponent.h"
-#include "ECS/Components/SpriteComponent.h"
-#include "ECS/Components/NativeScriptComponent.h"
-#include "ECS/Components/CameraComponent.h"
+#include "ECS/Components/AllComponents.h"
 
 //Math
 #include "Math/Math.h"
 
 //Utils
-#include "Utils/Array.h"
-#include "Utils/HashTable.h"
-#include "Utils/String.h"
-#include "Utils/Logger.h"
-#include "Utils/Types.h"
-#include "Utils/IO.h"
-#include "Utils/MemoryAllocator.h"
-#include "Utils/Path.h"
-#include "Utils/Asset.h"
-#include "Utils/Profiler.h"
+#include "Utils/SimpleStandardLibrary.h"
 
-#include "Utils/JsonParser.h"
+#include "Utils/Asset.h"
+//#include "Utils/Reflection.h"
+
+// Serialization / Deserialization
+#include "Serializer/Serializer.h"
 
 //Platform
 #include "Platform/Linux/Linux.h"

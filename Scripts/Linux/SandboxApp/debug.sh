@@ -1,5 +1,4 @@
 #!/bin/bash
 
-cd ../..
-gdb bin/Debug-linux-x86_64/SandboxApp/SandboxApp
-
+cd ../
+./debug.sh "SandboxApp" "premake-sandbox-app.lua"

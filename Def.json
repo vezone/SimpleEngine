@@ -1,0 +1,59 @@
+{
+    "Blue Rectangle": 
+    {
+        "TagComponent": 
+        {
+            "Name": "Blue Rectangle",
+            "ID": 512
+        },
+        "TransformComponent": 
+        {
+            "Transform": [4.122175, 0.000000, 0.000000, 0.000000, 0.000000, 3.946070, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, -0.409528, 2.783993, 1.000000, 1.000000]
+        },
+        "SpriteComponent": 
+        {
+            "IsTextured": 0,
+            "Color": [0.228507, 0.703272, 0.854785, 1.000000],
+            "Texture": NULL
+        }
+    },
+    "Yellow Rectangle": 
+    {
+        "TagComponent": 
+        {
+            "Name": "Yellow Rectangle",
+            "ID": 513
+        },
+        "TransformComponent": 
+        {
+            "Transform": [3.640000, 0.000000, 0.000000, 0.000000, 0.000000, 0.515579, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, -0.378575, 0.730688, 1.000000, 1.000000]
+        },
+        "SpriteComponent": 
+        {
+            "IsTextured": 0,
+            "Color": [0.513726, 0.858824, 0.176471, 0.443137],
+            "Texture": NULL
+        }
+    },
+    "Chibi Rectangle": 
+    {
+        "TagComponent": 
+        {
+            "Name": "Chibi Rectangle",
+            "ID": 514
+        },
+        "TransformComponent": 
+        {
+            "Transform": [4.030000, 0.000000, 0.000000, 0.000000, 0.000000, 3.890000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, -0.410109, 3.086239, 0.000000, 1.000000]
+        },
+        "SpriteComponent": 
+        {
+            "IsTextured": 1,
+            "Color": [1.000000, 1.000000, 1.000000, 1.000000],
+            "Texture": 
+            {
+                "Path": "assets/textures/other/anime_chibi.png"
+            }
+        }
+    }
+}

@@ -18,12 +18,18 @@ v4_assign(v4 a, v4 b)
 }
 
 force_inline void
-v4_copy(v4 a, v4 b)
+v4_copy(v4 dest, v4 src)
 {
-    b[0] = a[0];
-    b[1] = a[1];
-    b[2] = a[2];
-    b[3] = a[3];
+    v4_assign(dest, src);
+}
+
+force_inline void
+v4_assignv(v4 a, f32 x, f32 y, f32 z, f32 w)
+{
+    a[0] = x;
+    a[1] = y;
+    a[2] = z;
+    a[3] = w;
 }
 
 force_inline f32

@@ -1,7 +1,8 @@
 #ifndef PHYSICS_2D
 #define PHYSICS_2D
 
-#include "Math/MathTypes.h"
+#include <Math/MathTypes.h>
+#include <Math/V2.h>
 
 typedef struct RigidBody2D
 {

@@ -4,9 +4,6 @@
 #include <GLFW/glfw3.h>
 
 #include "Event/Event.h"
-#include "Utils/Types.h"
-#include "Utils/Logger.h"
-#include "Utils/Path.h"
 #include "Utils/stb_image.h"
 
 //#define window_get_frequency() glfwGetTimerFrequency()

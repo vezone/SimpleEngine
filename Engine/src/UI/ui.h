@@ -1,9 +1,8 @@
 #ifndef UI_H
 #define UI_H
 
-#include "Utils/Types.h"
-#include "Event/Event.h"
-#include "Graphics/Window.h"
+#include <Event/Event.h>
+#include <Graphics/Window.h>
 
 #include <cimgui.h>
 #include <cimguizmo.h>

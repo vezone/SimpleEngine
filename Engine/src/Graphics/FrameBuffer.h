@@ -1,7 +1,6 @@
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 
-#include <Utils/Types.h>
 #include <Math/MathTypes.h>
 
 typedef enum FrameBufferType

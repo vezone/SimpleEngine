@@ -1,51 +1,35 @@
 #include "SimpleEditor.h"
 
-#include <stdarg.h>
-#include "EngineControls/FileDialog.h"
-#include "EngineControls/FileDialog.h"
-#include "EngineControls/ViewportControl.h"
-#include "EngineControls/WorldOutliner.h"
-#include "EngineControls/PhysicsPanel.h"
+#include "EditorControls/FileDialog.h"
+#include "EditorControls/ViewportControl.h"
+#include "EditorControls/WorldOutliner.h"
+#include "EditorControls/PhysicsPanel.h"
+#include "EditorPanels/ProfilerPanel.h"
 
-static NativeWindow g_Window;
+static NativeWindow Window;
 static char WindowTitle[32];
-static EditorCamera g_Camera;
-static Scene g_Scene;
-static FrameBuffer g_Framebuffer;
-static Renderer2DStatistics g_RendererStatistics;
-static Shader g_Shader;
-static i32 g_IsPhysicsEnabled;
 
+static Scene CurrentScene;
+static EditorCamera CurrentCamera;
 
+static Scene ActiveScene;
+static Camera* ActiveCamera = NULL;
+
+static Scene RuntimeScene;
+
+static FrameBuffer CurrentFramebuffer;
+static Renderer2DStatistics RendererStatistics;
+static Shader CurrentShader;
+static i32 IsPhysicsEnabled;
 
 void
 simple_editor_on_attach(NativeWindow window)
 {
     f32 aspectRatio = window.Width / window.Height;
 
-    g_Window = window;
-    f32 ZoomLevel;
-    f32 AspectRatio;
-    f32 Speed;
-    f32 Rotation;
-    v3 Position;
-    v3 Axis;
-
-    EditorCameraSettings settings = (EditorCameraSettings)
-	{
-	    .ZoomLevel = 5.0f,
-	    .AspectRatio = aspectRatio,
-	    .Speed = 5.0f,
-	    .Rotation = 0,
-	    .Position = v3_wo_convert(0, 0, 0),
-	    .Axis = v3_wo_convert(0, 0, 1)
-	};
-
-    g_Camera = editor_camera_create(5.0f * aspectRatio, 5.0f * aspectRatio, 5.0f, -5.0f, settings);
+    Window = window;
     window_set_vsync(3);
-    window_set_icon(&g_Window, "resources/Logo1.png");
-
-    GERROR("Just error message test!\n");
+    window_set_icon(&Window, "resources/Logo1.png");
 
     char* currentDirectory = path_get_current_directory();
     if (currentDirectory != NULL)
@@ -53,92 +37,161 @@ simple_editor_on_attach(NativeWindow window)
 	GLOG(GREEN("Current working dir: %s")"\n", currentDirectory);
     }
 
-    /*
-      NOTE(bies): All Renderer Init things should be on editor side
-    */
-    // Initialize Renderer
+#if 0
+    memory_helper_print_allocations_in_terminal(
+	PRINT_ALLOCATION_SOURCE_TYPE_TERMINAL);
     {
-	const char* shaderPath = asset_shader("BatchedShader.glsl");
-	ShaderSource shaderSource = shader_load(shaderPath);
-	vassert(shaderSource.name);
-	g_Shader = shader_compile(shaderSource);
-	if (g_Shader.ShaderID == -1)
-	{
-	    GERROR("We fucked up with shader sources!!!\n");
-	    return;
-	}
-	Texture2D* whiteTexture = texture2d_create(asset_texture("default/white_texture.png"));
-
-	renderer_batch_init(&g_RendererStatistics, &g_Shader, whiteTexture, &g_Camera.InternalCamera);
+	i32* arr = NULL;
+	array_push(arr, 1);
+	array_push(arr, 1);
+	array_push(arr, 1);
+	array_push(arr, 1);
+	array_push(arr, 1);
     }
+#endif
 
     FrameBufferType* types = NULL;
     array_push(types, FRAMEBUFFER_TYPE_RGBA8);
     // array_push(types, FRAMEBUFFER_TYPE_RGBA8);
     array_push(types, FRAMEBUFFER_TYPE_DEPTH24_STENCIL8);
-    framebuffer_create(&g_Framebuffer, window.Width, window.Height, types);
+    framebuffer_create(&CurrentFramebuffer, window.Width, window.Height, types);
 
-    scene_create(&g_Scene, &g_Camera);
+    EditorCameraSettings settings = (EditorCameraSettings)
+	{
+	    .ZoomLevel = 1.0f,
+	    .AspectRatio = aspectRatio,
+	    .Speed = 5.0f,
+	    .Rotation = 0,
+	    .IsOrthographic = 1,
+	    .Position = { 0, 0, 5.0f },
+	    .Axis = { 0, 0, 0 }
+	};
+    //NOTE(): we always use default declared in editor_camera_update
+    CurrentCamera = editor_camera_create(1000.0f, -10.0f, settings);
+    //editor_camera_set_orthograhic(&CurrentCamera);
 
-    v4 blueColor   = v4_(0.1f, 0.1f, 0.8f, 1.0f);
-    v4 yellowColor = v4_(1.f, 1.f, 0.0f, 1.0f);
-    Texture2D* chibiTexture = texture2d_create(asset_texture("other/anime_chibi.png"));
+    ActiveCamera = &CurrentCamera.InternalCamera;
+    char* json = file_read_string("/home/bies/Data/programming/C/SimpleEngine/Def.json");
+    deserialize_scene_from_json(&CurrentScene, json);
 
-    Entity rectangleEntity = entity_create(&g_Scene, "Blue Rectangle");
-    ECS_ENTITY_ADD_COMPONENT(g_Scene.World, rectangleEntity.ID, SpriteComponent);
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, rectangleEntity.ID, SpriteComponent, SpriteComponent_Color(blueColor));
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, rectangleEntity.ID, TransformComponent, TransformComponent_(v3_(-2.47f, -1.43f, 1.0f), v3_(3.29f, 1.91f, 1.0f), v3_(0.0f, 0.0f, .0f)));
+    /*
+      NOTE(bies): All Renderer Init things should be on editor side
+    */
+    // Initialize Renderer
+    Texture2D* whiteTexture = texture2d_create(asset_texture("default/white_texture.png"));
+    {
+	const char* shaderPath = asset_shader("BatchedShader.glsl");
+	ShaderSource shaderSource = shader_load(shaderPath);
+	vassert(shaderSource.name);
+	CurrentShader = shader_compile(shaderSource);
+	if (CurrentShader.ShaderID == -1)
+	{
+	    GERROR("We fucked up with shader sources!!!\n");
+	    return;
+	}
 
-    Entity yellowRectangle = entity_create(&g_Scene, "Yellow Rectangle");
-    ECS_ENTITY_ADD_COMPONENT(g_Scene.World, yellowRectangle.ID, SpriteComponent);
-    // TransformComponent_(position, scale, rotation)
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, yellowRectangle.ID, TransformComponent, TransformComponent_(v3_(2.11f, -1.58f, 1.0f), v3_(3.64f, 2.96f, 1.0f), v3_(0.0f, 0.0f, .0f)));
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, yellowRectangle.ID, SpriteComponent, SpriteComponent_Color(yellowColor));
+	renderer_batch_init(&RendererStatistics, &CurrentShader, whiteTexture, ActiveCamera);
+    }
 
-    Entity chibi = entity_create(&g_Scene, "Chibi Rectangle");
-    //error here seg fault
-    ECS_ENTITY_ADD_COMPONENT(g_Scene.World, chibi.ID, SpriteComponent);
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, TransformComponent, TransformComponent_Position(3.0f, 1.5f, 0.0f));
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, chibi.ID, SpriteComponent, SpriteComponent_Texture(chibiTexture));
+    //Entity camera = entity_create(&ActiveScene, "Camera");
+    //m4 ortho;
+    //orthographic(-16, 16, -9, 9, -1.f, 1.f, ortho);
+    //ECS_ENTITY_ADD_COMPONENT(ActiveScene.World, camera.ID, CameraComponent);
+    //ECS_ENTITY_SET_COMPONENT(ActiveScene.World, camera.ID, CameraComponent, CameraComponent_(1, ortho));
 
-    Entity camera = entity_create(&g_Scene, "Camera");
-    m4 ortho;
-    orthographic(-16, 16, -9, 9, -1.f, 1.f, ortho);
-    ECS_ENTITY_ADD_COMPONENT(g_Scene.World, camera.ID, CameraComponent);
-    ECS_ENTITY_SET_COMPONENT(g_Scene.World, camera.ID, CameraComponent, CameraComponent_(1, ortho));
-
-    file_dialog_create();
-    viewport_create(g_Window, &g_Camera, &g_Framebuffer);
+    viewport_create(Window, &CurrentCamera, &CurrentFramebuffer);
+    world_outliner_on_attach(whiteTexture);
 }
 
 void
 simple_editor_on_update(f32 timestep)
 {
-    framebuffer_bind(&g_Framebuffer);
-    renderer_reset_statistics(&g_RendererStatistics, timestep);
-    //renderer_clear(v4_(0.2f, 0.245f, 0.356f, 1.0f));
-    //renderer_clear(v4_(0.1f, 0.1f, 0.1f, 1.0f));
-    //renderer_clear(v4_(0.111f, 0.1f, 0.1f, 1.0f));
+    framebuffer_bind(&CurrentFramebuffer);
+    renderer_reset_statistics(&RendererStatistics, timestep);
     renderer_clear(v4_(0.1f, 0.1f, 0.1f, 1.0f));
 
     viewport_on_update(timestep);
+    profiler_panel_on_update(timestep);
 
-    if (g_IsPhysicsEnabled)
+#if DO_LUCHSHIH_VREMEN
+    if (IsPhysicsEnabled)
     {
 
     }
+#endif
 
-    scene_on_update(&g_Scene);
+    // &CurrentCamera
+    static i32 isEditorRuntime = 1;
+    if (isEditorRuntime)
+    {
+	scene_on_update(&CurrentScene, ActiveCamera);
+    }
+    else
+    {
+    }
 
     renderer_flush();
 
-    framebuffer_unbind(&g_Framebuffer);
+    framebuffer_unbind(&CurrentFramebuffer);
 }
 
 bool g_IsRendererStatisticPanelVisible = 0;
 bool g_IsStyleWindowVisible = 0;
 bool g_IsDockSpaceOpen = 1;
-ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+ImGuiDockNodeFlags g_DockspaceFlags = ImGuiDockNodeFlags_None;
+
+static bool g_IsNewFileDialogBeenOpened = false;
+static bool g_IsSaveFileDialogBeenOpened = 0;
+static bool g_IsSaveAsFileDialogBeenOpened = 0;
+static i32 g_IsEditorRuntime = 1;
+
+force_inline void
+simple_editor_on_file_new()
+{
+    if (g_IsNewFileDialogBeenOpened)
+    {
+	return;
+    }
+
+    file_dialog_create();
+
+    g_IsNewFileDialogBeenOpened = true;
+}
+
+void
+save_scene_to_file(Scene* scene, const char* filename)
+{
+    char* sceneJson = serialize_scene_to_json(scene);
+    vassert(sceneJson && "Can't get scene in json format!!!");
+
+    file_write_string(filename, sceneJson, string_builder_count(sceneJson));
+    string_builder_free(sceneJson);
+}
+
+force_inline void
+simple_editor_on_file_save()
+{
+    g_IsSaveFileDialogBeenOpened = 1;
+
+    save_scene_to_file(&CurrentScene, "Default Scene Actually.json");
+}
+
+force_inline void
+simple_editor_on_file_save_as()
+{
+    if (g_IsSaveAsFileDialogBeenOpened)
+	return;
+
+    file_dialog_create();
+
+    g_IsSaveAsFileDialogBeenOpened = 1;
+}
+
+force_inline i32
+simple_editor_is_scene_empty()
+{
+    return 1;
+}
 
 force_inline void
 menu_bar()
@@ -147,15 +200,17 @@ menu_bar()
     {
 	if (igBeginMenu("File", 1))
 	{
-	    // Disabling fullscreen would allow the window to be moved to the front of other windows,
-	    // which we can't undo at the moment without finer window depth/z control.
-	    if (igMenuItem_Bool("Open", "Ctrl + O", 0, 1))
+	    if (igMenuItem_Bool("New", "Ctrl + N", 0, 1))
 	    {
-		GWARNING("Ctrl O\n");
+		simple_editor_on_file_new();
 	    }
-	    if (igMenuItem_Bool("New", "Ctrl+N", 0, 1))
+	    if (igMenuItem_Bool("Save", "Ctrl + Alt + S", 0, 1))
 	    {
-		GWARNING("Ctrl N\n");
+		simple_editor_on_file_save();
+	    }
+	    if (igMenuItem_Bool("Save As", "Ctrl + Shift + S", 0, 1))
+	    {
+		simple_editor_on_file_save_as();
 	    }
 	    igSeparator();
 
@@ -165,7 +220,14 @@ menu_bar()
 	    {
 		g_IsDockSpaceOpen = 0;
 	    }
+	    igEndMenu();
+	}
 
+	if (igBeginMenu("Project", 1))
+	{
+	    if (igMenuItem_Bool("Run", NULL, 0, 1))
+	    {
+	    }
 	    igEndMenu();
 	}
 
@@ -181,25 +243,23 @@ menu_bar()
 	    {
 		TYPE_REVERSE(g_IsStyleWindowVisible);
 	    }
-
 	    igEndMenu();
 	}
 
 	viewport_menu_item();
-
-	igEndMenuBar();
     }
+
+    igEndMenuBar();
 }
 
 static i32 g_IsPopupShowsUp = 0;
 static bool g_PopupDontAsk = 0;
 
 void
-igSimplePopup()
+simple_editor_exit_popup()
 {
     g_IsPopupShowsUp = 0;
 
-    // Always center this window when appearing
     if (g_IsPopupShowsUp == 1)
     {
 	ImVec2 center;
@@ -208,7 +268,7 @@ igSimplePopup()
 	igSetNextWindowPos(center, ImGuiCond_Appearing, ImVec2_(0.5f, 0.5f));
     }
 
-    if (igBeginPopupModal("Delete?", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+    if (igBeginPopupModal("Exit From SimpleEditor", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
     {
 	igText("All those beautiful files will be deleted.\nThis operation cannot be undone!\n\n");
 	igSeparator();
@@ -229,7 +289,6 @@ igSimplePopup()
 	{
 	    igCloseCurrentPopup();
 	}
-
 	igEndPopup();
     }
 }
@@ -241,7 +300,7 @@ renderer_statistic_panel()
     {
 	if (igBegin("Renderer statistic", &g_IsRendererStatisticPanelVisible, ImGuiWindowFlags_None))
 	{
-	    Renderer2DStatistics rendererStatistics = g_RendererStatistics;
+	    Renderer2DStatistics rendererStatistics = RendererStatistics;
 	    igText("Frametime: %f ms", 1000 * rendererStatistics.Frametime);
 	    igText("Draw Calls: %d", rendererStatistics.DrawCalls);
 	    igText("Rectangles Count: %d", rendererStatistics.RectanglesCount);
@@ -343,14 +402,14 @@ style_panel()
 void
 simple_editor_on_ui_render()
 {
-    framebuffer_bind(&g_Framebuffer);
+    framebuffer_bind(&CurrentFramebuffer);
 
     static i8 noPadding = 1;
-    static i8 opt_fullscreen = 1;
+    static i8 optFullscreen = 1;
 
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar;
     ImGuiWindowClass class;
-    if (opt_fullscreen)
+    if (optFullscreen)
     {
 	ImGuiViewport* viewport = igGetMainViewport();
 	igSetNextWindowPos(viewport->Pos, ImGuiCond_None, ImVec2_(0, 0));
@@ -363,16 +422,13 @@ simple_editor_on_ui_render()
     }
     else
     {
-	dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+	g_DockspaceFlags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
     }
 
-    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+    if (g_DockspaceFlags & ImGuiDockNodeFlags_PassthruCentralNode)
 	windowFlags |= ImGuiWindowFlags_NoBackground;
-
     if (noPadding)
-    {
 	igPushStyleVar_Vec2(ImGuiStyleVar_WindowPadding, ImVec2_(0, 0));
-    }
 
     igBegin("DockSpace Demo", &g_IsDockSpaceOpen, windowFlags);
 
@@ -380,16 +436,42 @@ simple_editor_on_ui_render()
     ImGuiIO* io = igGetIO();
     if (io->ConfigFlags & ImGuiConfigFlags_DockingEnable)
     {
-	ImGuiID dockspace_id = igGetID_Str("MyDockSpace");
-	igDockSpace(dockspace_id, ImVec2_(0.0f, 0.0f), dockspace_flags, &class);
+	ImGuiID dockspaceID = igGetID_Str("MyDockSpace");
+	igDockSpace(dockspaceID, ImVec2_(0.0f, 0.0f), g_DockspaceFlags, &class);
     }
 
     menu_bar();
-    world_outliner(&g_Scene, &g_Camera);
-    viewport(&g_Scene, &g_Camera, &g_Framebuffer);
+    world_outliner(&CurrentScene, &CurrentCamera);
+    viewport(&CurrentScene, &CurrentCamera.InternalCamera);
     renderer_statistic_panel();
     style_panel();
-    physics2d_panel(&g_IsPhysicsEnabled);
+    profiler_panel();
+    //profiler_panel();
+    //physics2d_panel(&IsPhysicsEnabled);
+    {
+	const char* selectedFile;
+	if (igFileDialog(selectedFile, &g_IsNewFileDialogBeenOpened, FilterFlag_None))
+	{
+	    GWARNING("FILE->NEW Selected File: %s\n", selectedFile);
+
+	    char* json = file_read_string(selectedFile);
+	    deserialize_scene_from_json(&CurrentScene, json);
+
+	    //g_IsNewFileDialogBeenOpened = false;
+	}
+    }
+
+    {
+	const char* selectedFile;
+	if (igFileDialog(selectedFile, &g_IsSaveAsFileDialogBeenOpened, FilterFlag_None))
+	{
+	    GWARNING("FILE->SAVE_AS Selected File: %s\n", selectedFile);
+
+	    save_scene_to_file(&CurrentScene, "Default Scene Actually.json");
+
+	    //g_IsSaveAsFileDialogBeenOpened = 0;
+	}
+    }
 
     if (g_IsPopupShowsUp)
     {
@@ -398,27 +480,29 @@ simple_editor_on_ui_render()
 	    application_close();
 	}
 
-	igOpenPopup_Str("Delete?", ImGuiPopupFlags_None);
+	igOpenPopup_Str("Exit From SimpleEditor", ImGuiPopupFlags_None);
     }
 
-    igSimplePopup();
+    simple_editor_exit_popup();
 
-    // igShowDemoWindow(NULL);
+#if 0
+    igShowDemoWindow(NULL);
+#endif
 
-    if (opt_fullscreen)
+    if (optFullscreen)
 	igPopStyleVar(2);
-
     if (noPadding)
 	igPopStyleVar(1);
-
 
     // for dockspace
     igEnd();
 
+
     framebuffer_unbind();
 }
 
-void simple_editor_on_event(Event* event)
+void
+simple_editor_on_event(Event* event)
 {
     switch (event->Category)
     {
@@ -430,6 +514,22 @@ void simple_editor_on_event(Event* event)
 	case KEY_ESCAPE:
 	    g_IsPopupShowsUp = 1;
 	    event->IsHandled = 1;
+	    break;
+	case KEY_N:
+	    if (keyEvent->Modificator == MOD_CONTROL)
+	    {
+		simple_editor_on_file_new();
+	    }
+	    break;
+	case KEY_S:
+	    if (keyEvent->Modificator == (MOD_CONTROL | MOD_ALT))
+	    {
+		simple_editor_on_file_save();
+	    }
+	    else if (keyEvent->Modificator == (MOD_CONTROL | MOD_SHIFT))
+	    {
+		simple_editor_on_file_save_as();
+	    }
 	    break;
 	}
 
@@ -450,4 +550,11 @@ void simple_editor_on_event(Event* event)
     }
 
     viewport_on_event(event);
+}
+
+void
+simple_editor_on_destroy()
+{
+    shader_delete_collection();
+    renderer_destroy();
 }

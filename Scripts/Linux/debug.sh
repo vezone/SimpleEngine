@@ -2,7 +2,7 @@
 
 cd ../../
 
-premake5 --file=$2 --cc=clang codelite
+premake5 --file=$2 --cc=gcc codelite
 
 cp -R assets $1/
 cp -R resources $1/

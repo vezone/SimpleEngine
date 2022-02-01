@@ -2,8 +2,6 @@
 
 #include <glad/glad.h>
 #include <Math/MathTypes.h>
-#include <Utils/Logger.h>
-#include <Utils/Array.h>
 #include <Math/V3.h>
 #include <Math/M4.h>
 
@@ -11,35 +9,27 @@
   Batch renderer
 */
 
-static Shader* g_Shader;
-static Camera* g_Camera;
-static BatchRenderer2DData g_RendererData =
+static Shader* BatchedShader;
+static Camera* CurrentCamera;
+static BatchRenderer2DData RendererData =
 {
-    .DataCount = 0,
-    .IndexCount = 0
+    .Rectangles.DataCount = 0,
+    .Rectangles.IndexCount = 0
 };
-static Renderer2DStatistics* g_Statistics;
-static v2 g_DefaultCoords[4] = {
+static Renderer2DStatistics* Statistics;
+static v2 DefaultCoords[4] = {
     { 0.0f, 0.0f },
     { 0.0f, 1.0f },
     { 1.0f, 1.0f },
     { 1.0f, 0.0f }
 };
-static i32 g_TextureIndices[32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
-static v4 g_BaseVectorPositions[4] = {
+static i32 TextureIndices[32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+static v4 BaseVectorPositions[4] = {
     { -0.5f, -0.5f, 0.0f, 1.0f }, /* 0 0 */
     { -0.5f,  0.5f, 0.0f, 1.0f }, /* 0 1 */
     {  0.5f,  0.5f, 0.0f, 1.0f }, /* 1 1 */
     {  0.5f, -0.5f, 0.0f, 1.0f }  /* 1 0 */
 };
-
-//static v4 g_BaseVectorPositions[4] = {
-//    { -0.5f, -0.5f, 0.5f,  0.5f }, /* 0 0 */
-//    { -0.5f,  0.5f, 0.5f, -0.5f }, /* 0 1 */
-//    {  0.0f,  0.0f, 0.0f,  0.0f }, /* 1 1 */
-//    {  1.0f,  1.0f, 1.0f,  1.0f }  /* 1 0 */
-//};
-
 
 force_inline void
 fill_indices_array(u32* indices, u32 length)
@@ -110,66 +100,43 @@ fill_data_array(f32* destination, u32 startIndex, v3 position, v2 size, v4 color
     destination[i++] = textureId; //(f32) textureId;
     destination[i++] = entityId; //(f32) isTextured;
 
-    ++g_Statistics->RectanglesCount;
+    ++Statistics->RectanglesCount;
 }
 
-
-// we don't need isTextured here, because we have textureId that is 0 when we don't use a texture
 force_inline void
-fill_rotated_data_array(f32* destination, u32 startIndex, v3 positionsArray[4], v4 color, i32 textureId, EntityID entityId)
+fill_rotated_data_array(f32* destination, u32 startIndex, v3 positionsArray[4], v4 color, i32 textureID, EntityID entityID)
 {
     i32 i = startIndex;
 
-    // 10 per vertex
-    destination[i++] = positionsArray[0][0];
-    destination[i++] = positionsArray[0][1];
-    destination[i++] = positionsArray[0][2];
-    destination[i++] = color[0];
-    destination[i++] = color[1];
-    destination[i++] = color[2];
-    destination[i++] = color[3];
-    destination[i++] = 0;
-    destination[i++] = 0;
-    destination[i++] = (f32) textureId;
-    destination[i++] = entityId;
+    RenderableRectangle rRect;
 
-    destination[i++] = positionsArray[1][0];
-    destination[i++] = positionsArray[1][1];
-    destination[i++] = positionsArray[1][2];
-    destination[i++] = color[0];
-    destination[i++] = color[1];
-    destination[i++] = color[2];
-    destination[i++] = color[3];
-    destination[i++] = 0;
-    destination[i++] = 1;
-    destination[i++] = (f32) textureId;
-    destination[i++] = entityId;
+    rRect.Position[0][0] = positionsArray[0][0];
+    rRect.Position[0][1] = positionsArray[0][1];
+    rRect.Position[0][2] = positionsArray[0][2];
 
-    destination[i++] = positionsArray[2][0];
-    destination[i++] = positionsArray[2][1];
-    destination[i++] = positionsArray[2][2];
-    destination[i++] = color[0];
-    destination[i++] = color[1];
-    destination[i++] = color[2];
-    destination[i++] = color[3];
-    destination[i++] = 1;
-    destination[i++] = 1;
-    destination[i++] = (f32) textureId;
-    destination[i++] = entityId;
+    rRect.Position[1][0] = positionsArray[1][0];
+    rRect.Position[1][1] = positionsArray[1][1];
+    rRect.Position[1][2] = positionsArray[1][2];
 
-    destination[i++] = positionsArray[3][0];
-    destination[i++] = positionsArray[3][1];
-    destination[i++] = positionsArray[3][2];
-    destination[i++] = color[0];
-    destination[i++] = color[1];
-    destination[i++] = color[2];
-    destination[i++] = color[3];
-    destination[i++] = 1;
-    destination[i++] = 0;
-    destination[i++] = (f32) textureId;
-    destination[i++] = entityId;
+    rRect.Position[2][0] = positionsArray[2][0];
+    rRect.Position[2][1] = positionsArray[2][1];
+    rRect.Position[2][2] = positionsArray[2][2];
 
-    ++g_Statistics->RectanglesCount;
+    rRect.Position[3][0] = positionsArray[3][0];
+    rRect.Position[3][1] = positionsArray[3][1];
+    rRect.Position[3][2] = positionsArray[3][2];
+
+    rRect.Color[0] = color[0];
+    rRect.Color[1] = color[1];
+    rRect.Color[2] = color[2];
+    rRect.Color[3] = color[3];
+
+    rRect.TextureID = textureID;
+    rRect.EntityID = entityID;
+
+    array_push(RendererData.Rectangles.RRectangles, rRect);
+
+    ++Statistics->RectanglesCount;
 }
 
 // TODO (bies): mb add list->MaxTextureSlot check
@@ -239,23 +206,23 @@ texture_list_submit_texture_or_flush(BatchRenderer2DData* rendererData, Texture2
     }
 
     i32 textureId;
-    i32 isTextureListNotFull = !(texture_list_is_full(&rendererData->List));
-    i32 isVerticesBufferNotFull = ((rendererData->DataCount + QuadVerticesCount) < VerticesCount);
+    i32 isTextureListNotFull = !(texture_list_is_full(&rendererData->Rectangles.List));
+    i32 isVerticesBufferNotFull = ((rendererData->Rectangles.DataCount + QuadVerticesCount) < VerticesCount);
 
     if (isTextureListNotFull && isVerticesBufferNotFull)
     {
-	textureId = texture_list_contains(&rendererData->List, texture);
+	textureId = texture_list_contains(&rendererData->Rectangles.List, texture);
 	if (textureId == -1)
 	{
-	    textureId = rendererData->List.NextTextureIndex;
-	    texture_list_add(&rendererData->List, texture, textureId);
+	    textureId = rendererData->Rectangles.List.NextTextureIndex;
+	    texture_list_add(&rendererData->Rectangles.List, texture, textureId);
 	}
     }
     else
     {
 	renderer_flush();
-	textureId = rendererData->List.StartIndex;
-	texture_list_add(&rendererData->List, texture, textureId);
+	textureId = rendererData->Rectangles.List.StartIndex;
+	texture_list_add(&rendererData->Rectangles.List, texture, textureId);
     }
 
     return textureId;
@@ -267,12 +234,17 @@ renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Texture2D*
     VertexBuffer vbo = {};
     IndexBuffer ibo = {};
 
-    g_Statistics = statistics;
-    g_Shader = shader;
-    g_Camera = camera;
+    Statistics = statistics;
+    BatchedShader = shader;
+    CurrentCamera = camera;
 
-    // g_RendererData.Data = (f32*) memory_allocate(VertexBufferSize);
-    // g_RendererData.Indices = (u32*) memory_allocate(IndicesBufferSize);
+    RendererData.Rectangles.RRectangles = NULL;
+    array_reserve(RendererData.Rectangles.RRectangles, QuadVertexElementCount);
+    RendererData.Rectangles.Data = (f32*) memory_allocate(VertexBufferSize);
+    RendererData.Rectangles.Indices = (u32*) memory_allocate(IndicesBufferSize);
+
+    RendererData.LinesData = (f32*) memory_allocate(VertexBufferSize);
+    RendererData.LinesIndices = (u32*) memory_allocate(IndicesBufferSize);
 
     GSUCCESS("Allocate Vertices Buffer (size: %lu bytes)\n", VertexBufferSize);
     GSUCCESS("Allocate Indices Buffer (size: %lu bytes)\n", IndicesBufferSize);
@@ -285,22 +257,22 @@ renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Texture2D*
     vertex_buffer_add_layout(&vbo, 0, Float1);
     vertex_buffer_add_layout(&vbo, 0, Float1);
 
-    fill_indices_array(g_RendererData.Indices, IndicesCount);
-    index_buffer_create(&ibo, g_RendererData.Indices, IndicesCount);
+    fill_indices_array(RendererData.Rectangles.Indices, IndicesCount);
+    index_buffer_create(&ibo, RendererData.Rectangles.Indices, IndicesCount);
     index_buffer_bind(&ibo);
 
-    vertex_array_create(&g_RendererData.Vao);
-    vertex_array_add_vbo(&g_RendererData.Vao, vbo);
-    vertex_array_add_ibo(&g_RendererData.Vao, ibo);
-    vertex_array_bind(&g_RendererData.Vao);
-    g_RendererData.List = (TextureList) {
+    vertex_array_create(&RendererData.Rectangles.Vao);
+    vertex_array_add_vbo(&RendererData.Rectangles.Vao, vbo);
+    vertex_array_add_ibo(&RendererData.Rectangles.Vao, ibo);
+    vertex_array_bind(&RendererData.Rectangles.Vao);
+    RendererData.Rectangles.List = (TextureList) {
 	.StartIndex = 0,
 	.MaxTextureSlot = 32,
 	.NextTextureIndex = 1
     };
-    texture_list_set_immutable(&g_RendererData.List, whiteTexture);
+    texture_list_set_immutable(&RendererData.Rectangles.List, whiteTexture);
 
-    renderer_statistics_init(g_Statistics);
+    renderer_statistics_init(Statistics);
 }
 
 force_inline void
@@ -309,40 +281,49 @@ renderer_submit_rotated_base(m4 transform, v4 color, Texture2D* texture, EntityI
     v3 positions[4];
     v4 positionsFourDimensional[4];
 
-    m4_mul_v4(transform, g_BaseVectorPositions[0], positionsFourDimensional[0]);
-    m4_mul_v4(transform, g_BaseVectorPositions[1], positionsFourDimensional[1]);
-    m4_mul_v4(transform, g_BaseVectorPositions[2], positionsFourDimensional[2]);
-    m4_mul_v4(transform, g_BaseVectorPositions[3], positionsFourDimensional[3]);
+    m4_mul_v4(transform, BaseVectorPositions[0], positionsFourDimensional[0]);
+    m4_mul_v4(transform, BaseVectorPositions[1], positionsFourDimensional[1]);
+    m4_mul_v4(transform, BaseVectorPositions[2], positionsFourDimensional[2]);
+    m4_mul_v4(transform, BaseVectorPositions[3], positionsFourDimensional[3]);
 
-    v3_v4(positionsFourDimensional[0], positions[0]);
-    v3_v4(positionsFourDimensional[1], positions[1]);
-    v3_v4(positionsFourDimensional[2], positions[2]);
-    v3_v4(positionsFourDimensional[3], positions[3]);
+    v3_v4(positions[0], positionsFourDimensional[0]);
+    v3_v4(positions[1], positionsFourDimensional[1]);
+    v3_v4(positions[2], positionsFourDimensional[2]);
+    v3_v4(positions[3], positionsFourDimensional[3]);
 
-    i32 textureId = texture_list_submit_texture_or_flush(&g_RendererData, texture);
-    fill_rotated_data_array(g_RendererData.Data, g_RendererData.DataCount, positions, color, textureId, entityId);
-    g_RendererData.DataCount  += QuadVerticesCount;
-    g_RendererData.IndexCount += 6;
+    i32 textureId = texture_list_submit_texture_or_flush(&RendererData, texture);
+    fill_rotated_data_array(RendererData.Rectangles.Data, RendererData.Rectangles.DataCount, positions, color, textureId, entityId);
+
+    RendererData.Rectangles.DataCount  += QuadVerticesCount;
+    RendererData.Rectangles.IndexCount += 6;
 }
 
 void
 renderer_submit_rectangle(v3 position, v2 size, v4 color, v2* coords, Texture2D* texture, EntityID entityId)
 {
-    i32 textureId = texture_list_submit_texture_or_flush(&g_RendererData, texture);
-    v2 textureAdds = v2_(textureId, 1);
+    vassert(0 && "renderer_submit_rectangle");
+    i32 textureId = texture_list_submit_texture_or_flush(&RendererData, texture);
+    v2 textureAdds;
 
-    fill_data_array(g_RendererData.Data, g_RendererData.DataCount, position, size, color, coords != NULL ? coords : g_DefaultCoords, textureId, entityId);
+    v2_assign_xy(textureAdds, textureId, 1);
 
-    g_RendererData.DataCount  += QuadVerticesCount;
-    g_RendererData.IndexCount += 6;
+    fill_data_array(RendererData.Rectangles.Data, RendererData.Rectangles.DataCount, position, size, color, coords != NULL ? coords : DefaultCoords, textureId, entityId);
+
+    RendererData.Rectangles.DataCount  += QuadVerticesCount;
+    RendererData.Rectangles.IndexCount += 6;
 }
 
 void
 renderer_submit_rotated_rectangle(v3 position, v2 size, v4 color, Texture2D* texture, f32 angle, EntityID entityId)
 {
-    v3 scaleVec = v3_(size[0], size[1], 1.0f);
-    v3 rotation = v3_(0.0f, 0.0f, angle);
+    vassert(0 && "renderer_submit_rectangle");
+    v3 scaleVec;
+    v3 rotation;
     m4 transform;
+
+    v3_assign_xyz(scaleVec, size[0], size[1], 1.0f);
+    v3_assign_xyz(rotation, 0.0f, 0.0f, angle);
+
     m4_transform(position, scaleVec, rotation, transform);
     renderer_submit_rotated_base(transform, color, texture, entityId);
 }
@@ -362,10 +343,10 @@ renderer_submit_atlas(v3 position, v2 size, v4 color, TextureAtlas* atlas, i32 r
     f32 endY = ((row + 1) * atlas->TextureHeight) / atlas->AtlasHeight;
 
     v2 coords[4] = {
-	v2_wo_convert(startX, startY),
-	v2_wo_convert(startX, endY),
-	v2_wo_convert(endX, endY),
-	v2_wo_convert(endX, startY)
+	{ startX, startY },
+	{ startX, endY },
+	{ endX, endY },
+	{ endX, startY }
     };
 
     renderer_submit_rectangle(position, size, color, coords, atlas->Texture, entityId);
@@ -376,46 +357,129 @@ renderer_submit_dot(v3 position, v4 color)
 {
 }
 
+i32
+_comp_func(const void* a, const void* b)
+{
+    RenderableRectangle arrect = *((RenderableRectangle*)a);
+    RenderableRectangle brrect = *((RenderableRectangle*)b);
+
+    f32 result = arrect.Position[2] - brrect.Position[2];
+    return result;
+}
+
+void
+renderable_rectangle_to_array(RenderableRectangle* rrects, f32* destination)
+{
+    i32 ind = RendererData.Rectangles.DataCount - 1;
+
+    i32 i, count = array_count(rrects);
+    for (i = 0; i < count; ++i)
+    {
+	RenderableRectangle rrect = rrects[i];
+
+	destination[++ind] = rrect.Position[0][0];
+	destination[++ind] = rrect.Position[0][1];
+	destination[++ind] = rrect.Position[0][2];
+	destination[++ind] = rrect.Color[0];
+	destination[++ind] = rrect.Color[1];
+	destination[++ind] = rrect.Color[2];
+	destination[++ind] = rrect.Color[3];
+	destination[++ind] = 0;
+	destination[++ind] = 0;
+	destination[++ind] = (f32) rrect.TextureID;
+	destination[++ind] = rrect.EntityID;
+
+	destination[++ind] = rrect.Position[1][0];
+	destination[++ind] = rrect.Position[1][1];
+	destination[++ind] = rrect.Position[1][2];
+	destination[++ind] = rrect.Color[0];
+	destination[++ind] = rrect.Color[1];
+	destination[++ind] = rrect.Color[2];
+	destination[++ind] = rrect.Color[3];
+	destination[++ind] = 0;
+	destination[++ind] = 1;
+	destination[++ind] = (f32) rrect.TextureID;
+	destination[++ind] = rrect.EntityID;
+
+	destination[++ind] = rrect.Position[2][0];
+	destination[++ind] = rrect.Position[2][1];
+	destination[++ind] = rrect.Position[2][2];
+	destination[++ind] = rrect.Color[0];
+	destination[++ind] = rrect.Color[1];
+	destination[++ind] = rrect.Color[2];
+	destination[++ind] = rrect.Color[3];
+	destination[++ind] = 1;
+	destination[++ind] = 1;
+	destination[++ind] = (f32) rrect.TextureID;
+	destination[++ind] = rrect.EntityID;
+
+	destination[++ind] = rrect.Position[3][0];
+	destination[++ind] = rrect.Position[3][1];
+	destination[++ind] = rrect.Position[3][2];
+	destination[++ind] = rrect.Color[0];
+	destination[++ind] = rrect.Color[1];
+	destination[++ind] = rrect.Color[2];
+	destination[++ind] = rrect.Color[3];
+	destination[++ind] = 1;
+	destination[++ind] = 0;
+	destination[++ind] = (f32) rrect.TextureID;
+	destination[++ind] = rrect.EntityID;
+
+	RendererData.Rectangles.DataCount  += QuadVerticesCount;
+	RendererData.Rectangles.IndexCount += 6;
+	++Statistics->RectanglesCount;
+    }
+}
+
 void
 renderer_flush()
 {
     u32 size;
     glEnable(GL_BLEND);
 
-    shader_bind(g_Shader);
-    vertex_array_bind(&g_RendererData.Vao);
+    shader_bind(BatchedShader);
+    vertex_array_bind(&RendererData.Rectangles.Vao);
 
-    texture_list_bind(&g_RendererData.List);
+    texture_list_bind(&RendererData.Rectangles.List);
 
-    PRINT_ONESF(GDEBUG, "DataCount: %d\n", g_RendererData.DataCount);
+    DO_ONESF(GDEBUG, "DataCount: %d\n", RendererData.Rectangles.DataCount);
 
-    size = g_RendererData.DataCount * sizeof(f32);
-    vertex_buffer_set_data(g_RendererData.Vao.Vertex, g_RendererData.Data, size);
+    i32 count = array_count(RendererData.Rectangles.RRectangles);
+    //qsort(RendererData.Rectangles.RRectangles, count, sizeof(RenderableRectangle), _comp_func);
+    renderable_rectangle_to_array(RendererData.Rectangles.RRectangles, RendererData.Rectangles.Data);
 
-    shader_set_m4(g_Shader, "u_ViewProjection", 1, 0, &g_Camera->ViewProjection[0]);
-    shader_set_int1(g_Shader, "u_Textures", g_RendererData.List.NextTextureIndex, g_TextureIndices);
+    size = RendererData.Rectangles.DataCount * sizeof(f32);
+    vertex_buffer_set_data(RendererData.Rectangles.Vao.Vertex, RendererData.Rectangles.Data, size);
 
-    glDrawElements(GL_TRIANGLES, g_RendererData.IndexCount, GL_UNSIGNED_INT, NULL);
+    shader_set_m4(BatchedShader, "u_ViewProjection", 1, 0, (f32*) &CurrentCamera->ViewProjection[0]);
+    shader_set_int1(BatchedShader, "u_Textures", RendererData.Rectangles.List.NextTextureIndex, TextureIndices);
 
-    g_RendererData.DataCount  = 0;
-    g_RendererData.IndexCount = 0;
-    g_RendererData.List.NextTextureIndex = 1;
+    glDrawElements(GL_TRIANGLES, RendererData.Rectangles.IndexCount, GL_UNSIGNED_INT, NULL);
 
-    ++g_Statistics->DrawCalls;
+    array_clearv(RendererData.Rectangles.RRectangles, (RenderableRectangle) {});
 
-    texture_list_unbind(&g_RendererData.List);
+    RendererData.Rectangles.DataCount  = 0;
+    RendererData.Rectangles.IndexCount = 0;
+    RendererData.Rectangles.List.NextTextureIndex = 1;
+
+    ++Statistics->DrawCalls;
+
+    texture_list_unbind(&RendererData.Rectangles.List);
     glDisable(GL_BLEND);
 }
 
 void
 renderer_destroy()
 {
-    memory_free(g_RendererData.Data);
-    memory_free(g_RendererData.Indices);
+    memory_free(RendererData.Rectangles.Data);
+    memory_free(RendererData.Rectangles.Indices);
+
+    memory_free(RendererData.LinesData);
+    memory_free(RendererData.LinesIndices);
 }
 
 Renderer2DStatistics
 renderer_get_statistics()
 {
-    return *g_Statistics;
+    return *Statistics;
 }

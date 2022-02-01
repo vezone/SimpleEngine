@@ -2,7 +2,7 @@
 #define M4IO_H
 
 #include "MathTypes.h"
-#include "Utils/Logger.h"
+#include "Utils/SimpleStandardLibrary.h"
 
 force_inline void
 m4_print(m4 m, const char* name)

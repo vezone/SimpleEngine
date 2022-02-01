@@ -1,11 +1,10 @@
 #include "ui.h"
-#include "Application/Application.h"
-#include "Graphics/KeyCodes.h"
-#include "Event/Event.h"
-#include "Utils/Logger.h"
-#include "Utils/Asset.h"
-#include "Utils/Array.h"
 
+#include <Application/Application.h>
+#include <Graphics/KeyCodes.h>
+#include <Event/Event.h>
+#include <Utils/Asset.h>
+#include <Utils/SimpleStandardLibrary.h>
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
 #include "cimgui_impl_glfw.h"
 #include "cimgui_impl_opengl3.h"
@@ -78,6 +77,12 @@ ui_set_colors(ImVec4 colors[ImGuiCol_COUNT])
     colors[ImGuiCol_MenuBarBg] = greyActive;
 }
 
+force_inline ImFont*
+_ui_register_font(ImGuiIO* io, const char* path, f32 fontSize)
+{
+}
+
+
 void
 ui_on_attach(NativeWindow window)
 {
@@ -91,17 +96,18 @@ ui_on_attach(NativeWindow window)
     io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     GSUCCESS("FONT: %s\n", asset_font("NotoSans.ttf"));
+    GSUCCESS("FONT: %s\n", asset_font("Courier Prime/Courier Prime.ttf"));
 
     io->FontDefault = ImFontAtlas_AddFontFromFileTTF(io->Fonts, asset_font("NotoSans.ttf"), 22.0f, NULL, NULL);
 
     array_push(g_Fonts, io->FontDefault);
     array_push(g_Fonts, ImFontAtlas_AddFontFromFileTTF(io->Fonts, asset_font("NotoSans.ttf"), 32.0f, NULL, NULL));
+    array_push(g_Fonts, ImFontAtlas_AddFontFromFileTTF(io->Fonts, asset_font("Courier Prime/Courier Prime.ttf"), 22.0f, NULL, NULL));
 
     ImGuiStyle* style = igGetStyle();
-    style->WindowMinSize.x = 400.0f;
+    style->WindowMinSize.x = 200.0f;
 
     ui_set_colors(style->Colors);
-    //igStyleColorsDark(style);
 
     ImGui_ImplGlfw_InitForOpenGL(window.GlfwWindow, 1);
     ImGui_ImplOpenGL3_Init("#version 410");

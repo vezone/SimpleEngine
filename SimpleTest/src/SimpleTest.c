@@ -6,10 +6,14 @@
 #include "UTests/Math/UTest_V2.h"
 #include "UTests/Math/UTest_M4.h"
 #include "UTests/Utils/UTest_String.h"
+#include "UTests/Utils/UTest_StringBuilder.h"
 #include "UTests/Utils/UTest_Path.h"
 #include "UTests/Utils/UTest_Array.h"
 #include "UTests/Utils/UTest_HashTable.h"
+#include "UTests/Utils/UTest_JsonParser.h"
 #include "UTests/ECS/UTest_ECS.h"
+#include "UTests/ECS/UTest_Scene.h"
+#include "UTests/Serializer/UTest_Serializer.h"
 
 #include "ToggleButton.h"
 
@@ -19,43 +23,54 @@
 static NativeWindow g_Window;
 static ImFont** g_Fonts = NULL;
 
+/*
+  chech if we can ignore params in .c files
+*/
+
 void
 simple_test_on_attach(NativeWindow window)
 {
     g_Window = window;
 
-    window_set_vsync(5);
+    window_set_vsync(3);
 
-    ProfilingTest profilingTest;
-    profiling_test_init(&profilingTest);
+    //ProfilingTest profilingTest;
+    //profiling_test_init(&profilingTest);
 
-#if 0
-    //memory_allocator_test();
-    base_math_test();
-    v2_test();
-    m4_test();
+    perspective_test();
 
+#if 1
     string_test();
     path_test();
-    array_test();
     hash_test();
     ecs_test();
-    string_builder_test();
-#endif
+    scene_test();
+    array_test();
+
+    serializer_test();
+    v2_test();
     json_parser_test();
 
-    GSUCCESS("Ran all test's!\n");
+    base_math_test();
+    //memory_allocator_test();
+    m4_test();
+    string_builder_test();
+#endif
+
+    GSUCCESS("Run all test's!\n");
 
     g_Fonts = ui_get_fonts();
 
     script_test();
 }
 
-void simple_test_on_update(f32 timestep)
+void
+simple_test_on_update(f32 timestep)
 {
 }
 
-void simple_test_on_event(Event* event)
+void
+simple_test_on_event(Event* event)
 {
     if (event->Category == KeyCategory && event->Type == KeyPressed)
     {
@@ -75,7 +90,8 @@ void simple_test_on_event(Event* event)
 static i32 selectedIndex = -1;
 const char* selectedFileName = NULL;
 
-void simple_test_on_ui()
+void
+simple_test_on_ui()
 {
     static bool opt_fullscreen = 1;
     static bool newItem = 0;
@@ -156,11 +172,37 @@ void simple_test_on_ui()
     igEnd();
 
     // NOTE(bies): we can get exaples from demo
-    //igShowDemoWindow(&isDemoOpen);
+    {
+	static bool isDemoOpen = true;
+	igShowDemoWindow(&isDemoOpen);
+    }
+
+    {
+	//Memory Debug
+	i32 totalSize = memory_helper_get_allocated_size();
+	MemoryList* MemoryAllocationList = memory_get_list();
+	static bool isMemoryAllocationsDebugVisible = true;
+	if (igBegin("MemoryAllocationsDebug", &isMemoryAllocationsDebugVisible, ImGuiWindowFlags_None))
+	{
+	    for (MemoryBlock* ptr = MemoryAllocationList->Begin;
+		 ptr != MemoryAllocationList->End;
+		 ptr = ptr->Next)
+	    {
+		if (igButton("Q", ImVec2(60, 60)))
+		{
+		}
+
+	    }
+	    //ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	}
+	igEnd();
+    }
 
     static bool isDemoOpen = 1;
     static bool isTestPanelOpen = 1;
     static char* testText = "No text";
+    static FunctionResultData* results = NULL;
+
     const char** fileNames = test_get_filenames();
     i32 length = array_len(fileNames);
 
@@ -215,7 +257,7 @@ void simple_test_on_ui()
 		    }
 
 		    igPushID_Int(1);
-		    if (f == selectedIndex && selectedFileName != NULL && vstring_compare(filename, selectedFileName))
+		    if (f == selectedIndex && selectedFileName != NULL && string_compare(filename, selectedFileName))
 		    {
 			static f32 selectedRedVal   = 0.9f;
 			static f32 selectedGreenVal = 0.5f;
@@ -238,7 +280,7 @@ void simple_test_on_ui()
 			selectedFileName = filename;
 
 			window_set_title(&g_Window, functionName);
-			testText = functionResult->Builder;
+			results = functionResult->Results;
 		    }
 
 		    igPopStyleColor(3);
@@ -246,24 +288,47 @@ void simple_test_on_ui()
 		}
 	    }
 	}
-
-
-	igEnd();
     }
+    igEnd();
 
     if (igBegin("Test Results", NULL, ImGuiWindowFlags_None))
     {
 	igPushFont(g_Fonts[1]);
 
-	if (testText)
-	    igText(testText);
+	if (results != NULL)
+	{
+	    i32 i, count = array_count(results);
+	    for(i = 0; i < count; ++i)
+	    {
+		FunctionResultData funcResultData = results[i];
+
+		if (funcResultData.IsSeparated)
+		    igSeparator();
+
+		if (funcResultData.NestingLevel)
+		{
+		    char* sb = NULL;
+		    for (i32 n = 0; n < funcResultData.NestingLevel; ++n)
+		    {
+			string_builder_appends(sb, "    ");
+		    }
+		    igText("%s%s [Resulted: %d]", sb, funcResultData.Message, funcResultData.ReturnCode);
+		    string_builder_free(sb);
+		}
+		else
+		{
+		    igText("%s [Resulted: %d]", funcResultData.Message, funcResultData.ReturnCode);
+		}
+	    }
+	}
 
 	igPopFont();
-	igEnd();
     }
+    igEnd();
 }
 
-void simple_test_on_destroy()
+void
+simple_test_on_destroy()
 {
 
 }

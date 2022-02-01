@@ -1,0 +1,46 @@
+{
+    "key0": "value0",
+    "key1" : 105,
+    "key2":
+    {
+	"ObjectProperty0": "ObjectValue",
+	"ObjectProperty1": ["ARRAY0", "ARRAY1"],
+	"ObjectProperty2":
+	{
+	    "Nested0": 12.238,
+	    "Nested1": 12,
+	    "Nested2":
+	    {
+		"KeyW0": 100,
+		"KeyW1": 101,
+		"KeyW2": 110,
+		"KeyW3": 111
+	    }
+	},
+	"ObjectProperty3":
+	{
+	    "Nested0":
+	    {
+		"KeyW0": 100,
+		"KeyW1": 101,
+		"KeyW2": 110,
+		"KeyW3": "ValueW3"
+	    }
+	},
+	"ObjectProperty5": "LALAL",
+	"ObjectProperty4": null,
+	"ObjectProperty5": true
+    },
+    "key3": true,
+    "key4": false,
+    "key5": null,
+    "key6":
+    {
+	"nest0":
+	{
+	    "nest00": 104
+	}
+    },
+    "key7": [0, 1, 2, 3],
+    "key8": [0.0, 1.14, 2.45, 3.79]
+}

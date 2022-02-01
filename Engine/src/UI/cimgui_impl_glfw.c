@@ -4,16 +4,16 @@
 void ImGui_ImplGlfw_MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     if (g_PrevUserCallbackMousebutton != NULL)
-        g_PrevUserCallbackMousebutton(window, button, action, mods);
+	g_PrevUserCallbackMousebutton(window, button, action, mods);
 
     if (action == GLFW_PRESS && button >= 0 && button < IM_ARRAYSIZE(g_MouseJustPressed))
-        g_MouseJustPressed[button] = true;
+	g_MouseJustPressed[button] = true;
 }
 
 void ImGui_ImplGlfw_ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
     if (g_PrevUserCallbackScroll != NULL)
-        g_PrevUserCallbackScroll(window, xoffset, yoffset);
+	g_PrevUserCallbackScroll(window, xoffset, yoffset);
 
     ImGuiIO* io = igGetIO();
     io->MouseWheelH += (float)xoffset;
@@ -23,14 +23,13 @@ void ImGui_ImplGlfw_ScrollCallback(GLFWwindow* window, double xoffset, double yo
 void ImGui_ImplGlfw_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (g_PrevUserCallbackKey != NULL)
-        g_PrevUserCallbackKey(window, key, scancode, action, mods);
-
+	g_PrevUserCallbackKey(window, key, scancode, action, mods);
 
     ImGuiIO* io = igGetIO();
     if (action == GLFW_PRESS)
-        io->KeysDown[key] = true;
+	io->KeysDown[key] = true;
     if (action == GLFW_RELEASE)
-        io->KeysDown[key] = false;
+	io->KeysDown[key] = false;
 
     // Modifiers are not reliable across systems
     io->KeyCtrl = io->KeysDown[GLFW_KEY_LEFT_CONTROL] || io->KeysDown[GLFW_KEY_RIGHT_CONTROL];
@@ -46,10 +45,10 @@ void ImGui_ImplGlfw_KeyCallback(GLFWwindow* window, int key, int scancode, int a
 void ImGui_ImplGlfw_CharCallback(GLFWwindow* window, unsigned int c)
 {
     if (g_PrevUserCallbackChar != NULL)
-        g_PrevUserCallbackChar(window, c);
+	g_PrevUserCallbackChar(window, c);
 
     ImGuiIO* io = igGetIO();
-    //io->AddInputCharacter(c);
+    ImGuiIO_AddInputCharacter(io, c);
 }
 
 bool ImGui_ImplGlfw_InitForOpenGL(GLFWwindow* window, bool install_callbacks)
@@ -66,17 +65,17 @@ void ImGui_ImplGlfw_Shutdown()
 {
     if (g_InstalledCallbacks)
     {
-        glfwSetMouseButtonCallback(g_Window, g_PrevUserCallbackMousebutton);
-        glfwSetScrollCallback(g_Window, g_PrevUserCallbackScroll);
-        glfwSetKeyCallback(g_Window, g_PrevUserCallbackKey);
-        glfwSetCharCallback(g_Window, g_PrevUserCallbackChar);
-        g_InstalledCallbacks = false;
+	glfwSetMouseButtonCallback(g_Window, g_PrevUserCallbackMousebutton);
+	glfwSetScrollCallback(g_Window, g_PrevUserCallbackScroll);
+	glfwSetKeyCallback(g_Window, g_PrevUserCallbackKey);
+	glfwSetCharCallback(g_Window, g_PrevUserCallbackChar);
+	g_InstalledCallbacks = false;
     }
 
     for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
     {
-        glfwDestroyCursor(g_MouseCursors[cursor_n]);
-        g_MouseCursors[cursor_n] = NULL;
+	glfwDestroyCursor(g_MouseCursors[cursor_n]);
+	g_MouseCursors[cursor_n] = NULL;
     }
     g_ClientApi = GlfwClientApi_Unknown;
 }
@@ -100,7 +99,7 @@ void ImGui_ImplGlfw_NewFrame()
 	ImVec2 displaySize;
 	displaySize.x = (float)display_w / w;
 	displaySize.y = (float)display_h / h;
-        io->DisplayFramebufferScale = displaySize;
+	io->DisplayFramebufferScale = displaySize;
     }
 
     // Setup time step

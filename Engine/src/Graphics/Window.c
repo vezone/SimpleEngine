@@ -1,5 +1,4 @@
 #include "Window.h"
-#include "Utils/Logger.h"
 
 static void (*_window_on_event_function)(Event* event);
 

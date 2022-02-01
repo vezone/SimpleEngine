@@ -5,8 +5,7 @@
 #include <Graphics/Shader.h>
 #include <Graphics/Texture2D.h>
 #include <Graphics/Camera/Camera.h>
-#include <Utils/Types.h>
-#include <Utils/Array.h>
+#include <Utils/SimpleStandardLibrary.h>
 #include <ECS/ECS.h>
 #include <Math/Math.h>
 
@@ -82,14 +81,30 @@ typedef struct TextureList
     Texture2D Textures[32];
 } TextureList;
 
-typedef struct BatchRenderer2DData
+typedef struct RenderableRectangle
+{
+    f32 Position[4][3];
+    f32 Color[4];
+    f32 TextureID;
+    f32 EntityID;
+} RenderableRectangle;
+
+typedef struct RectangleData
 {
     u32 DataCount;
     u32 IndexCount;
     VertexArray Vao;
     TextureList List;
-    f32 Data[VerticesCount];
-    u32 Indices[IndicesCount];
+    RenderableRectangle* RRectangles;
+    f32* Data;
+    u32* Indices;
+} RectangleData;
+
+typedef struct BatchRenderer2DData
+{
+    RectangleData Rectangles;
+    f32* LinesData;
+    u32* LinesIndices;
 } BatchRenderer2DData;
 
 void renderer_batch_init(Renderer2DStatistics* statistics, Shader* shader, Texture2D* whiteTexture, Camera* camera);

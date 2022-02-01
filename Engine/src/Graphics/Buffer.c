@@ -1,13 +1,12 @@
 #include "Buffer.h"
 
 #include <stdlib.h>
-#include "Utils/Array.h"
-#include "Utils/Logger.h"
+#include <Utils/SimpleStandardLibrary.h>
 
 static void
 buffer_element_print(BufferElement element)
 {
-    BUFFERDEBUG("Size: %d, Count: %d, Offset: %d\n", element.Size, element.Count, element.Offset);
+    GLOG("Size: %d, Count: %d, Offset: %d\n", element.Size, element.Count, element.Offset);
 }
 
 void
@@ -113,7 +112,6 @@ void vertex_array_add_vbo(VertexArray* va, VertexBuffer vbo)
 
     glBindVertexArray(va->RendererID);
     glBindBuffer(GL_ARRAY_BUFFER, va->Vertex->RendererID);
-    BUFFERDEBUG("Stride: %d\n", vbo.Stride);
 
     BufferElement* layout = vbo.Elements;
     for (i32 i = 0; i < array_len(layout); i++)

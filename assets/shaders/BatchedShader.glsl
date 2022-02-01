@@ -1,5 +1,5 @@
 #vertex shader
-#version 450 core
+#version 440 core
 layout(location = 0) in vec3 i_Position;
 layout(location = 1) in vec4 i_Color;
 layout(location = 2) in vec2 i_TextureCoordinates;
@@ -23,7 +23,7 @@ void main()
 }
 
 #fragment shader
-#version 450 core
+#version 440 core
 layout(location = 0) out vec4 Color;
 
 in vec4 v_Color;
@@ -34,6 +34,12 @@ uniform sampler2D u_Textures[32];
 
 void main()
 {
-    vec4 color = v_Color * (texture(u_Textures[int(v_TextureId)], v_TextureCoordinates * v_TextureId));
-    Color = color;
+    if (v_TextureId == 0)
+    {
+	Color = v_Color;
+    }
+    else
+    {
+	Color = v_Color * (texture(u_Textures[int(v_TextureId)], v_TextureCoordinates));
+    }
 }

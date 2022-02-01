@@ -1,18 +1,24 @@
 #include "Test.h"
-#include <Utils/Logger.h>
-#include <Utils/Array.h>
-#include <Utils/HashTable.h>
-#include <Utils/Profiler.h>
 #include <assert.h>
 
 static i8 g_IsInitialized = 0;
 static i8 g_IsProfilingInitialized = 0;
+
+static i32 g_NextNestingLevel = 0;
+static i32 g_IsNextSeparated = 0;
 
 static TestTable g_TestTable;
 static ProfilingTest* g_ProfilingTest;
 
 const char* g_CurrentFunction;
 static TestInfo g_TestInfo;
+
+force_inline void
+reset_global_flags()
+{
+    g_NextNestingLevel = 0;
+    g_IsNextSeparated = 0;
+}
 
 void
 test_table_initialize(TestTable* testTable)
@@ -31,7 +37,7 @@ file_info_get_function_result(FileInfo* fileInfo, const char* functionName)
 
     for (i32 i = 0; i < functionsCount; i++)
     {
-	if (vstring_compare(fileInfo->Functions[i], functionName))
+	if (string_compare(fileInfo->Functions[i], functionName))
 	{
 	    return results[i];
 	}
@@ -49,20 +55,13 @@ file_info_add_function_result(FileInfo* fileInfo, FunctionResult* functionResult
 	{
 	    functionResult->IsSuccess = code;
 	}
-
-	string_builder_appendf(functionResult->Builder, "%s [Result: %d]\n", message, code);
-
-	array_push(functionResult->Codes, code);
     }
     else
     {
 	functionResult = malloc(sizeof(*functionResult));
 	functionResult->Codes = NULL;
-	functionResult->Builder = NULL;
-	array_push(functionResult->Codes, code);
+	functionResult->Results = NULL;
 	functionResult->IsSuccess = code;
-
-	string_builder_appendf(functionResult->Builder, "%s [Result: %d]\n", message, code);
 	if (code)
 	{
 	    g_TestInfo.SuccessCount++;
@@ -77,17 +76,33 @@ file_info_add_function_result(FileInfo* fileInfo, FunctionResult* functionResult
 
 	g_TestInfo.Count++;
     }
+
+    FunctionResultData functionResultData;
+    functionResultData.NestingLevel = g_NextNestingLevel;
+    functionResultData.IsSeparated = g_IsNextSeparated;
+    functionResultData.ReturnCode = code;
+    functionResultData.Message = message;
+
+    array_push(functionResult->Results, functionResultData);
+
+    // TODO(bies): remove this in the future
+    if (code != -2)
+    {
+	array_push(functionResult->Codes, code);
+    }
+
+    reset_global_flags();
 }
 
 FileInfo*
 test_table_get_file_info(TestTable* testTable, const char* filename)
 {
     i32 i;
-    i32 filesCount = array_len(testTable->Filenames);
+    i32 filesCount = array_count(testTable->Filenames);
 
     for (i = 0; i < filesCount; i++)
     {
-	if (vstring_compare(testTable->Filenames[i], filename))
+	if (string_compare(testTable->Filenames[i], filename))
 	{
 	    return testTable->Infos[i];
 	}
@@ -119,19 +134,6 @@ void test_set_function(const char* function)
 }
 
 void
-test_base(i8 code, const char* filename, const char* message)
-{
-    vassert(g_CurrentFunction);
-    vassert(filename);
-
-    const char* ifilename = path_get_filename_interning(filename);
-    vassert(ifilename);
-    vassert(ifilename != NULL);
-
-    test_table_add_file_info(&g_TestTable, ifilename, code, message);
-}
-
-void
 test(i8 code, const char* filename, const char* message)
 {
     vassert(message);
@@ -146,54 +148,32 @@ test(i8 code, const char* filename, const char* message)
 	g_TestInfo.ErrorsCount = 0;
     }
 
-    test_base(code, filename, message);
-}
-
-force_inline void
-profiling_test_table_add(ProfilingTest* profilingTest, const char* file, const char* function, const char* profilingResult)
-{
-    ProfilingFunctionResult* profilingFunctionResult = shash_get(profilingTest->FileInfoTable, file);
-    shash_put(profilingFunctionResult, function, profilingResult);
-    //  if (!profilingFunctionResult)
-    {
-//	shash_put(profilingTest->FileInfoTable, file, profilingFunctionResult);
-    }
-}
-
-void
-profiling_test_init(ProfilingTest* profilingTest)
-{
-    profilingTest->FileInfoTable = NULL;
-
-    g_ProfilingTest = profilingTest;
-}
-
-ProfilingTest*
-profiling_test_get()
-{
-    return g_ProfilingTest;
-}
-
-void
-profiling_test(ProfilingTest* profilingTest, const char* filename, const char* profilingResult)
-{
-    vassert(profilingTest);
     vassert(g_CurrentFunction);
     vassert(filename);
 
-    const char* ifilename = path_get_filename_interning(filename);
+    char* ifilename = path_get_filename(filename);
     vassert(ifilename);
     vassert(ifilename != NULL);
 
-    const char* iProfilingResult = NULL;
-    if (profilingResult)
-    {
-	iProfilingResult = istring(profilingResult);
-	vassert(iProfilingResult);
-	vassert(iProfilingResult != NULL);
-    }
+    test_table_add_file_info(&g_TestTable, ifilename, code, message);
+}
 
-    profiling_test_table_add(profilingTest, ifilename, g_CurrentFunction, iProfilingResult);
+void
+_test_next_as_child(i32 nestingLevel)
+{
+    g_NextNestingLevel = nestingLevel;
+}
+
+void
+_test_next_separated()
+{
+    g_IsNextSeparated = 1;
+}
+
+i32
+get_next_nesting_level()
+{
+    return g_NextNestingLevel;
 }
 
 FileInfo*

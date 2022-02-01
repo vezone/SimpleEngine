@@ -2,14 +2,13 @@
 #define SPRITE_COMPONENT_H
 
 #include <Graphics/Texture2D.h>
-#include <Utils/Types.h>
 #include <Math/MathTypes.h>
 #include <Math/V2.h>
 #include <Math/V4.h>
 
 typedef struct SpriteComponent
 {
-    i8 IsTextured;
+    i32 IsTextured;
     v4 Color;
     Texture2D* Texture;
 } SpriteComponent;

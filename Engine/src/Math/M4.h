@@ -6,10 +6,8 @@
 #include "V3.h"
 #include "V4.h"
 
-/* Base operation */
-
 force_inline void
-m4_copy(m4 a, m4 b)
+m4_copy(m4 b, m4 a)
 {
     b[0][0] = a[0][0]; b[0][1] = a[0][1]; b[0][2] = a[0][2]; b[0][3] = a[0][3];
     b[1][0] = a[1][0]; b[1][1] = a[1][1]; b[1][2] = a[1][2]; b[1][3] = a[1][3];
@@ -65,13 +63,13 @@ m4_rotation_matrix(m4 m, v3 axis, f32 angle)
     f32 angleCos = cosf(angle);
     f32 angleSin = sinf(angle);
 
-    v3_normalize_to(axis, axisn);
-    v3_mul_f32(axisn, 1.0f - angleCos, v);
-    v3_mul_f32(axisn, angleSin, vs);
+    v3_normalize_to(axisn, axis);
+    v3_mulv(v, axisn, 1.0f - angleCos);
+    v3_mulv(vs, axisn, angleSin);
 
-    v3_mul_f32(axisn, v[0], m[0]);
-    v3_mul_f32(axisn, v[1], m[1]);
-    v3_mul_f32(axisn, v[2], m[2]);
+    v3_mulv(m[0], axisn, v[0]);
+    v3_mulv(m[1], axisn, v[1]);
+    v3_mulv(m[2], axisn, v[2]);
 
     m[0][0] += angleCos;
     m[0][1] += vs[2];
@@ -124,7 +122,8 @@ force_inline void
 m4_mul_v3(m4 m, v3 v, v3 r)
 {
     v4 r4;
-    v4 xyzw = v4_(v[0], v[1], v[2], 1.0f);
+    v4 xyzw;
+    v4_assignv(xyzw, v[0], v[1], v[2], 1.0f);
     m4_mul_v4(m, xyzw, r4);
 
     r[0] = r4[0];
@@ -302,7 +301,8 @@ m4_transform(v3 position, v3 scale, v3 rotation, m4 transform)
     m4 translationMat = M4_IDENTITY;
     m4 rotationMat = M4_IDENTITY;
     m4 scaleMat = M4_IDENTITY;
-    v3 scaleVec = v3_(scale[0], scale[1], 1.0f);
+    v3 scaleVec;
+    v3_assign_xyz(scaleVec, scale[0], scale[1], 1.0f);
 
     m4_translate(translationMat, position);
     m4_rotate_z(rotationMat, rad(rotation[2]), rotationMat);
@@ -317,7 +317,7 @@ m4_transform_decompose(m4 transform, v4 translation, v3 rotation, v3 scale)
 {
     f32 zero = 0.0f;
     m4 localMatrix;
-    m4_copy(transform, localMatrix);
+    m4_copy(localMatrix, transform);
 
     // Normalize the matrix.
     if (f32_equal(localMatrix[3][3], zero))
@@ -357,7 +357,6 @@ m4_transform_decompose(m4 transform, v4 translation, v3 rotation, v3 scale)
     v4_scale(row[1], 1.0f, row[1]);
     scale[2] = v3_length(row[2]);
     v4_scale(row[2], 1.0f, row[2]);
-
 
     // At this point, the matrix (in rows[]) is orthonormal.
     // Check for a coordinate system flip.  If the determinant
@@ -444,6 +443,15 @@ m4_inverse(m4 m, m4 r)
 
     //glm_mat4_scale_p(dest, det);
     m4_mul_f32(r, det, r);
+}
+
+force_inline f32
+m4_determinant(m4 m)
+{
+    f32 det = m[0][0] * m[1][1] * m[2][2] + m[0][1] * m[1][2] * m[2][0] + m[0][2] * m[1][0] * m[2][1] -
+	m[0][2] * m[1][1] * m[2][0] - m[0][1] * m[1][0] * m[2][2] - m[0][0] * m[1][2] * m[2][1];
+
+    return det;
 }
 
 #endif

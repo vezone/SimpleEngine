@@ -2,7 +2,6 @@
 #define PERSPECTIVE_CAMERA_H
 
 #include "Math/MathTypes.h"
-#include "Utils/Types.h"
 
 typedef struct PerspectiveCamera
 {

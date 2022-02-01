@@ -49,35 +49,18 @@ m4_layout_test()
     mat4 cm = GLM_MAT4_IDENTITY_INIT;
 
     M4_Equal(m, cm);
-
-    // Condition(m[0][0] == cm[0][0]);
-    // Condition(m[0][1] == cm[0][1]);
-    // Condition(m[0][2] == cm[0][2]);
-    // Condition(m[0][3] == cm[0][3]);
-    // Condition(m[1][0] == cm[1][0]);
-    // Condition(m[1][1] == cm[1][1]);
-    // Condition(m[1][2] == cm[1][2]);
-    // Condition(m[1][3] == cm[1][3]);
-    // Condition(m[2][0] == cm[2][0]);
-    // Condition(m[2][1] == cm[2][1]);
-    // Condition(m[2][2] == cm[2][2]);
-    // Condition(m[2][3] == cm[2][3]);
-    // Condition(m[3][0] == cm[3][0]);
-    // Condition(m[3][1] == cm[3][1]);
-    // Condition(m[3][2] == cm[3][2]);
-    // Condition(m[3][3] == cm[3][3]);
 }
 
 void
-m4_mul_v4_test()
+m4_mul_v4_wo_converttest()
 {
-    m4 matrix = (m4) {
+    m4 matrix = {
 	1.0f, 0.0f, 0.0f, 0.0f,
 	0.0f, 1.0f, 0.0f, 0.0f,
 	0.0f, 0.0f, 1.0f, 0.0f,
 	0.0f, 0.0f, 0.0f, 1.0f
     };
-    v4 position = v4_(1.0f, 1.0f, 1.0f, 1.0f);
+    v4 position = { 1.0f, 1.0f, 1.0f, 1.0f };
 
     v4 result;
     m4_mul_v4(matrix, position, result);
@@ -88,13 +71,14 @@ m4_mul_v4_test()
 void
 m4_get_transform_test()
 {
-    v3 position = v3_(1.0f, 1.0f, 1.0f);
-    v2 size = v2_(1.0f, 1.0f);
     f32 angle = 0.0f;
-    v3 rotation = v3_(0.0f, 0.0f, angle);
+    v2 size = { 1.0f, 1.0f };
+    v3 position = { 1.0f, 1.0f, 1.0f };
+    v3 rotation;
     mat4 cglmTransform = GLM_MAT4_IDENTITY_INIT;
     m4 transform = M4_IDENTITY;
 
+    v3_assign_xyz(rotation, 0.0f, 0.0f, angle);
     cglm_get_transform(position, size, angle, cglmTransform);
     m4_transform(position, size, rotation, transform);
 
@@ -102,8 +86,10 @@ m4_get_transform_test()
     M4_Value(transform);
     M4_Value(cglmTransform);
 
+    v3 rotation2;
     f32 angle2 = 45.0f;
-    v3 rotation2 = v3_(0.0f, 0.0f, angle2);
+
+    v3_assign_xyz(rotation2, 0.0f, 0.0f, angle2);
     m4_set_identity(cglmTransform);
     m4_set_identity(transform);
     cglm_get_transform(position, size, angle2, cglmTransform);
@@ -117,12 +103,13 @@ m4_get_transform_test()
 void
 m4_get_transform_profiling()
 {
-    v3 position = v3_(1.0f, 1.0f, 1.0f);
-    v2 size = v2_(1.0f, 1.0f);
     f32 angle = 0.0f;
-    v3 rotation = v3_(0.0f, 0.0f, angle);
+    v3 position = { 1.0f, 1.0f, 1.0f };
+    v2 size = { 1.0f, 1.0f };
+    v3 rotation;
     m4 transform = M4_IDENTITY;
 
+    v3_assign_xyz(rotation, 0.0f, 0.0f, angle);
     m4_transform(position, size, rotation, transform);
     M4_Value(transform);
 }
@@ -130,12 +117,13 @@ m4_get_transform_profiling()
 void
 cglm_get_transform_profiling()
 {
-    v3 position = v3_(1.0f, 1.0f, 1.0f);
-    v2 size = v2_(1.0f, 1.0f);
     f32 angle = 0.0f;
-    v3 rotation = v3_(0.0f, 0.0f, angle);
+    v3 position = { 1.0f, 1.0f, 1.0f };
+    v2 size = { 1.0f, 1.0f };
+    v3 rotation;
     mat4 cglmTransform = GLM_MAT4_IDENTITY_INIT;
 
+    v3_assign_xyz(rotation, 0.0f, 0.0f, angle);
     cglm_get_transform(position, size, angle, cglmTransform);
     M4_Value(cglmTransform);
 }
@@ -143,13 +131,14 @@ cglm_get_transform_profiling()
 void
 m4_apply_transform_test()
 {
-    v3 xyz = v3_(1.0f, 1.0f, 1.0f);
-    v2 size = v2_(1.5f, 1.0f);
     f32 angle = 0.0f;
-    v3 rotation = v3_(0.0f, 0.0f, angle);
-    mat4 cglmTransform = GLM_MAT4_IDENTITY_INIT;
+    v3 xyz = { 1.0f, 1.0f, 1.0f };
+    v2 size = { 1.5f, 1.0f };
+    v3 rotation;
     m4 transform = M4_IDENTITY;
+    mat4 cglmTransform = GLM_MAT4_IDENTITY_INIT;
 
+    v3_assign_xyz(rotation, 0.0f, 0.0f, angle);
     cglm_get_transform(xyz, size, angle, cglmTransform);
     m4_transform(xyz, size, rotation, transform);
 
@@ -168,12 +157,12 @@ m4_apply_transform_test()
 void
 m4_check_transform_component()
 {
-    v3 xyz = v3_(1.0f, 1.0f, 1.0f);
-    v2 size = v2_(1.0f, 1.0f);
     f32 angle = 0.0f;
-    v3 rotation = v3_(0.0f, 0.0f, angle);
-    mat4 cglmTransform = GLM_MAT4_IDENTITY_INIT;
+    v3 xyz = { 1.0f, 1.0f, 1.0f };
+    v2 size = { 1.5f, 1.0f };
+    v3 rotation;
     m4 transform = M4_IDENTITY;
+    mat4 cglmTransform = GLM_MAT4_IDENTITY_INIT;
 
     m4_transform(xyz, size, rotation, transform);
 
@@ -188,7 +177,7 @@ void
 m4_test()
 {
     TEST(m4_layout_test());
-    TEST(m4_mul_v4_test());
+    TEST(m4_mul_v4_wo_converttest());
     TEST(m4_get_transform_test());
     TEST(m4_apply_transform_test());
     TEST(m4_check_transform_component());

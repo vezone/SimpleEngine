@@ -1,9 +1,8 @@
 #include "UTest_String.h"
 
 #include <stdlib.h>
-
 #include "UTests/Test.h"
-#include "Utils/String.h"
+#include <Utils/SimpleStandardLibrary.h>
 
 static void
 failure_test()
@@ -20,78 +19,78 @@ success_test()
 static void
 length_test()
 {
-    Condition(vstring_length("string") == 6);
-    Condition(vstring_length("      ") == 6);
-    Condition(vstring_length("\n      \n") == 8);
+    Condition(string_length("string") == 6);
+    Condition(string_length("      ") == 6);
+    Condition(string_length("\n      \n") == 8);
 }
 
 static void
 string_set_test()
 {
     char str[] = "Hello string!";
-    vstring_set(str, 'C', 5);
-    Condition(vstring_compare(str, "CCCCC string!"));
+    string_set(str, 'C', 5);
+    Condition(string_compare(str, "CCCCC string!"));
 
-    vstring_set(str, '\n', 5);
-    Condition(vstring_compare(str, "\n\n\n\n\n string!"));
+    string_set(str, '\n', 5);
+    Condition(string_compare(str, "\n\n\n\n\n string!"));
 
-    vstring_set(str, '\0', 1);
-    Condition(vstring_length(str) == 0);
+    string_set(str, '\0', 1);
+    Condition(string_length(str) == 0);
 
 }
 
 static void
-vstring_copy_test()
+string_copy_test()
 {
-    //String_IsEquals(vstring_copy("It's me, Mario!"), "It's me, Mario!");
+    //String_IsEquals(string_copy("It's me, Mario!"), "It's me, Mario!");
 }
 
 static void
-vstring_concat_test()
+string_concat_test()
 {
-    String_Equal(vstring_concat("It's me, ", "Mario!"), "It's me, Mario!");
-    String_Equal(vstring_concat("\n\n\n", "\n\n"), "\n\n\n\n\n");
-    String_Equal(vstring_concat("123", " 456 "), "123 456 ");
+    String_Equal(string_concat("It's me, ", "Mario!"), "It's me, Mario!");
+    String_Equal(string_concat("\n\n\n", "\n\n"), "\n\n\n\n\n");
+    String_Equal(string_concat("123", " 456 "), "123 456 ");
 }
 
 static void
-vstring_concat3_test()
+string_concat3_test()
 {
-    String_Equal(vstring_concat3("It's me", ", ", "Mario!"), "It's me, Mario!");
-    String_Equal(vstring_concat3("left", " middle ", "right"), "left middle right");
+    String_Equal(string_concat3("It's me", ", ", "Mario!"), "It's me, Mario!");
+    String_Equal(string_concat3("left", " middle ", "right"), "left middle right");
 }
 
 static void
-vstring_compare_test()
+string_compare_test()
 {
     String_Equal("Constant string", "Constant string");
     String_NotEqual("Constant string", " onstan string");
 }
 
 static void
-vstring_test()
+string_ctr_test()
 {
-    String_Equal(vstring("const char* string"), "const char* string");
+    String_Equal(string("const char* string"), "const char* string");
 }
 
 static void
-vstring_substring_test()
+string_substring_test()
 {
-    String_Equal(vstring_substring("const char* input", 6), "char* input");
-    String_Equal(vstring_substring("0123456789", 3), "3456789");
+    String_Equal(string_substring("const char* input", 6), "char* input");
+    String_Equal(string_substring("0123456789", 3), "3456789");
 }
 
 static void
-vstring_substring_range_test()
+string_substring_range_test()
 {
-    String_Equal(vstring_substring_range("const char* input", 6, 10), "char*");
-    String_Equal(vstring_substring_range("0123456789", 3, 7), "34567");
+    String_Equal(string_substring_range("const char* input", 6, 10), "char*");
+    String_Equal(string_substring_range("0123456789", 3, 7), "34567");
 }
 
 static void
-vstring_split_test()
+string_split_test()
 {
-    char** splitted = vstring_split("/home/bies/Data/C/programming/Engine", '/');
+    char** splitted = string_split("/home/bies/Data/C/programming/Engine", '/');
 
     for (i32 i = 0; i < array_len(splitted); i++)
     {
@@ -100,7 +99,7 @@ vstring_split_test()
 }
 
 static void
-vstring_join_test()
+string_join_test()
 {
     const char** list = NULL;
     array_push(list, "Hello");
@@ -108,12 +107,12 @@ vstring_join_test()
     array_push(list, "is");
     array_push(list, "me");
 
-    char* joinedValue = vstring_join(list, ' ');
+    char* joinedValue = string_join(list, ' ');
     String_Equal(joinedValue, "Hello it is me");
     String_Value(joinedValue);
 }
 
-static void
+void
 istring_test()
 {
     Condition(istring("This is string") == istring("This is string"));
@@ -121,58 +120,107 @@ istring_test()
     const char* istr = istring("Interning string");
     u32 length = istring_length(istr);
     Condition(istring_length(istr) == 16);
-    Condition(length);
+    Condition(istring_length(istr));
 }
 
 void
-vmemset_test()
+istring_crash_test()
 {
-    char* dest1 = vstring("00000");
-    vmemset(dest1, '1', 5);
+    istring_free_headers();
 
-    String_Value(dest1);
-    String_Equal(dest1, "11111");
+    const char* istrCached = NULL;
+    const char* istrCached2 = NULL;
+    TimeState state;
+    profiler_start(&state);
+    //STUPID TEST FOR CHECKING IF THERE ANY BUG IN CREATION
+    i32 i, count = 5000;
+    for (i = 0; i < count; ++i)
+    {
+	char buf[256];
+	sprintf(buf, "Hello Hello Hello %i", i);
+	const char* istr = istring(buf);
+	if (i == 7)
+	{
+	    istrCached2 = istr;
+	}
+	else if (i == 2401)
+	{
+	    istrCached = istr;
+	}
+    }
+    profiler_end(&state);
+    i64 ms = profiler_get_milliseconds(&state);
+    I32_Value(ms);
+
+    String_Value("ISTRING_LENGTH");
+    profiler_start(&state);
+    i32 length = istring_length(istrCached);
+    profiler_end(&state);
+    i32 ns = profiler_get_nanoseconds(&state);
+    I32_Value(ns);
+
+    String_Value("STRING_LENGTH");
+    profiler_start(&state);
+    length = string_length(istrCached);
+    profiler_end(&state);
+    ns = profiler_get_nanoseconds(&state);
+    I32_Value(ns);
+
+    String_Value("ISTRING_COMPARE");
+    profiler_start(&state);
+    i32 isEqual = istrCached == istrCached2;
+    profiler_end(&state);
+    ns = profiler_get_nanoseconds(&state);
+    I32_Value(isEqual);
+    I32_Value(ns);
+
+    String_Value("STRING_COMPARE");
+    profiler_start(&state);
+    isEqual = string_compare(istrCached, istrCached2);
+    profiler_end(&state);
+    ns = profiler_get_nanoseconds(&state);
+    I32_Value(isEqual);
+    I32_Value(ns);
+
+    //IFile IElement
+    IStringHeader** strs = istring_get_headers();
+    I32_Value(array_count(strs));
 }
 
 void
-vmemcpy_test()
+string_string_to_i32_test()
 {
-    const char* src1 = "This is string i want to copy!!!";
-    i32 length = vstring_length(src1);
-    char* dest1 = vstring_allocate(length);
-    vmemcpy(dest1, src1, length);
+    Condition(string_to_i32("1234") == 1234);
+    Int_Value(string_to_i32("1234"));
 
-    String_Value(dest1);
-    String_Equal(dest1, src1);
-}
-
-static char* g_MemcpyTestString = "This is string i want to copy!!!";
-
-void
-vmemcpy_profiling_test()
-{
-    const char* src1 = g_MemcpyTestString;
-    i32 length = vstring_length(src1);
-    char* dest1 = vstring_allocate(length);
-    vmemcpy(dest1, src1, length);
+    Condition(string_to_i32("-1000234") == -1000234);
+    Condition(string_to_i32("-1000234"));
 }
 
 void
-vmemcpy_wo_restrict_profiling_test()
+string_string_to_f32_test()
 {
-    const char* src1 = g_MemcpyTestString;
-    i32 length = vstring_length(src1);
-    char* dest1 = vstring_allocate(length);
-    vmemcpy_wo_restrict(dest1, src1, length);
+    {
+	f32 result = string_to_f32("0.1234");
+	F32_Equal_Epsilon(result, 0.1234f, 0.00001f);
+	F32_Value(result);
+    }
+
+    {
+	f32 result = string_to_f32("-.1234");
+	F32_Equal_Epsilon(result, -.1234, 0.00001);
+	F32_Value(result);
+    }
 }
 
 void
-vmemcpy_standart_profiling_test()
+string_parse_i32_test()
 {
-    const char* src2 = g_MemcpyTestString;
-    i32 length = vstring_length(src2);
-    char* dest2 = vstring_allocate(length);
-    memcpy(dest2, src2, length);
+    char res[100];
+    string_i32(res, 100245);
+
+    String_Value(res);
+    String_Equal(res, "100245");
 }
 
 void string_test()
@@ -182,18 +230,22 @@ void string_test()
     TEST(length_test());
     TEST(string_set_test());
 
-    TEST(vstring_concat_test());
-    TEST(vstring_concat3_test());
-    TEST(vstring_compare_test());
+    TEST(string_concat_test());
+    TEST(string_concat3_test());
+    TEST(string_compare_test());
 
-    TEST(vstring_test());
-    TEST(vstring_substring_test());
-    TEST(vstring_substring_range_test());
-    TEST(vstring_split_test());
-    TEST(vstring_join_test());
+    TEST(string_ctr_test());
+    TEST(string_substring_test());
+    TEST(string_substring_range_test());
+    TEST(string_split_test());
+    TEST(string_join_test());
 
     TEST(istring_test());
+    TEST(istring_crash_test());
 
-    TEST(vmemset_test());
-    TEST(vmemcpy_test());
+    TEST(string_string_to_i32_test());
+    TEST(string_string_to_f32_test());
+
+    TEST(string_parse_i32_test());
+
 }

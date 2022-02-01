@@ -28,13 +28,7 @@ project "Engine"
     kind "StaticLib"
     language "C"
     staticruntime "on"
-
-    buildoptions
-    {
-      "-std=c99",
-      "-O3"
-    }
-
+    buildoptions { "-std=c99" }
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin/Intermidiates/" .. outputdir .. "/%{prj.name}")
 
@@ -48,7 +42,8 @@ project "Engine"
     {
       "_CRT_SECURE_NO_WARNINGS",
       "GLFW_INCLUDE_NONE",
-      "CIMGUI_DEFINE_ENUMS_AND_STRUCTS"
+      "CIMGUI_DEFINE_ENUMS_AND_STRUCTS",
+      "_GNU_SOURCE"
     }
 
     includedirs
@@ -61,41 +56,26 @@ project "Engine"
     }
 
     filter "system:linux"
-    defines
-    {
-      LINUX_PLATFORM
-    }
+      defines { "LINUX_PLATFORM" }
 
     filter "system:windows"
-    defines
-    {
-      WINDOWS_PLATFORM
-    }
+      defines { "WINDOWS_PLATFORM" }
 
     filter "configurations:Debug"
-    defines "ENGINE_DEBUG = 1"
-    symbols "On"
+      defines { "ENGINE_DEBUG" }
+      symbols "On"
 
     filter "configurations:Release"
-    defines "ENGINE_DEBUG = 0"
-    optimize "On"
-
-    filter "configurations:Dist"
-    defines "ENGINE_DIST"
-    optimize "On"
+      defines { "ENGINE_RELEASE" }
+      optimize "On"
+      buildoptions { "-O3" }
 
 project "SandboxApp"
-    location "SandboxApp"
+    location "SimpleEditor"
     kind "ConsoleApp"
     language "C"
     staticruntime "on"
-
-    buildoptions
-    {
-      "-std=c99",
-      "-O3"
-    }
-
+    buildoptions { "-std=c99" }
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin/Intermidiates/" .. outputdir .. "/%{prj.name}")
 
@@ -108,7 +88,8 @@ project "SandboxApp"
     defines
     {
       "GLFW_INCLUDE_NONE",
-      "CIMGUI_DEFINE_ENUMS_AND_STRUCTS"
+      "CIMGUI_DEFINE_ENUMS_AND_STRUCTS",
+      "_GNU_SOURCE"
     }
 
     includedirs
@@ -126,22 +107,32 @@ project "SandboxApp"
       "Engine",
       "glad",
       "GLFW",
-      "cimgui",
-      "stdc++",
-      "GL", "GLU",
-      "X11","dl",
-      "Xinerama", "Xcursor", "m",
-      "Xxf86vm", "Xrandr", "pthread", "Xi"
+      "cimgui"
     }
 
     filter "configurations:Debug"
-    defines "CG_DEBUG = 1"
-    symbols "On"
+      defines { "ENGINE_DEBUG" }
+      symbols "On"
 
     filter "configurations:Release"
-    defines "CG_DEBUG = 0"
-    optimize "On"
+      defines { "ENGINE_RELEASE" }
+      buildoptions { "-O3" }
+      optimize "On"
 
     filter "configurations:Dist"
-    defines "CG_DIST"
-    optimize "On"
+      defines { "ENGINE_DIST" }
+      optimize "On"
+
+    filter "system:linux"
+      defines { "LINUX_PLATFORM" }
+      links
+      {
+	"GL", "GLU",
+	"X11","dl",
+	"Xinerama", "Xcursor", "m",
+	"Xxf86vm", "Xrandr", "pthread", "Xi",
+	"stdc++"
+      }
+
+    filter "system:windows"
+      defines { "WINDOWS_PLATFORM" }

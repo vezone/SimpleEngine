@@ -1,7 +1,7 @@
 #include "UTest_StringBuilder.h"
 
 #include "UTests/Test.h"
-#include "Utils/StringBuilder.h"
+#include <Utils/SimpleStandardLibrary.h>
 
 void
 string_builder_appendc_test()

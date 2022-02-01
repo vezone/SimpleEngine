@@ -5,6 +5,8 @@ void create_user_application()
 {
     linux_set_current_stack_size(MB(500), MB(528));
 
+    application_init(1600, 900, "Sandbox");
+
     Layer sandboxLayer;
     sandboxLayer.OnAttach = sandbox_on_attach;
     sandboxLayer.OnUpdate = sandbox_on_update;

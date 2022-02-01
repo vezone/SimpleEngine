@@ -6,14 +6,12 @@
 #include "ECS/ECS.h"
 #include "ECS/Components/SpriteComponent.h"
 #include "ECS/Components/TransformComponent.h"
-#include "Utils/Logger.h"
-#include "Utils/String.h"
-#include "Utils/MemoryAllocator.h"
+#include <Utils/SimpleStandardLibrary.h>
 
-typedef struct A { u32 AId; u32 AAge; } A;
-typedef struct B { u32 BId; u32 BAge; } B;
-typedef struct C { u32 CId; u32 CAge; } C;
-typedef struct D { u32 CId; u32 CAge; } D;
+typedef struct A { u32 AID; u32 AAge; } A;
+typedef struct B { u32 BID; u32 BAge; } B;
+typedef struct C { u32 CID; u32 CAge; } C;
+typedef struct D { u32 CID; u32 CAge; } D;
 
 /*
 
@@ -44,14 +42,14 @@ world_create_test()
 {
     World* world = world_create();
 
-    Condition(world->Id == 0);
-    Condition(world->LastEntityId == ENTITIES_FIRST_ID);
+    Condition(world->ID == 0);
+    Condition(world->LastEntityID == ENTITIES_FIRST_ID);
     Condition(world->Archetypes == NULL);
     Condition(world->ArchetypesStorage == NULL);
-    Condition(world->Storage.NameToId == NULL);
-    Condition(world->Storage.IdToName == NULL);
-    Condition(world->Storage.IdToSize == NULL);
-    Condition(world->Storage.LastId == COMPONENTS_FIRST_ID);
+    Condition(world->Storage.NameToID == NULL);
+    Condition(world->Storage.IDToName == NULL);
+    Condition(world->Storage.IDToSize == NULL);
+    Condition(world->Storage.LastID == COMPONENTS_FIRST_ID);
 }
 
 void
@@ -76,8 +74,8 @@ ecs_get_component_id_test()
     ECS_REGISTER_COMPONENT(world, A);
     ECS_REGISTER_COMPONENT(world, B);
 
-    u32 aId = ECS_GET_COMPONENT_ID(world, A);
-    u32 bId = ECS_GET_COMPONENT_ID(world, B);
+    u32 aID = ECS_GET_COMPONENT_ID(world, A);
+    u32 bID = ECS_GET_COMPONENT_ID(world, B);
 
     Condition(ECS_GET_COMPONENT_ID(world, A) == COMPONENTS_FIRST_ID);
     Condition(ECS_GET_COMPONENT_ID(world, B) == (COMPONENTS_FIRST_ID + 1));
@@ -90,21 +88,21 @@ ecs_entity_add_component_test()
     ECS_REGISTER_COMPONENT(world, A);
     ECS_REGISTER_COMPONENT(world, B);
 
-    EntityID playerId = ECS_ENTITY_CREATE(world);
+    EntityID playerID = ECS_ENTITY_CREATE(world);
 
-    Condition(playerId == ENTITIES_FIRST_ID);
-    Condition(WORLD_HAS_ENTITY(world, playerId) == 1);
+    Condition(playerID == ENTITIES_FIRST_ID);
+    Condition(WORLD_HAS_ENTITY(world, playerID) == 1);
 
-    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerId, A) != 1);
-    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerId, B) != 1);
+    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerID, A) != 1);
+    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerID, B) != 1);
 
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, A);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, B);
 
-    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerId, A));
-    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerId, B));
+    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerID, A));
+    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerID, B));
 
-    const ComponentID* components = _ecs_entity_get_components_id(world, playerId);
+    const ComponentID* components = _ecs_entity_get_components_id(world, playerID);
     for (i32 i = 0; i < array_count(components); i++)
     {
 	Int_Value(components[i]);
@@ -120,11 +118,11 @@ ecs_entity_add_real_component_test()
 
     for (i32 i = 0; i < 3; i++)
     {
-	EntityID playerId = ECS_ENTITY_CREATE(world);
-	ECS_ENTITY_ADD_COMPONENT(world, playerId, TransformComponent);
-	ECS_ENTITY_ADD_COMPONENT(world, playerId, SpriteComponent);
-	ECS_ENTITY_SET_COMPONENT(world, playerId, TransformComponent, TransformComponent_(v3_(1.0,1.0,1.0), v3_(1.0,1.0,1.0), v3_(0.0,0.0,0.0)));
-	ECS_ENTITY_SET_COMPONENT(world, playerId, SpriteComponent, SpriteComponent_Color(v3_(1.0,1.0,0.0)));
+	EntityID playerID = ECS_ENTITY_CREATE(world);
+	ECS_ENTITY_ADD_COMPONENT(world, playerID, TransformComponent);
+	ECS_ENTITY_ADD_COMPONENT(world, playerID, SpriteComponent);
+	ECS_ENTITY_SET_COMPONENT(world, playerID, TransformComponent, TransformComponent_(v3_(1.0,1.0,1.0), v3_(1.0,1.0,1.0), v3_(0.0,0.0,0.0)));
+	ECS_ENTITY_SET_COMPONENT(world, playerID, SpriteComponent, SpriteComponent_Color(v3_(1.0,1.0,0.0)));
 
 	Condition(array_count(world->Archetypes));
     }
@@ -169,27 +167,27 @@ ecs_entity_get_components_test()
     ECS_REGISTER_COMPONENT(world, A);
     ECS_REGISTER_COMPONENT(world, B);
 
-    EntityID playerId = ECS_ENTITY_CREATE(world);
+    EntityID playerID = ECS_ENTITY_CREATE(world);
 
-    Condition(playerId == ENTITIES_FIRST_ID);
-    Condition(WORLD_HAS_ENTITY(world, playerId) == 1);
+    Condition(playerID == ENTITIES_FIRST_ID);
+    Condition(WORLD_HAS_ENTITY(world, playerID) == 1);
 
-    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerId, A) == 0);
-    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerId, B) == 0);
+    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerID, A) == 0);
+    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerID, B) == 0);
 
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, A);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, B);
 
-    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerId, A) == 1);
-    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerId, B) == 1);
+    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerID, A) == 1);
+    Condition(ECS_ENTITY_HAS_COMPONENT(world, playerID, B) == 1);
 
-    const ComponentID* components = _ecs_entity_get_components_id(world, playerId);
+    const ComponentID* components = _ecs_entity_get_components_id(world, playerID);
     Condition(array_count(components) == 2);
     Condition(components[0] == COMPONENTS_FIRST_ID);
     Condition(components[1] == COMPONENTS_FIRST_ID + 1);
 
 
-    ArchetypeRecord record = _ecs_entity_get_archetype_record(world, playerId);
+    ArchetypeRecord record = _ecs_entity_get_archetype_record(world, playerID);
     Condition(record.Archetype->ComponentsSize == (sizeof(A) + sizeof(B)));
     Int_Value(record.Archetype->ComponentsSize);
 }
@@ -200,11 +198,11 @@ ecs_entity_set_component_test()
     World* world = world_create();
     ECS_REGISTER_COMPONENT(world, A);
     ECS_REGISTER_COMPONENT(world, B);
-    EntityID playerId = ECS_ENTITY_CREATE(world);
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
-    ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 203  , .AAge = 27 }));
-    ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = 17083, .BAge = 59 }));
+    EntityID playerID = ECS_ENTITY_CREATE(world);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, A);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, B);
+    ECS_ENTITY_SET_COMPONENT(world, playerID, A, ((A) { .AID = 203  , .AAge = 27 }));
+    ECS_ENTITY_SET_COMPONENT(world, playerID, B, ((B) { .BID = 17083, .BAge = 59 }));
 
     A* a = ECS_ENTITY_GET_COMPONENT(world, ENTITIES_FIRST_ID, A);
     B* b = ECS_ENTITY_GET_COMPONENT(world, ENTITIES_FIRST_ID, B);
@@ -212,17 +210,17 @@ ecs_entity_set_component_test()
     Condition(a != NULL);
     Condition(b != NULL);
 
-    A ta = (A) { .AId = 203  , .AAge = 27 };
-    B tb = (B) { .BId = 17083, .BAge = 59 };
+    A ta = (A) { .AID = 203  , .AAge = 27 };
+    B tb = (B) { .BID = 17083, .BAge = 59 };
 
-    Condition(ta.AId == a->AId);
+    Condition(ta.AID == a->AID);
     Condition(ta.AAge == a->AAge);
-    Condition(tb.BId == b->BId);
+    Condition(tb.BID == b->BID);
     Condition(tb.BAge == b->BAge);
 
-    Int_Value(a->AId);
+    Int_Value(a->AID);
     Int_Value(a->AAge);
-    Int_Value(b->BId);
+    Int_Value(b->BID);
     Int_Value(b->BAge);
 }
 
@@ -233,26 +231,26 @@ ecs_entity_set_component_twice_test()
     ECS_REGISTER_COMPONENT(world, A);
     ECS_REGISTER_COMPONENT(world, B);
 
-    EntityID playerId = ECS_ENTITY_CREATE(world);
+    EntityID playerID = ECS_ENTITY_CREATE(world);
 
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, A);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, B);
 
     {
-	ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 203, .AAge = 27 }));
-	ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = 17083, .BAge = 59 }));
-	A* a = ECS_ENTITY_GET_COMPONENT(world, playerId, A);
-	B* b = ECS_ENTITY_GET_COMPONENT(world, playerId, B);
-	Int_Value(a->AId);
+	ECS_ENTITY_SET_COMPONENT(world, playerID, A, ((A) { .AID = 203, .AAge = 27 }));
+	ECS_ENTITY_SET_COMPONENT(world, playerID, B, ((B) { .BID = 17083, .BAge = 59 }));
+	A* a = ECS_ENTITY_GET_COMPONENT(world, playerID, A);
+	B* b = ECS_ENTITY_GET_COMPONENT(world, playerID, B);
+	Int_Value(a->AID);
 	Int_Value(a->AAge);
     }
 
     {
-	ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 991, .AAge = 127 }));
-	A* a = ECS_ENTITY_GET_COMPONENT(world, playerId, A);
-	Condition(a->AId == 991);
+	ECS_ENTITY_SET_COMPONENT(world, playerID, A, ((A) { .AID = 991, .AAge = 127 }));
+	A* a = ECS_ENTITY_GET_COMPONENT(world, playerID, A);
+	Condition(a->AID == 991);
 	Condition(a->AAge == 127);
-	Int_Value(a->AId);
+	Int_Value(a->AID);
 	Int_Value(a->AAge);
     }
 }
@@ -269,28 +267,28 @@ ecs_archetype_get_test()
     srand(time(NULL));
     i32 i;
     i32 count = 10;
-    EntityID playerId;
+    EntityID playerID;
 
-    playerId = ECS_ENTITY_CREATE(world);
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
-    ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 1, .AAge = 2 }));
-    ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = 3, .BAge = 4 }));
+    playerID = ECS_ENTITY_CREATE(world);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, A);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, B);
+    ECS_ENTITY_SET_COMPONENT(world, playerID, A, ((A) { .AID = 1, .AAge = 2 }));
+    ECS_ENTITY_SET_COMPONENT(world, playerID, B, ((B) { .BID = 3, .BAge = 4 }));
 
-    playerId = ECS_ENTITY_CREATE(world);
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
-    ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 5, .AAge = 6 }));
-    ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = 7, .BAge = 8 }));
+    playerID = ECS_ENTITY_CREATE(world);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, A);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, B);
+    ECS_ENTITY_SET_COMPONENT(world, playerID, A, ((A) { .AID = 5, .AAge = 6 }));
+    ECS_ENTITY_SET_COMPONENT(world, playerID, B, ((B) { .BID = 7, .BAge = 8 }));
 
-    playerId = ECS_ENTITY_CREATE(world);
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
-    ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 9, .AAge = 10 }));
-    ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = 11, .BAge = 12 }));
+    playerID = ECS_ENTITY_CREATE(world);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, A);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, B);
+    ECS_ENTITY_SET_COMPONENT(world, playerID, A, ((A) { .AID = 9, .AAge = 10 }));
+    ECS_ENTITY_SET_COMPONENT(world, playerID, B, ((B) { .BID = 11, .BAge = 12 }));
 
     // NOTE(bies): старые данные остаются в предыдущем архетипе, наверное не критично, но может запутать в будущем
-    ECS_ENTITY_ADD_COMPONENT(world, playerId, C);
+    ECS_ENTITY_ADD_COMPONENT(world, playerID, C);
 
     Condition(array_count(world->Archetypes) == 3);
     Int_Value(array_count(world->Archetypes));
@@ -319,9 +317,9 @@ ecs_archetype_get_test()
 	A* a = ECS_QUERY_RESULT_GET(queryResult, A);
 	B* b = ECS_QUERY_RESULT_GET(queryResult, B);
 
-	Int_Value(a->AId);
+	Int_Value(a->AID);
 	Int_Value(a->AAge);
-	Int_Value(b->BId);
+	Int_Value(b->BID);
 	Int_Value(b->BAge);
 
 	Int_Value(queryResult.Current);
@@ -340,12 +338,12 @@ ecs_crash_test()
     i32 count = 50000;
     for (i32 i = 0; i < count; i++)
     {
-	EntityID playerId;
-	playerId = ECS_ENTITY_CREATE(world);
-	ECS_ENTITY_ADD_COMPONENT(world, playerId, A);
-	ECS_ENTITY_ADD_COMPONENT(world, playerId, B);
-	ECS_ENTITY_SET_COMPONENT(world, playerId, A, ((A) { .AId = 1, .AAge = 2 }));
-	ECS_ENTITY_SET_COMPONENT(world, playerId, B, ((B) { .BId = 3, .BAge = 4 }));
+	EntityID playerID;
+	playerID = ECS_ENTITY_CREATE(world);
+	ECS_ENTITY_ADD_COMPONENT(world, playerID, A);
+	ECS_ENTITY_ADD_COMPONENT(world, playerID, B);
+	ECS_ENTITY_SET_COMPONENT(world, playerID, A, ((A) { .AID = 1, .AAge = 2 }));
+	ECS_ENTITY_SET_COMPONENT(world, playerID, B, ((B) { .BID = 3, .BAge = 4 }));
     }
 
     ECSQueryResult queryResult = ECS_ARCHETYPE_GET(world, A,B);
@@ -387,6 +385,6 @@ void ecs_test()
     TEST(ecs_archetype_get_test());
     CHECK_MEMORY();
 
-    TEST(ecs_crash_test());
+    //TEST(ecs_crash_test());
     CHECK_MEMORY();
 }

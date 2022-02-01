@@ -3,10 +3,7 @@
 
 #include <glad/glad.h>
 #include "OpenGLBase.h"
-#include "Utils/Types.h"
-#include "Utils/Logger.h"
-#include "Utils/HashTable.h"
-#include "Utils/MemoryAllocator.h"
+#include "Utils/SimpleStandardLibrary.h"
 
 typedef struct ShaderSource
 {

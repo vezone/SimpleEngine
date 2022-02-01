@@ -1,11 +1,10 @@
 #include "OpenGLBase.h"
-#include "Utils/Logger.h"
-#include "Utils/Types.h"
+#include "Utils/SimpleStandardLibrary.h"
 
-int
+i32
 opengl_context_init(GLADloadproc gladLoadProc)
 {
-    int openGLLoadStatus = gladLoadGLLoader(gladLoadProc);
+    i32 openGLLoadStatus = gladLoadGLLoader(gladLoadProc);
     if (openGLLoadStatus == 0)
     {
 	GERROR("Failed to init GLAD\n");

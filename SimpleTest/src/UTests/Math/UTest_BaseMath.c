@@ -1,6 +1,7 @@
 #include "UTest_BaseMath.h"
 
 #include "UTests/Test.h"
+#include <Math/BaseMath.h>
 #include <Math/Math.h>
 
 static void

@@ -2,7 +2,7 @@
 #define BASEMATH_H
 
 #include "MathTypes.h"
-#include "Utils/Types.h"
+#include "Utils/SimpleStandardLibrary.h"
 //TODO(bies): remove this
 #include <math.h>
 
@@ -33,6 +33,8 @@ pow2f(f32 x)
 
 /*
   number_rank(1000) == 3;
+  TODO(bies): rename to number_get_rank(i32 number)
+  TODO(bies): change this to i32_rank in refactoring session
 */
 force_inline i32
 number_rank(i32 number)
@@ -95,12 +97,19 @@ number_of_digit(i64 number, i8 digit)
     return number;
 }
 
-#define EPSILON 0.0001
+#define F32_CUSTOM_EPSILON 1E-5f
 force_inline i32
 f32_equal(f32 a, f32 b)
 {
-    return (fabs(a - b) <= EPSILON);
+    return (fabs(a - b) <= F32_CUSTOM_EPSILON);
 }
+
+force_inline i32
+f32_equal_epsilon(f32 a, f32 b, f32 eps)
+{
+    return (fabs(a - b) <= eps);
+}
+
 
 force_inline f32
 rad(f32 degrees)

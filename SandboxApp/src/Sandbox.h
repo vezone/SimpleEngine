@@ -3,7 +3,6 @@
 
 #include <Engine.h>
 
-i32 sandbox_start();
 void sandbox_on_attach(NativeWindow window);
 void sandbox_on_update(f32 timestep);
 void sandbox_on_ui_render();

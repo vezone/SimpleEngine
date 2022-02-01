@@ -1,9 +1,9 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
+#include "Utils/SimpleStandardLibrary.h"
 #include "Graphics/Window.h"
 #include "Graphics/KeyCodes.h"
-#include "Utils/Logger.h"
 #include "Event/Event.h"
 #include "Platform/Linux/Linux.h"
 #include "UI/ui.h"

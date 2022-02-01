@@ -1,12 +1,13 @@
 #include "UTest_Array.h"
 
 #include "UTests/Test.h"
-#include "Utils/Profiler.h"
+#include <Utils/SimpleStandardLibrary.h>
 
 force_inline i32*
 array_init()
 {
-    profiler_start();
+    TimeState state;
+    profiler_start(&state);
     i32* indices = NULL;
 
     array_push(indices, 0);
@@ -15,8 +16,8 @@ array_init()
     array_push(indices, 2);
     array_push(indices, 3);
     array_push(indices, 0);
-    profiler_end();
-    String_Value(profiler_get_string());
+    profiler_end(&state);
+    String_Value(profiler_get_string(&state));
 
     return indices;
 }
@@ -107,12 +108,12 @@ array_reserve_test()
 
     Condition(indices != NULL);
 
-    array_push_at(indices, 0, 0);
-    array_push_at(indices, 1, 1);
-    array_push_at(indices, 2, 2);
-    array_push_at(indices, 3, 2);
-    array_push_at(indices, 4, 3);
-    array_push_at(indices, 5, 0);
+    array_push(indices, 0);
+    array_push(indices, 1);
+    array_push(indices, 2);
+    array_push(indices, 2);
+    array_push(indices, 3);
+    array_push(indices, 0);
 
     Condition(indices[0] == 0);
     Condition(indices[1] == 1);
@@ -129,57 +130,16 @@ array_reserve_test()
 }
 
 void
-array_foreach_test()
-{
-    i32* array = NULL;
-    array_push(array, 14);
-    array_push(array, 15);
-    array_push(array, 16);
-    array_push(array, 17);
-    array_push(array, 18);
-
-    i32 i = 0;
-    array_foreach(array)
-    {
-	Condition(array[i] == *item);
-	++i;
-    }
-}
-
-void
-array_foreach_pointer_test()
-{
-    i32** array = NULL;
-    i32* arr = NULL;
-    array_push(arr, 1);
-    array_push(arr, 2);
-    array_push(arr, 3);
-
-    array_push(array, arr);
-    array_push(array, arr);
-    array_push(array, arr);
-    array_push(array, arr);
-    array_push(array, arr);
-
-    i32 i = 0;
-    array_foreach(array)
-    {
-	Condition(array[i] == *item);
-	++i;
-    }
-}
-
-void
 array_clear_test()
 {
     i32* array = NULL;
 
+    array_push(array, 0);
     array_push(array, 1);
     array_push(array, 2);
     array_push(array, 3);
     array_push(array, 4);
     array_push(array, 5);
-    array_push(array, 6);
 
     array_clear(array);
 
@@ -189,7 +149,6 @@ array_clear_test()
     Condition(array[3] == 0);
     Condition(array[4] == 0);
     Condition(array[5] == 0);
-    Condition(array[6] == 0);
 
     array[0] = 9;
     array[1] = 9;
@@ -197,7 +156,6 @@ array_clear_test()
     array[3] = 9;
     array[4] = 9;
     array[5] = 9;
-    array[6] = 9;
 
     Condition(array[0] == 9);
     Condition(array[1] == 9);
@@ -205,13 +163,16 @@ array_clear_test()
     Condition(array[3] == 9);
     Condition(array[4] == 9);
     Condition(array[5] == 9);
-    Condition(array[6] == 9);
+
+    //GERROR("%lld %lld\n", );
+    array_free(array);
 }
 
 void
 array_crash_test()
 {
-    profiler_start();
+    TimeState state;
+    profiler_start(&state);
 
     i32* array = NULL;
     i32 count = 100000000;
@@ -219,26 +180,38 @@ array_crash_test()
     {
 	array_push(array, i);
     }
-    profiler_end();
-    String_Value(profiler_get_string_as_float());
+    profiler_end(&state);
+    String_Value(profiler_get_string_as_float(&state));
 
     Condition(array[count - 1] == (count - 1));
     Int_Value(array[count - 1]);
 }
 
 void
-not_inline_function_for_testing()
+array_remove_test()
 {
+    i32* arr = NULL;
 
-}
+    array_push(arr, 0);
+    array_push(arr, 1);
+    array_push(arr, 2);
+    array_push(arr, 3);
+    array_push(arr, 4);
+    array_push(arr, 5);
 
-void
-array_function_profiling_test()
-{
-    //profiler_start();
-    not_inline_function_for_testing();
-    //profiler_end();
-    //String_Value(profiler_get_string_as_float());
+    i32 i, count = array_count(arr);
+    for (i = 0; i < count; ++i)
+    {
+	I32_Value(arr[i]);
+    }
+
+    array_remove(arr, 3);
+
+    Condition(arr[0] == 0);
+    Condition(arr[1] == 1);
+    Condition(arr[2] == 2);
+    Condition(arr[3] == 4);
+    Condition(arr[4] == 5);
 }
 
 void
@@ -248,8 +221,6 @@ array_test()
     TEST(array_copy_test());
     TEST(array_push_at_test());
     TEST(array_reserve_test());
-    TEST(array_foreach_test());
-    TEST(array_foreach_pointer_test());
     TEST(array_clear_test());
-    TEST(array_function_profiling_test());
+    TEST(array_remove_test());
 }

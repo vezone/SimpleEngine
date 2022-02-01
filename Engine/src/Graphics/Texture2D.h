@@ -1,7 +1,7 @@
 #ifndef TEXTURE_2D_H
 #define TEXTURE_2D_H
 
-#include "Utils/Types.h"
+#include "Utils/SimpleStandardLibrary.h"
 #include "Math/MathTypes.h"
 
 typedef struct Texture2D

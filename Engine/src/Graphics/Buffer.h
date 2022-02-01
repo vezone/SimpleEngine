@@ -1,7 +1,7 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
-#include "Utils/Types.h"
+#include "Utils/SimpleStandardLibrary.h"
 #include "OpenGLBase.h"
 
 typedef enum DataType

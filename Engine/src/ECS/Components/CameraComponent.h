@@ -1,7 +1,7 @@
 #ifndef CAMERA_COMPONENT_H
 #define CAMERA_COMPONENT_H
 
-#include <Utils/Types.h>
+#include <Utils/SimpleStandardLibrary.h>
 #include <Graphics/Camera/Camera.h>
 
 typedef struct CameraComponent

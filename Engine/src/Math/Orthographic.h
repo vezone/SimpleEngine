@@ -2,7 +2,6 @@
 #define ORTHOGRAPHIC_H
 
 #include "MathTypes.h"
-#include "Utils/Types.h"
 
 force_inline void
 orthographic(f32 left, f32 right, f32 bot, f32 top, f32 nearVal, f32 farVal, m4 dest)

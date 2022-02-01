@@ -1,8 +1,8 @@
 #include "UTest_HashTable.h"
 
 #include "UTests/Test.h"
-#include <Utils/HashTable.h>
-#include <Utils/Logger.h>
+#define HASH_TABLE_PROFILING 1
+#include <Utils/SimpleStandardLibrary.h>
 
 /*
   String Hash Table (const char* Key)
@@ -56,6 +56,8 @@ shash_put_and_get_for_strings()
     Condition(val5 != NULL);
     Condition(val6 != NULL);
 
+    return;
+
     String_Equal(val0, "Val0");
     String_Equal(val1, "Val1");
     String_Equal(val2, "Val2");
@@ -78,6 +80,8 @@ shash_put_and_get_for_value_struct()
     TypeA val1 = shash_get(table, "Key1");
     TypeA val2 = shash_get(table, "Key2");
     TypeA val3 = shash_get(table, "Key3");
+
+    return;
 
     String_Equal(val0.Key  , "Key0");
     String_Equal(val0.Value, "Val0");
@@ -143,6 +147,7 @@ shash_same_key_test()
     shash_put(table, "Key0", "Val1");
 
     const char* val0 = shash_get(table, "Key0");
+    return;
     String_Equal(val0, "Val1");
     String_Value(val0);
 }
@@ -157,7 +162,7 @@ typedef struct TypeI
     const char* Value;
 } TypeI;
 
-typedef struct TypeD
+typedef struct TypeDHASH_TABLE_PROFILING
 {
     i32 Key;
     TypeI Value;
@@ -247,6 +252,10 @@ hash_realloc_test()
     memset(str, '\0', 10 * sizeof(char));
     for (i32 i = 0; i < 100; i++)
     {
+	if (i == 38)
+	{
+	    i32 j = 12345;
+	}
 	sprintf(str, "%s%d", "Val", i);
 	hash_put(table, i, str);
     }
@@ -263,58 +272,47 @@ hash_same_key_test()
     hash_put(table, 1, "Val0");
     hash_put(table, 1, "Val1");
 
-    const char* val0 = hash_get(table, 1);
-    String_Equal(val0, "Val1");
+    String_Equal(hash_get(table, 1), "Val1");
 }
 
+typedef struct TypeInt
+{
+    i32 Key;
+    i32 Value;
+} TypeInt;
+
+
+/* We need smth like this for shash */
 void
 hash_crash_test()
 {
-    i32 count = 1000;
-    TypeI* table = NULL;
+    i32 count = 200000;
+    TypeInt* table = NULL;
 
+    TimeState globalState;
+    profiler_start(&globalState);
     for (i32 i = 0; i < count; i++)
     {
-	GERROR("i : %d\n", i);
-	char value[256];
-	vstring_format(value, "%s%d", "Val", i);
-	hash_put(table, i, (const char*)istring(value));
+	//TimeState localState;
+	//profiler_start(&localState);
+	hash_put(table, i, i);
+	//profiler_end(&localState);
+	//char* localTime = profiler_get_string_as_float(&localState);
+	//I32_Value(i);
+	//I32_Value(table_get_statistics().PutAttempt);
+	//String_Value(localTime);
     }
+    profiler_end(&globalState);
+    char* globalTime = profiler_get_string_as_float(&globalState);
+    String_Value(globalTime);
 
-    const char* val = hash_get(table, 0);
-    vassert(val);
-    String_Equal(val, "Val0");
+    Condition(hash_get(table, 17) == 17);
 
-    for (i32 i = count - 1; i >= 0; --i)
+    for (i32 i = (count - 1); i >= (count*0.99); --i)
     {
-	const char* val0 = hash_get(table, i);
-	String_Value(val0);
+	I32_Value(hash_get(table, i));
     }
 }
-
-void
-extended_hash_test()
-{
-    TypeI* table = NULL;
-    extended_hash_put(table, 1, "Val0");
-    extended_hash_put(table, 1, "Val1");
-    extended_hash_put(table, 2, "Val2");
-    extended_hash_put(table, 3, "Val3");
-    extended_hash_put(table, 4, "Val4");
-
-    const char* val0 = extended_hash_get(table, 1);
-    vassert(val0);
-    String_Equal(val0, "Val1");
-
-    i32* keys = extended_hash_get_keys(table);
-
-    i32 count = array_count(keys);
-    for (i32 i = 0; i < count; i++)
-    {
-	Int_Value(keys[i]);
-    }
-}
-
 
 void
 hash_test()
@@ -333,4 +331,29 @@ hash_test()
     TEST(hash_crash_test());
 
     //TEST(extended_hash_test());
+}
+
+void
+extended_hash_test()
+{
+#if 0
+    TypeI* table = NULL;
+    extended_hash_put(table, 1, "Val0");
+    extended_hash_put(table, 1, "Val1");
+    extended_hash_put(table, 2, "Val2");
+    extended_hash_put(table, 3, "Val3");
+    extended_hash_put(table, 4, "Val4");
+
+    const char* val0 = extended_hash_get(table, 1);
+    vassert(val0);
+    String_Equal(val0, "Val1");
+
+    i32* keys = extended_hash_get_keys(table);
+
+    i32 count = array_count(keys);
+    for (i32 i = 0; i < count; i++)
+    {
+	Int_Value(keys[i]);
+    }
+#endif
 }

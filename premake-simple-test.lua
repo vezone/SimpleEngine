@@ -62,11 +62,11 @@ project "Engine"
       defines { "WINDOWS_PLATFORM" }
 
     filter "configurations:Debug"
-      defines { "ENGINE_DEBUG", "ENGINE_TEST" }
+      defines { "ENGINE_DEBUG", "ENGINE_TEST", "HASH_TABLE_PROFILING=1" }
       symbols "On"
 
     filter "configurations:Release"
-      defines { "ENGINE_RELEASE", "ENGINE_TEST" }
+      defines { "ENGINE_RELEASE", "ENGINE_TEST", "HASH_TABLE_PROFILING=1" }
       buildoptions { "-O3" }
       optimize "On"
 
@@ -115,7 +115,8 @@ project "SimpleTest"
       defines
       {
 	 "ENGINE_DEBUG",
-	 "ENGINE_TEST"
+	 "ENGINE_TEST",
+	 "HASH_TABLE_PROFILING=1"
       }
       symbols "On"
 
@@ -123,7 +124,8 @@ project "SimpleTest"
       defines
       {
 	 "ENGINE_RELEASE",
-	 "ENGINE_TEST"
+	 "ENGINE_TEST",
+	 "HASH_TABLE_PROFILING=1"
       }
       buildoptions { "-O3" }
       optimize "On"

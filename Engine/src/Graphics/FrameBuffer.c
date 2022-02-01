@@ -2,8 +2,6 @@
 #include <glad/glad.h>
 #include <assert.h>
 #include <stdlib.h>
-#include "Utils/Logger.h"
-#include "Utils/Array.h"
 
 force_inline GLint
 framebuffer_format_to_opengl(FrameBufferType type)
@@ -58,8 +56,6 @@ opengl_format_to_type(GLint format)
     return 0;
 }
 
-#include "Utils/HashTable.h"
-#include "Utils/Logger.h"
 struct { const char* Key; i32 Value; }* g_DebugTable;
 #define REGISTER_FORMAT(f) shash_put((g_DebugTable), #f, (f))
 #define GET_FORMAT(f)
@@ -137,7 +133,7 @@ framebuffer_invalidate(FrameBuffer* framebuffer, u32 width, u32 height)
     {
 	FrameBufferType attachmentType = framebuffer->ColorAttachmentTypes[i];
 	glBindTexture(GL_TEXTURE_2D, framebuffer->ColorAttachments[i]);
-	I32P(framebuffer->ColorAttachments[i]);
+	//I32P(framebuffer->ColorAttachments[i]);
 
 	switch (attachmentType)
 	{
